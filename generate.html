@@ -59,13 +59,11 @@
 
     const MIN_WORDS = 80;
 
-    // 초기 버튼 상태: 비활성 & 회색
     generateBtn.disabled         = true;
     generateBtn.style.background = '#ccc';
     generateBtn.style.color      = '#666';
     generateBtn.textContent      = `영어 지문 ${MIN_WORDS}단어 이상 입력하세요`;
 
-    // 툴팁 설정
     const tooltip = document.getElementById('tooltip');
     document.querySelectorAll('#type-buttons button[data-type="주장"]').forEach(btn => {
       btn.addEventListener('mouseenter', () => {
@@ -77,27 +75,21 @@
       });
     });
 
-    // 유형 버튼 토글
     document.querySelectorAll('#type-buttons button').forEach(button => {
       button.addEventListener('click', () => {
         button.classList.toggle('active');
       });
     });
 
-    // 옵션 토글 버튼
     expBtn.addEventListener('click', () => expBtn.classList.toggle('active'));
     hardBtn.addEventListener('click', () => hardBtn.classList.toggle('active'));
     mobileBtn.addEventListener('click', () => mobileBtn.classList.toggle('active'));
 
-    // 영어 지문 판별 함수
     function isEnglishText(text) {
-      // 한글 음절/자모가 포함되면 false
       if (/[ㄱ-ㆎ가-힣]/.test(text)) return false;
-      // 영어 알파벳이 하나라도 있어야 true
       return /[A-Za-z]/.test(text);
     }
 
-    // 입력 이벤트: 단어 수 체크 및 버튼 활성화 토글
     textarea.addEventListener('input', () => {
       let words = textarea.value.trim().split(/\s+/).filter(w => w);
       if (words.length > 300) {
@@ -107,7 +99,6 @@
       }
       counter.textContent = `${words.length}/300단어`;
 
-      // 활성화 조건: 영어 지문 + 최소 단어 수
       if (isEnglishText(textarea.value) && words.length >= MIN_WORDS) {
         generateBtn.disabled         = false;
         generateBtn.style.background = '#333';
@@ -121,10 +112,8 @@
       }
     });
 
-    // 초기 상태 반영
     textarea.dispatchEvent(new Event('input'));
 
-    // 생성 버튼 클릭
     generateBtn.addEventListener('click', () => {
       const passage       = textarea.value.trim();
       const selectedTypes = Array.from(document.querySelectorAll('#type-buttons button.active'))

@@ -4,25 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>문제 결과</title>
-    <style>
-    body {      margin: 0;      font-family: times new roman;      background: #ccc;    }
-
-    .page-container {      display: flex;      flex-direction: column;      align-items: center;      justify-content: center;      width: 100vw;    }
-
-    .page-wrapper {      display: flex;      flex-direction: column;      align-items: center;    }
-
-    .page {      width: 794px;      height: 1123px;      background: white;      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-      margin: 20px 0;      padding: 40px;      box-sizing: border-box;      display: flex;      flex-direction: column;      gap: 20px;
-    }
-
-    .column-container {      display: flex;      flex-direction: row;      gap: 40px;      flex: 1;    }
-
-    .column {      flex: 1;      display: flex;      flex-direction: column;      gap: 20px;    }
-
-    .question-item {      border-bottom: 1px solid #ddd;      padding-bottom: 10px;    }
- 
- </style>
-
+  <style>
+   </style>
 </head>
 <body>
   <div class="page-container">
@@ -35,18 +18,18 @@
 
   <script type="module">
     const typeMap = {
-      주장:    { file: 'clm', fn: 'generateClaimQuestion' },
-      요지:    { file: 'mni', fn: 'generateMniQuestion' },
-      주제:    { file: 'top', fn: 'generateTopQuestion' },
-      제목:    { file: 'tit', fn: 'generateTitQuestion' },
-      요약:    { file: 'sum', fn: 'generateSumQuestion' },
-      불일치:  { file: 'mis', fn: 'generateMisQuestion' },
-      흐름:    { file: 'flo', fn: 'generateFloQuestion' },
-      순서:    { file: 'ord', fn: 'generateOrdQuestion' },
-      삽입:    { file: 'ins', fn: 'generateInsQuestion' },
-      빈칸:    { file: 'bln', fn: 'generateBlnQuestion' },
-      어법:    { file: 'grm', fn: 'generateGrmQuestion' },
-      어휘:    { file: 'voc', fn: 'generateVocQuestion' },
+      주장: { file: 'clm', fn: 'generateClaimQuestion' },
+      요지: { file: 'mni', fn: 'generateMniQuestion' },
+      주제: { file: 'top', fn: 'generateTopQuestion' },
+      제목: { file: 'tit', fn: 'generateTitQuestion' },
+      요약: { file: 'sum', fn: 'generateSumQuestion' },
+      불일치: { file: 'mis', fn: 'generateMisQuestion' },
+      흐름: { file: 'flo', fn: 'generateFloQuestion' },
+      순서: { file: 'ord', fn: 'generateOrdQuestion' },
+      삽입: { file: 'ins', fn: 'generateInsQuestion' },
+      빈칸: { file: 'bln', fn: 'generateBlnQuestion' },
+      어법: { file: 'grm', fn: 'generateGrmQuestion' },
+      어휘: { file: 'voc', fn: 'generateVocQuestion' },
       '어휘(상)': { file: 'voca', fn: 'generateVocaQuestion' },
       함축의미: { file: 'imp', fn: 'generateImpQuestion' }
     };
@@ -65,88 +48,79 @@
     const answersContainer = document.getElementById('answers');
     const explanationsContainer = document.getElementById('explanations');
 
-async function loadAll() {
-  const questionsData = [];
+    async function loadAll() {
+      const questionsData = [];
 
-  // 1. 문제 유형(localStorage) 확인
-  console.log('[디버그] types:', types);
+      console.log('[디버그] types:', types);
 
-  if (!types || types.length === 0) {
-    console.warn('[경고] types 배열이 비어 있음. 문제 생성 요청을 생략합니다.');
-  }
-
-  for (const type of types) {
-    const map = typeMap[type];
-    if (!map) {
-      console.warn(`[경고] typeMap에 '${type}' 없음`);
-      continue;
-    }
-
-    try {
-      console.log(`[요청] /api/${map.file} (유형: ${type})`);
-      const response = await fetch(`/api/${map.file}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passage })
-      });
-
-      if (!response.ok) {
-        console.error(`[에러] ${type} 요청 실패 (status: ${response.status})`);
-        continue;
+      if (!types || types.length === 0) {
+        console.warn('[경고] types 배열이 비어 있음. 문제 생성 요청을 생략합니다.');
       }
 
-      const q = await response.json();
-      console.log(`[성공] ${type} 응답:`, q);
+      for (const type of types) {
+        const map = typeMap[type];
+        if (!map) {
+          console.warn(`[경고] typeMap에 '${type}' 없음`);
+          continue;
+        }
 
-      // 필수 필드 존재 여부 확인
-      if (!q.prompt || !q.body) {
-        console.warn(`[경고] ${type} 응답에 prompt 또는 body 누락됨`);
+        try {
+          console.log(`[요청] /api/${map.file} (유형: ${type})`);
+          const response = await fetch(`/api/${map.file}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ passage })
+          });
+
+          if (!response.ok) {
+            console.error(`[에러] ${type} 요청 실패 (status: ${response.status})`);
+            continue;
+          }
+
+          const q = await response.json();
+          console.log(`[성공] ${type} 응답:`, q);
+
+          if (!q.prompt || !q.body) {
+            console.warn(`[경고] ${type} 응답에 prompt 또는 body 누락됨`);
+          }
+
+          questionsData.push(q);
+
+        } catch (e) {
+          console.error(`[예외] ${type} 문항 로드 중 오류:`, e);
+        }
       }
 
-      questionsData.push(q);
+      console.log('[디버그] 최종 questionsData:', questionsData);
 
-    } catch (e) {
-      console.error(`[예외] ${type} 문항 로드 중 오류:`, e);
+      questionsContainer.innerHTML = questionsData.map((q, i) => `
+        <div class="question-item">
+          <strong>${i + 1}. ${q.prompt}</strong>
+          ${q.body}
+        </div>
+      `).join('');
+
+      answersContainer.innerHTML = questionsData.map((q, i) => `
+        <div class="question-item">
+          <strong>${i + 1}번 정답:</strong> ${q.answer}
+        </div>
+      `).join('');
+
+      if (withExplanation) {
+        explanationsContainer.innerHTML = questionsData.map((q, i) => `
+          <div class="question-item">
+            <strong>${i + 1}번 해설:</strong> ${q.explanation}
+          </div>
+        `).join('');
+      }
+
+      console.log('[디버그] mobileOutput:', mobileOutput);
+      document.body.classList.toggle('paper', !mobileOutput);
     }
-  }
 
-  // 2. 최종 데이터 확인
-  console.log('[디버그] 최종 questionsData:', questionsData);
-
-  // 3. 질문 섹션 출력
-  questionsContainer.innerHTML = questionsData.map((q, i) => `
-    <div class="question-item">
-      <strong>${i + 1}. ${q.prompt}</strong>
-      ${q.body}
-    </div>
-  `).join('');
-
-  // 4. 정답 섹션 출력
-  answersContainer.innerHTML = questionsData.map((q, i) => `
-    <div class="question-item">
-      <strong>${i + 1}번 정답:</strong> ${q.answer}
-    </div>
-  `).join('');
-
-  // 5. 해설 섹션 출력 (옵션)
-  if (withExplanation) {
-    explanationsContainer.innerHTML = questionsData.map((q, i) => `
-      <div class="question-item">
-        <strong>${i + 1}번 해설:</strong> ${q.explanation}
-      </div>
-    `).join('');
-  }
-
-  // 6. 클래스 적용 여부
-  console.log('[디버그] mobileOutput:', mobileOutput);
-  document.body.classList.toggle('paper', !mobileOutput);
-}
-
-
-loadAll().then(() => {
-  document.body.classList.toggle('paper', !mobileOutput);
-});
-
+    loadAll().then(() => {
+      document.body.classList.toggle('paper', !mobileOutput);
+    });
   </script>
 </body>
 </html>
