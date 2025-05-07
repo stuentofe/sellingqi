@@ -132,7 +132,7 @@ async function loadAll() {
   if (withExplanation) {
     explanationsContainer.innerHTML = questionsData.map((q, i) => `
       <div class="question-item">
-        <strong>${i + 1}번 해설:</strong> ${q.explanation}</strong>
+        <strong>${i + 1}번 해설:</strong> ${q.explanation}
       </div>
     `).join('');
   }
