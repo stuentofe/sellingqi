@@ -101,29 +101,30 @@
     const answersContainer = document.getElementById('answers');
     const explanationsContainer = document.getElementById('explanations');
 
-    async function loadAll() {
-      const questionsData = [];
+async function loadAll() {
+  const questionsData = [];
 
-      for (const type of types) {
-        const map = typeMap[type];
-        if (!map) continue;
+  for (const type of types) {
+    const map = typeMap[type];
+    if (!map) continue;
 
-        try {
-          const response = await fetch(`/api/${map.file}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ passage })
-          });
-          const q = await response.json();
-          questionsData.push(q);
-        } catch (e) {
-          console.error('문항 로드 실패:', type, e);
-        }
-      }
-}
-    loadAll().then(() => {
-      document.body.classList.toggle('paper', !mobileOutput);
-    });
+    try {
+      const response = await fetch(`/api/${map.file}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passage })
+      });
+      const q = await response.json();
+      questionsData.push(q);
+    } catch (e) {
+      console.error('문항 로드 실패:', type, e);
+    }
+  }
+} // ✅ 이 중괄호가 반드시 필요해!
+
+loadAll().then(() => {
+  document.body.classList.toggle('paper', !mobileOutput);
+});
 
   </script>
 </body>
