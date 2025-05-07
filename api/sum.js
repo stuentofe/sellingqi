@@ -47,21 +47,22 @@ async function generateSumQuestion(passage) {
 
   // (A) 정답 후보 + 오답 4개 정렬
   const allOptions = [
-    { text: c1, label: '정답' },
-    { text: w1, label: 'w1' },
-    { text: x1, label: 'x1' },
-    { text: y1, label: 'y1' },
-    { text: z1, label: 'z1' },
-  ];
+  { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
+  { text: `${w1}, ${w2}`, key: 'w', len: w1.length + w2.length },
+  { text: `${x1}, ${x2}`, key: 'x', len: x1.length + x2.length },
+  { text: `${y1}, ${y2}`, key: 'y', len: y1.length + y2.length },
+  { text: `${z1}, ${z2}`, key: 'z', len: z1.length + z2.length },
+];
 
-  allOptions.sort((a, b) => a.text.length - b.text.length);
+allOptions.sort((a, b) => a.len - b.len);
 
-  const choices = allOptions.map((opt, idx) => ({
-    no: ['①', '②', '③', '④', '⑤'][idx],
-    text: opt.text,
-  }));
+const choices = allOptions.map((opt, idx) => ({
+  no: ['①', '②', '③', '④', '⑤'][idx],
+  text: opt.text,
+}));
 
-  const correct = choices.find(choice => choice.text === c1)?.no || '①';
+const correct = choices.find(choice => choice.text === `${c1}, ${c2}`)?.no || '①';
+
 
   // s3는 여기서 정의돼야 body에서 사용할 수 있음
   const s3 = s2.replace(/\(A\)/g, '<u>___(A)___</u>').replace(/\(B\)/g, '<u>___(B)___</u>');
