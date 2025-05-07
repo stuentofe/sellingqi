@@ -121,8 +121,7 @@ async function loadAll() {
     }
   }
 
-
-questionsContainer.innerHTML = questionsData.map((q, i) => `
+  questionsContainer.innerHTML = questionsData.map((q, i) => `
     <div class="question-item">
       <strong>${i + 1}. ${q.prompt}</strong>
       ${q.body}
