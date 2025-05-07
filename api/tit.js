@@ -55,7 +55,6 @@ export async function generateTitQuestion(passage) {
 
   // 4. 해설 생성 (const e만 GPT-4o 모델 사용)
   const e = (await fetchPrompt('tit8.txt', { p: finalPassage, c }, 'gpt-4o')).trim();
-  const f = (await fetchPrompt('tit9.txt', { p: finalPassage, c })).trim();
   const answerNum = labels[correctIndex];
   const josa = ['이','가','이','가','가'][correctIndex];
   const explanation = `${e} 따라서, 글의 제목은 ${answerNum}${josa} 가장 적절하다.`;
