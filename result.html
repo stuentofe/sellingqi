@@ -1,22 +1,31 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>문제 결과</title>
-  <style>
+   <style>
     body {
       margin: 0;
-      font-family: 'Times New Roman', serif;
+      font-family: times new roman;
       background: #ccc;
       font-size: 13px;
     }
+
     .page-container {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       width: 100vw;
     }
+
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
     .page {
       width: 794px;
       height: 1123px;
@@ -29,32 +38,36 @@
       flex-direction: column;
       gap: 20px;
     }
+
     .column-container {
       display: flex;
       flex-direction: row;
       gap: 40px;
       flex: 1;
     }
+
     .column {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
+
     .question-item {
       border-bottom: 1px solid #ddd;
       padding-bottom: 10px;
     }
   </style>
+
 </head>
 <body>
   <div class="page-container">
-    <div class="page" id="questions"></div>
-    <div class="page-break"></div>
-    <div class="page" id="answers"></div>
-    <div class="page-break"></div>
-    <div class="page" id="explanations"></div>
+    <div class="page-wrapper" id="questions"></div>
   </div>
+  <div class="page-break"></div>
+  <div class="page" id="answers"></div>
+  <div class="page-break"></div>
+  <div class="page" id="explanations"></div>
 
   <script type="module">
     const typeMap = {
@@ -89,24 +102,30 @@
     const explanationsContainer = document.getElementById('explanations');
 
     async function loadAll() {
-      const questionsData = [];
+  const questionsData = [];
 
-      for (const type of types) {
-        const map = typeMap[type];
-        if (!map) continue;
+  for (const type of types) {
+    const map = typeMap[type];
+    if (!map) continue;
 
-        try {
-          const response = await fetch(`/api/${map.file}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ passage })
-          });
-          const q = await response.json();
-          questionsData.push(q);
-        } catch (e) {
-          console.error('문항 로드 실패:', type, e);
-        }
-      }
+    try {
+      const response = await fetch(`/api/${map.file}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passage })
+      });
+
+      const q = await response.json();
+      questionsData.push(q);
+
+    } catch (e) {
+      console.error('문항 로드 실패:', type, e);
+    }
+  }
+
+  // 이후 questionsData 출력 로직은 그대로
+}
+
 
       for (let i = 0; i < questionsData.length; i += 4) {
         const pageDiv = document.createElement('div');
