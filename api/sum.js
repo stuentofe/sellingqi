@@ -67,15 +67,24 @@ const correct = choices.find(choice => choice.text === `${c1}, ${c2}`)?.no || '�
   // s3는 여기서 정의돼야 body에서 사용할 수 있음
   const s3 = s2.replace(/\(A\)/g, '<u>___(A)___</u>').replace(/\(B\)/g, '<u>___(B)___</u>');
 
-  // HTML 구성
-  const body = `
-    <div class="box"><p>${p}</p></div>
-    <p style="text-align:center">↓</p>
-    <div class="box"><p>${s3}</p></div>
-    <ul>
-      ${choices.map(choice => `<li>${choice.no} ${choice.text}</li>`).join('\n')}
-    </ul>
-  `;
+const dot = '\u2026\u2026'; // 가운뎃점 2개
+const headerLine = `     (A)          (B)`; // (B) 앞 공백 10칸
+
+const choiceLines = choices.map(choice => {
+  const [a, b] = choice.text.split(',').map(s => s.trim());
+  return `${choice.no} ${a}${dot}${b}`;
+}).join('\n');
+
+const body = `
+  <div class="box"><p>${p}</p></div>
+  <p style="text-align:center">↓</p>
+  <div class="box"><p>${s3}</p></div>
+  <pre>
+${headerLine}
+${choiceLines}
+  </pre>
+`;
+
 
   // 3단계: 해설 구성
   const e1raw = await fetchPrompt('sum3.txt', { p, s: s2, c });
