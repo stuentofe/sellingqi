@@ -3,6 +3,25 @@
 import fs from 'fs/promises';
 import path from 'path';
 
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { passage } = req.body;
+  if (!passage || typeof passage !== 'string') {
+    return res.status(400).json({ error: 'Invalid or missing passage' });
+  }
+
+  try {
+    const result = await generateTopQuestion(passage);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('top API error:', error);
+    res.status(500).json({ error: 'Failed to generate topic question' });
+  }
+}
+
 export async function generateTopQuestion(passage) {
   if (!passage) {
     throw new Error('지문이 없습니다.');
@@ -19,7 +38,6 @@ export async function generateTopQuestion(passage) {
 
   // 3. 선택지 생성 (const c만 GPT-4o 모델 사용)
   const c = (await fetchPrompt('top3.txt', { p: finalPassage }, 'gpt-4o')).trim();
-  // 오답 4개를 하나의 프롬프트로 생성하고 개행으로 구분
   const wrongRaw = (await fetchPrompt('top4.txt', { p: finalPassage, c }, 'gpt-4o')).trim();
   const wrongOptions = wrongRaw
     .split('\n')
@@ -27,11 +45,12 @@ export async function generateTopQuestion(passage) {
     .filter(opt => opt)
     .slice(0, 4);
 
-  // 정답 + 오답 배열 구성
   const options = [c, ...wrongOptions];
   const sorted = [...options].sort((a, b) => a.length - b.length);
   const labels = ['①','②','③','④','⑤'];
-  const correctIndex = sorted.findIndex(opt => opt === c);
+  const correctIndex = sorted.findIndex(opt => opt.trim() === c.trim());
+  if (correctIndex === -1) throw new Error('정답 위치를 찾을 수 없습니다.');
+
   const optionItems = sorted.map((opt, i) => ({ label: labels[i], text: opt }));
 
   // 4. 해설 생성 (const e만 GPT-4o 모델 사용)

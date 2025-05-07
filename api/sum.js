@@ -12,6 +12,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
 
+
+
+
   try {
     const result = await generateSumQuestion(passage);
     res.status(200).json(result);

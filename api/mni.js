@@ -3,6 +3,25 @@
 import fs from 'fs/promises';
 import path from 'path';
 
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { passage } = req.body;
+  if (!passage || typeof passage !== 'string') {
+    return res.status(400).json({ error: 'Invalid or missing passage' });
+  }
+
+  try {
+    const result = await generateMniQuestion(passage);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('mni API error:', error);
+    res.status(500).json({ error: 'Failed to generate main idea question' });
+  }
+}
+
 export async function generateMniQuestion(passage) {
   if (!passage) {
     throw new Error('지문이 없습니다.');
@@ -27,7 +46,9 @@ export async function generateMniQuestion(passage) {
   const options = [c, w, x, y, z];
   const sorted = [...options].sort((a, b) => a.length - b.length);
   const labels = ['①','②','③','④','⑤'];
-  const correctIndex = sorted.findIndex(opt => opt === c);
+  const correctIndex = sorted.findIndex(opt => opt.trim() === c.trim());
+  if (correctIndex === -1) throw new Error('정답 위치를 찾을 수 없습니다.');
+
   const optionItems = sorted.map((opt, i) => ({ label: labels[i], text: opt }));
 
   // 4. 해설 생성
