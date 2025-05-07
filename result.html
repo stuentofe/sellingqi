@@ -101,24 +101,29 @@
     const explanationsContainer = document.getElementById('explanations');
 
     async function loadAll() {
-      const questionsData = [];
-      for (const type of types) {
-  const map = typeMap[type];
-  if (!map) continue;
+  const questionsData = [];
 
-  try {
-    const response = await fetch(`/api/${map.file}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passage })
-    });
-    const q = await response.json();
-    questionsData.push(q);
-  } catch (e) {
-    console.error('문항 로드 실패:', type, e);
+  for (const type of types) {
+    const map = typeMap[type];
+    if (!map) continue;
+
+    try {
+      const response = await fetch(`/api/${map.file}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passage })
+      });
+
+      const q = await response.json();
+      questionsData.push(q);
+
+    } catch (e) {
+      console.error('문항 로드 실패:', type, e);
+    }
   }
-}
 
+  // 이후 questionsData 출력 로직은 그대로
+}
 
       for (let i = 0; i < questionsData.length; i += 4) {
         const pageDiv = document.createElement('div');
