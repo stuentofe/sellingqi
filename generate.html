@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>generate</title>
+  <style>
+    body { margin: 20px; font-family: sans-serif; }
+    textarea, button { font-family: sans-serif; }
+    #options { display:flex; gap:10px; margin:16px 0; }
+    .toggle-btn { padding: 8px 12px; border: 1px solid #ccc; background: #f0f0f0; cursor: pointer; }
+    #type-buttons button.active,
+    .toggle-btn.active { background: #333; color: #fff; }
+    #generate { transition: background 0.3s, color 0.3s, opacity 0.3s; }
+  </style>
+</head>
+<body>
+  <p class="instruction">* 지문 입력, 원하는 유형 선택 후, 설정을 조정하고 문항 생성하기 버튼을 눌러주세요.</p>
+
+  <div class="generator-wrapper" style="display:flex; gap:20px;">
+    <div style="flex:1; display:flex; flex-direction:column;">
+      <textarea id="passage" placeholder="여기에 영어 지문을 입력하세요"></textarea>
+      <div id="word-count">0/300단어</div>
+    </div>
+    <div id="type-buttons" style="display:flex; flex-direction:column; gap:8px; width:100px;">
+      <button data-type="주장" data-tooltip="주장하는 글이 아닌 것으로 판단될 경우 문항은 생성되지 않더라도 한 문항이 차감될 수 있습니다.">주장</button>
+      <button data-type="요지">요지</button>
+      <button data-type="주제">주제</button>
+      <button data-type="제목">제목</button>
+      <button data-type="요약">요약</button>
+      <button data-type="불일치">불일치</button>
+      <button data-type="흐름">흐름</button>
+      <button data-type="순서">순서</button>
+      <button data-type="삽입">삽입</button>
+      <button data-type="빈칸">빈칸</button>
+      <button data-type="어법">어법</button>
+      <button data-type="어휘">어휘</button>
+      <button data-type="어휘(상)">어휘(상)</button>
+      <button data-type="함축의미">함축의미</button>
+    </div>
+  </div>
+
+  <div id="options">
+    <button id="opt-explanation-btn" class="toggle-btn">해설</button>
+    <button id="opt-hard-btn" class="toggle-btn">어려움</button>
+    <button id="opt-mobile-btn" class="toggle-btn">모바일</button>
+  </div>
+
+  <button id="generate">문항 생성하기</button>
+  <div id="tooltip"></div>
+
+  <script>
+    const textarea    = document.getElementById('passage');
+    const generateBtn = document.getElementById('generate');
+    const counter     = document.getElementById('word-count');
+    const expBtn      = document.getElementById('opt-explanation-btn');
+    const hardBtn     = document.getElementById('opt-hard-btn');
+    const mobileBtn   = document.getElementById('opt-mobile-btn');
+
+    const MIN_WORDS = 80;
+
+    // 초기 버튼 상태: 비활성 & 회색
+    generateBtn.disabled         = true;
+    generateBtn.style.background = '#ccc';
+    generateBtn.style.color      = '#666';
+    generateBtn.textContent      = `영어 지문 ${MIN_WORDS}단어 이상 입력하세요`;
+
+    // 툴팁 설정
+    const tooltip = document.getElementById('tooltip');
+    document.querySelectorAll('#type-buttons button[data-type="주장"]').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        tooltip.textContent = btn.getAttribute('data-tooltip');
+        tooltip.style.display = 'block';
+      });
+      btn.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+      });
+    });
+
+    // 유형 버튼 토글
+    document.querySelectorAll('#type-buttons button').forEach(button => {
+      button.addEventListener('click', () => {
+        button.classList.toggle('active');
+      });
+    });
+
+    // 옵션 토글 버튼
+    expBtn.addEventListener('click', () => expBtn.classList.toggle('active'));
+    hardBtn.addEventListener('click', () => hardBtn.classList.toggle('active'));
+    mobileBtn.addEventListener('click', () => mobileBtn.classList.toggle('active'));
+
+    // 영어 지문 판별 함수
+    function isEnglishText(text) {
+      // 한글 음절/자모가 포함되면 false
+      if (/[ㄱ-ㆎ가-힣]/.test(text)) return false;
+      // 영어 알파벳이 하나라도 있어야 true
+      return /[A-Za-z]/.test(text);
+    }
+
+    // 입력 이벤트: 단어 수 체크 및 버튼 활성화 토글
+    textarea.addEventListener('input', () => {
+      let words = textarea.value.trim().split(/\s+/).filter(w => w);
+      if (words.length > 300) {
+        textarea.value = words.slice(0, 300).join(' ');
+        words = textarea.value.trim().split(/\s+/).filter(w => w);
+        alert('최대 300단어까지 입력 가능합니다.');
+      }
+      counter.textContent = `${words.length}/300단어`;
+
+      // 활성화 조건: 영어 지문 + 최소 단어 수
+      if (isEnglishText(textarea.value) && words.length >= MIN_WORDS) {
+        generateBtn.disabled         = false;
+        generateBtn.style.background = '#333';
+        generateBtn.style.color      = '#fff';
+        generateBtn.textContent      = '문항 생성하기';
+      } else {
+        generateBtn.disabled         = true;
+        generateBtn.style.background = '#ccc';
+        generateBtn.style.color      = '#666';
+        generateBtn.textContent      = `영어 지문 ${MIN_WORDS}단어 이상 입력하세요`;
+      }
+    });
+
+    // 초기 상태 반영
+    textarea.dispatchEvent(new Event('input'));
+
+    // 생성 버튼 클릭
+    generateBtn.addEventListener('click', () => {
+      const passage       = textarea.value.trim();
+      const selectedTypes = Array.from(document.querySelectorAll('#type-buttons button.active'))
+                              .map(btn => btn.getAttribute('data-type'));
+      const withExplanation = expBtn.classList.contains('active');
+      const hardLevel      = hardBtn.classList.contains('active');
+      const mobileOutput   = mobileBtn.classList.contains('active');
+
+      if (!passage) {
+        alert('지문을 입력해주세요.');
+        return;
+      }
+      if (selectedTypes.length === 0) {
+        alert('문제 유형을 하나 이상 선택하세요.');
+        return;
+      }
+
+      localStorage.setItem('passage', passage);
+      localStorage.setItem('types', JSON.stringify(selectedTypes));
+      localStorage.setItem('withExplanation', withExplanation);
+      localStorage.setItem('hardLevel', hardLevel);
+      localStorage.setItem('mobileOutput', mobileOutput);
+      window.location.href = 'result.html';
+    });
+  </script>
+</body>
+</html>

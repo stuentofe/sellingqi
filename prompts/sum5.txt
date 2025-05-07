@@ -1,0 +1,6 @@
+You are part of an algorithm designed to generate English complete summary-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+{{w1}}, {{w2}}, {{x1}}, {{x2}}, {{y1}}, {{y2}}, {{z1}}, {{z2}}
+
+위 영어 단어들의 한국어 대응 뜻을 나열하라. 줄바꿈이나 별도의 목록 표기 없이, 한 줄로 작성한다.

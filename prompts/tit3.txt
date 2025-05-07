@@ -1,0 +1,16 @@
+You are part of an algorithm designed to generate English best title-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Write the best title of the following passage. 단, 제목은 의문문, '제목: 부제', 감탄문, 명사구, 격언, 대조 등 다양한 양식 중에서 글에 어울리는 것으로 선택하여 10단어 이내로 쓴다. 답을 작성할 때에는 [예시]를 참고하여 대문자 사용 등 제목 양식에 맞게 쓴다.
+
+[Passage]
+{{p}}
+
+[예시]
+Are Selfies Just a Temporary Trend in Art History?
+Fantasy or Reality: Your Selfie Is Not the Real You
+The Selfie: A Symbol of Self-oriented Global Culture
+The End of Self-portraits: How Selfies Are Taking Over
+Selfies, the Latest Innovation in Representing Ourselves
+
+

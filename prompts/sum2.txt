@@ -1,0 +1,12 @@
+You are part of an algorithm designed to generate English complete summary-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+First, read the following. 다음은 5지선다 수능 영어 객관식 요약 문제를 만들기 위한 지문과 요약문, 그리고 (A), (B)에 들어갈 정답이다. (No answer is required in this step.)
+[지문]
+{{p}}
+[요약문]
+{{s2}}
+[정답]
+{{c}}
+
+Second, create four distractors(wrong answer choices). Since there are two blanks (A) and (B), each distractor must consist of a pair of words. When you output the distractor pairs, list the four pairs with only line breaks between them—no extra separators—using the same formatting as for the correct answer.

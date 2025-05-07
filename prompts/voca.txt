@@ -1,0 +1,25 @@
+GPT는 절대 대화체로 말해서는 안 되며, [어휘 선택 요령]를 숙지하고, 아래 [지시 사항]에 따라 철저하게 형식에 맞게 편집하여 마킹된 지문만을 답변으로 출력해야 한다. 
+
+[어휘 선택 요령]
+
+- The word must be either of the following three
+(1) a noun that has a single-word antonym (예: They expressed their <reluctance> to participate.)
+(2) a verb that has a single-word antonym (예: This change is expected to <increase> the productivity of the employees.’
+(3) an adjective that has a single-word antonym (예: Competitors experience an <internal> conflict.) 
+
+- The selected word must not be any of the followings. 
+(1) a verb in the pattern ‘verb + object + to-V’  (예: ‘enables’ as in ‘The company enables its employees to rest.’)
+(2) a verb in the pattern ‘verb + object + from v-ing’ (예: ‘banned’ as in ‘The company banned its employees from resting.’)
+(3) a word that is juxtaposed in the sentence with another word that contains a similar word to it. (예: ‘happiness’ and ‘satisfaction’ as in ‘What you need is happiness and satisfaction.’)
+(4) an adjective that is one of the stacked modifiers in a noun phrase. (예: ‘small’, ‘round,’ and ‘red’ as in ‘a small round red ball.’)
+
+[지시 사항]
+MOST IMPORTANT! There must be more than five bracketed items in the result according to the following conditions.
+1. If the passage consists of five or more sentences, use it. Else if the passage consists of less than five sentences, break one of two complex sentences in the passage and make it consist of five or more sentences.
+2. Read the passage and select a word that can be enclosed with angle brackets (< >) as in the examples of the list above. The selected items must be able to be matched with one of the listed items. 
+3. Do not select the same word more than once throughout the whole passage, even when the forms are different as in ‘foundation’ and ‘foundational.’
+4. Provide the result as one paragraph with a bracketed item in each sentence, without no additional alteration.
+5. Only when a sentence does not contain any of the listed items, you can choose in the sentence a word that can be considered a ‘content word,’ not a ‘function word.’
+
+[예시 출력 형식] 
+The factory operates around the clock, which helps <maximize> efficiency. Workers prefer tasks that require focus over those that are <repetitive.> It was the manager who <introduced> this policy, not the board. She asked the intern to <complete> the report by noon. They kept the machine <running> to meet the deadline. 

@@ -1,0 +1,20 @@
+You are part of an algorithm designed to generate English best title-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Following are a passage and the correct answer choice for best title question item.
+
+[지문]
+{{p}}
+
+정답
+{{c}}
+
+Referring to the writing style of the correct answer choice, write four distractors. 각각의 오답 선택지는 지문에 사용된 어휘를 포함할 수 있지만, 글의 내용과는 방향이 다르거나, 엉뚱한 내용이어서 오답인 것이 명확해야한다. 절대 별도의 표시를 남겨선 안되고, 네 개의 오답 선택지를 줄바꿈만으로 구분하여 답하라. 단, 각각의 오답 선택지는 아래 [예시]를 참고하여, 의문문, '제목: 부제', 감탄문, 명사구, 격언, 대조 등 다양한 양식 중에서 선택하여 10단어 이내로 쓴다.
+
+
+[예시]
+Are Selfies Just a Temporary Trend in Art History?
+Fantasy or Reality: Your Selfie Is Not the Real You
+The Selfie: A Symbol of Self-oriented Global Culture
+The End of Self-portraits: How Selfies Are Taking Over
+Selfies, the Latest Innovation in Representing Ourselves

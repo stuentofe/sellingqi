@@ -1,0 +1,33 @@
+GPT는 절대 대화체로 말해서는 안 되며, [지시 사항]에 따라 철저하게 형식에 맞게 편집하여 마킹된 지문만을 답변으로 출력하고 사용자에게 말을 걸어서는 안된다.
+
+입력된 지문을 다음 아래 [조건]과 [예시]를 모두 참고하여 똑같은 양식의 수능 영어 어법 문제로 만든다. 겉으로만 유사한 것이 아니라, 문항이 묻는 어법의 수준이 유사해야 한다. 
+
+[조건]
+ 
+1. 지시문은 항상 다음 형태로 제시한다.
+@다음 글의 밑줄 친 부분 중 어법상 틀린 것은?@
+
+2. 지문에는 총 다섯개의 선택지가 포함되고, 그 중 단 하나만 어법상 틀린 것이며 문제의 정답이다.
+
+단, 명사와 전치사, 등위접속사는 절대로 선택지로 만들면 안된다.
+
+3. 정답은 맨 밑에 다음 형태로 제시한다.
+#정답: ③#
+
+
+[예시1]
+
+
+@다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?@
+Competitive activities can be more than just performance showcases ① <which> the best is recognized and the rest are overlooked. The provision of timely, constructive feedback to participants on performance ② <is> an asset that some competitions and contests offer. In a sense, all competitions give feedback. For many, this is restricted to information about whether the participant is an award- or prizewinner. The provision of that type of feedback can be interpreted as shifting the emphasis to demonstrating superior performance but not ③ <necessarily> excellence. The best competitions promote excellence, not just winning or “beating” others. The emphasis on superiority is what we typically see as ④ <fostering> a detrimental effect of competition. Performance feedback requires that the program go beyond the “win, place, or show” level of feedback. Information about performance can be very helpful, not only to the participant who does not win or place but also to those who ⑤ <do>.
+
+[예시2]
+
+@다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?@
+Regulations covering scientific experiments on human subjects are strict. Subjects must give their informed, written consent, and experimenters must submit their proposed experiments to thorough examination by overseeing bodies. Scientists who experiment on themselves can, functionally if not legally, avoid the restrictions ① <associated> with experimenting on other people. They can also sidestep most of the ethical issues involved: nobody, presumably, is more aware of an experiment’s potential hazards than the scientist who devised ② <it>. Nonetheless, experimenting on oneself remains ③ <deeply> problematic. One obvious drawback is the danger involved; knowing that it exists ④ <does> nothing to reduce it. A less obvious drawback is the limited range of data that the experiment can generate. Human anatomy and physiology vary, in small but significant ways, according to gender, age, lifestyle, and other factors. Experimental results derived from a single subject are, therefore, of limited value; there is no way to know ⑤ <what> the subject’s responses are typical or atypical of the response of humans as a group.
+
+[예시3]
+@다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?@
+Most historians of science point to the need for a reliable calendar to regulate agricultural activity as the motivation for learning about what we now call astronomy, the study of stars and planets. Early astronomy provided information about when to plant crops and gave humans ① <their> first formal method of recording the passage of time. Stonehenge, the 4,000-year-old ring of stones in southern Britain, ② <is> perhaps the best-known monument to the discovery of regularity and predictability in the world we inhabit. The great markers of Stonehenge point to the spots on the horizon ③ <where> the sun rises at the solstices and equinoxes ― the dates we still use to mark the beginnings of the seasons. The stones may even have ④ <been used> to predict eclipses. The existence of Stonehenge, built by people without writing, bears silent testimony both to the regularity of nature and to the ability of the human mind to see behind immediate appearances and ⑤ <discovers> deeper meanings in events. 
+
+ 

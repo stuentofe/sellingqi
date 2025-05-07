@@ -1,0 +1,6 @@
+You are part of an algorithm designed to generate English main point-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+ 
+Since the following passage was not written to make a point, write a new passage based on the same topic. Write a new English passage in a persuasive tone. The passage should be approximately 120 words and clearly centered around the main point.
+
+{{p}}

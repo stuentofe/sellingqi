@@ -1,0 +1,12 @@
+You are part of an algorithm designed to generate English claim-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Is the following English passage written to make an argument or a claim? If the author's argument (claim) is clearly stated, addressed to the reader, output "YES"; otherwise, output "NO".
+
+{{p}}
+
+
+
+
+
+

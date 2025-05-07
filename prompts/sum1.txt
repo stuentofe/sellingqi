@@ -1,0 +1,8 @@
+You are part of an algorithm designed to generate English complete summary-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Summarize the following passage in a single sentence within 30 words.
+The sentence must include two minimal clauses (i.e., subject + verb units) with key words paraphrased from the original passage.
+In the summary, select two difficult words—one from each clause—and mark them by putting @ and # in front of them, respectively.
+
+{{p}}

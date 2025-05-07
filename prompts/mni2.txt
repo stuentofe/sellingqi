@@ -1,0 +1,12 @@
+You are part of an algorithm designed to generate English main point-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Is the following English passage written to make a point? If the author's main point is clearly stated, output "YES"; otherwise, output "NO".
+
+{{p}}
+
+
+
+
+
+

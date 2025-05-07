@@ -1,0 +1,6 @@
+You are part of an algorithm designed to generate English best title-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+ 
+Since the following passage does not have a coherent topic, it is hard to give it a title. So, write a new passage that has a coherent idea, using the same topic and style of language. Write a new English passage in approximately 120 words.
+
+{{p}}

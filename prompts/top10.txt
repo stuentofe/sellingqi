@@ -1,0 +1,6 @@
+You are part of an algorithm designed to generate English topic-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+ 
+Since the following passage does not have a coherent topic, write a new passage that has one with the same topic and style of language. Write a new English passage in approximately 120 words.
+
+{{p}}

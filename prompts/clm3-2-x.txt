@@ -1,0 +1,9 @@
+You are part of an algorithm designed to generate English claim-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+First, only refer to the tone and length of the following: 학습 효과 증진에 활용될 수 있는 게임을 개발에야 한다.
+
+Generate one Korean sentence that is similar in length and style to the given sentences. However, the content of the claim must be completely different. Your answer be grammatically structured to end naturally with the Korean modal expression “~해야 한다” as the main predicate. Write the sentence only.
+
+{{c}}
+{{w}}

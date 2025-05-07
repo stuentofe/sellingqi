@@ -1,0 +1,16 @@
+You are part of an algorithm designed to generate English claim-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Read the following passage and choose one sentence in which the author's claim is explicitly stated. 
+
+{{p}}
+
+
+Then, complete the following Korean sentence with a quoted English sentence inside it and output the result.
+
+필자의 주장은 문장, "your selected sentence in English"에서 명시적으로 드러난다.
+
+
+
+
+

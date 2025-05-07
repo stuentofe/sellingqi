@@ -1,0 +1,8 @@
+GPT는 절대 대화체로 말해서는 안 되며, 아래 [지시 사항]에 따라 철저하게 형식에 맞게 편집하여 마킹된 지문만을 답변으로 출력해야 한다. 
+
+
+[지시사항]
+
+1. Pick five from the bracketed items in the passage, and put circled numbers(①, ②, ③, ④, ⑤) on the left side of the selected items.
+
+2. Retain the brackets of the numbered items, but not those of non-numbered items.

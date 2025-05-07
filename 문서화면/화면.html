@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      margin: 0;
+      background: #ccc;
+      overflow: hidden;
+    }
+    .page-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .page-wrapper {
+      display: flex;
+      transition: transform 0.4s ease-in-out;
+    }
+    .page {
+      width: 794px;
+      height: 1123px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      margin: 0 20px;
+      flex-shrink: 0;
+      padding: 40px;
+      box-sizing: border-box;
+      overflow: hidden;
+      white-space: pre-wrap;
+    }
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 30px;
+      background: rgba(255,255,255,0.6);
+      border: none;
+      cursor: pointer;
+      z-index: 10;
+      padding: 10px;
+    }
+    .prev { left: 10px; }
+    .next { right: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="page-container">
+  <button class="nav-button prev" onclick="prevPage()">←</button>
+  <div class="page-wrapper" id="pages"></div>
+  <button class="nav-button next" onclick="nextPage()">→</button>
+</div>
+
+<script>
+  let currentPage = 0;
+  const pageWidth = 834;
+  const wrapper = document.getElementById("pages");
+
+  function updateView() {
+    wrapper.style.transform = `translateX(-${currentPage * pageWidth}px)`;
+  }
+
+  function prevPage() {
+    if (currentPage > 0) {
+      currentPage--;
+      updateView();
+    }
+  }
+
+  function nextPage() {
+    if (currentPage < wrapper.children.length - 1) {
+      currentPage++;
+      updateView();
+    }
+  }
+
+  function autoSplitPages(text) {
+    const lines = text.split('\n');
+    const temp = document.createElement('div');
+    temp.className = 'page';
+    temp.style.visibility = 'hidden';
+    document.body.appendChild(temp);
+
+    let pageText = '';
+    let resultPages = [];
+
+    for (let line of lines) {
+      temp.innerText = pageText + '\n' + line;
+      if (temp.scrollHeight > temp.clientHeight) {
+        resultPages.push(pageText.trim());
+        pageText = line;
+      } else {
+        pageText += '\n' + line;
+      }
+    }
+
+    resultPages.push(pageText.trim());
+    document.body.removeChild(temp);
+
+    wrapper.innerHTML = '';
+    for (let page of resultPages) {
+      const div = document.createElement('div');
+      div.className = 'page';
+      div.innerText = page;
+      wrapper.appendChild(div);
+    }
+
+    updateView();
+  }
+
+  // 📁 실제 txt 불러오기
+  fetch('test5.txt')
+    .then(res => res.text())
+    .then(text => autoSplitPages(text));
+</script>
+
+</body>
+</html>

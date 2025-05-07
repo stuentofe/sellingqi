@@ -1,0 +1,14 @@
+You are part of an algorithm designed to generate English main point-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Identify the main point of the following passage accurately, and write the best summary of the point as a correct answer choice in Korean, within 20 syllables.
+답변 방식은 다음 예시의 스타일만을 참고한다. 
+
+예시)
+집단 구성원 간 갈등 해소를 위해 감정 조절이 중요하다.
+감정 이해 능력은 집단 내 원활한 소통과 협력을 촉진한다.
+타인에 대한 공감 능력은 자신의 감정 표현 능력을 향상한다.
+감정 관련 어휘에 대한 지식은 공감 능력 발달의 기반이 된다.
+자신의 감정 상태에 대한 이해는 사회성 함양에 필수적 요소이다
+
+{{p}}

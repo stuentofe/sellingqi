@@ -1,0 +1,10 @@
+You are part of an algorithm designed to generate English topic-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Read the following passage find one sentence in which the author's main idea is explicitly stated, and write it with quotation marks.
+
+{{p}}
+
+
+
+

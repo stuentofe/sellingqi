@@ -1,0 +1,17 @@
+You are part of an algorithm designed to generate English topic-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Following are a passage and the correct choice and wrong choices for topic question item. 
+
+[지문]
+{{p}}
+
+정답
+{{c}}
+
+오답
+{{w}}
+{{x}}
+{{y}}
+
+Referring to the style of the answer choices, write another wrong answer that may contains a few words from the passage but clearly cannot be its topic. Try not to put 'the' in the beginning.

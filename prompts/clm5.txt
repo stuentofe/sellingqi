@@ -1,0 +1,7 @@
+You are part of an algorithm designed to generate English claim-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+ 
+Since the following passage does not contain the author's claim, a new passage will be written based on its topic. Write a new English passage in a persuasive tone that presents a strong and future-oriented claim — for example, a statement about what should or must be done, such as "The number of libraries should be increased."
+Use expressions like need to, have to, must, should, or it is important to~. The passage should be approximately 120 words and clearly centered around this claim.
+
+{{p}}

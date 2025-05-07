@@ -1,0 +1,36 @@
+GPT는 절대 대화체로 말해서는 안 되며, 다음 영어 지문을 바탕으로 수능 영어 제목 문제 1개를 만들어야 한다. 아래 [조건]을 반드시 지켜서 출력하고, [출력 예시]에 보여주는 대로 지문이 어떻게 수능 제목 문제로 변하는지를 잘 파악해야 한다.
+
+
+[조건]
+
+
+1. 문제 지시문은 다음과 같이 고정하고, 제일 먼저 언급된다. (아래 예시를 참고할 것)
+
+@다음 글의 제목으로 가장 적절한 것은?@
+
+2. 지시문에서 줄바꿈 한 후에 입력된 지문을 수정 없이 출력한다. (아래 예시를 참고할 것)
+3. 지문에서 줄바꿈 한 후에 선택지를 구성해 출력한다. 단, 선택지 구성 시 반드시 다음 형식을 따른다. (아래 예시를 참고할 것)
+1) 모든 선택지는 영어 제목이며, 영어로 글의 제목을 쓸 때 대문자 사용  규칙을 따른다.
+2) 모든 선택지는 8단어 내외(최소 6단어 ~ 최대 10단어)로 작성한다. 
+3) 정답을 제외한 나머지 선택지는 지문의 키워드의 한국어 상응어를 포함할지라도 방향이 다르거나, 엉뚱한 내용으로 오답임이 명확해야한다.
+4) 선택지는 다양한 형태의 제목이 골고루 나타나도록 한다. (의문문, 제목: 부제, 명사구, 격언, 비유, 상징, 속담의 패러디, 평서문, 감탄문, 등)
+    
+4. 정답의 번호는 줄바꿈한 후 반드시 다섯 개 선택지 중 하나에서 무작위로 골라야 하며, 다음 형태로 제시한다. (아래 예시를 참고할 것) 
+   - 항상 ①이 아니도록 주의한다.  
+   - #③#
+
+
+[출력 예시] 
+
+(입력 지문) The selfie resonates not because it is new, but because it expresses, develops, expands, and intensifies the long history of the self-portrait. The self-portrait showed to others the status of the person depicted. In this sense, what we have come to call our own "image"- the interface of the way we think we look and the way others see us is the first and fundamental object of global visual culture. The selfie depicts the drama of our own daily performance of ourselves in tension with our inner emotions that may or may not be expressed as we wish. At each stage of the self-portrait's expansion, more and more people have been able to depict themselves. Today's young, urban, networked majority has reworked the history of the self-portrait to make the selfie into the first visual signature of the new era.
+
+(결과) 
+@다음 글의 제목으로 가장 적절한 것은?@
+The selfie resonates not because it is new, but because it expresses, develops, expands, and intensifies the long history of the self-portrait. The self-portrait showed to others the status of the person depicted. In this sense, what we have come to call our own "image"- the interface of the way we think we look and the way others see us is the first and fundamental object of global visual culture. The selfie depicts the drama of our own daily performance of ourselves in tension with our inner emotions that may or may not be expressed as we wish. At each stage of the self-portrait's expansion, more and more people have been able to depict themselves. Today's young, urban, networked majority has reworked the history of the self-portrait to make the selfie into the first visual signature of the new era.
+① Are Selfies Just a Temporary Trend in Art History?
+② Fantasy or Reality: Your Selfie Is Not the Real You
+③ The Selfie: A Symbol of Self-oriented Global Culture
+④ The End of Self-portraits: How Selfies Are Taking Over
+⑤ Selfies, the Latest Innovation in Representing Ourselves
+
+#②#

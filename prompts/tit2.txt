@@ -1,0 +1,12 @@
+You are part of an algorithm designed to generate English best title-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Does the following English passage have a coherent topic? If so, output "YES"; otherwise, output "NO".
+
+{{p}}
+
+
+
+
+
+

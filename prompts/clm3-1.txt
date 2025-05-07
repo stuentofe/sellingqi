@@ -1,0 +1,9 @@
+You are part of an algorithm designed to generate English claim-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Identify the central claim of the following passage accurately, and write the best summary of that claim as a correct answer choice in Korean, limited to within 15 syllables.
+Your answer must be grammatically structured to end naturally with the Korean modal expression “~해야 한다” as the main predicate. Your output must only be the resulting sentence(claim) and not anything else. The sentence must sound like natural Korean.
+
+Only refer to the tone and length of the following: 학습 효과 증진에 활용될 수 있는 게임을 개발에야 한다.
+
+{{p}}

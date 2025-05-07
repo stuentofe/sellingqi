@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>문제 결과</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: times new roman;
+      background: #ccc;
+      font-size: 13px;
+    }
+
+    .page-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+    }
+
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .page {
+      width: 794px;
+      height: 1123px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      margin: 20px 0;
+      padding: 40px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .column-container {
+      display: flex;
+      flex-direction: row;
+      gap: 40px;
+      flex: 1;
+    }
+
+    .column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .question-item {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="page-wrapper" id="questions"></div>
+  </div>
+  <div class="page-break"></div>
+  <div class="page" id="answers"></div>
+  <div class="page-break"></div>
+  <div class="page" id="explanations"></div>
+
+  <script type="module">
+    const typeMap = {
+      주장:    { file: 'clm', fn: 'generateClaimQuestion' },
+      요지:    { file: 'mni', fn: 'generateMniQuestion' },
+      주제:    { file: 'top', fn: 'generateTopQuestion' },
+      제목:    { file: 'tit', fn: 'generateTitQuestion' },
+      요약:    { file: 'sum', fn: 'generateSumQuestion' },
+      불일치:  { file: 'mis', fn: 'generateMisQuestion' },
+      흐름:    { file: 'flo', fn: 'generateFloQuestion' },
+      순서:    { file: 'ord', fn: 'generateOrdQuestion' },
+      삽입:    { file: 'ins', fn: 'generateInsQuestion' },
+      빈칸:    { file: 'bln', fn: 'generateBlnQuestion' },
+      어법:    { file: 'grm', fn: 'generateGrmQuestion' },
+      어휘:    { file: 'voc', fn: 'generateVocQuestion' },
+      '어휘(상)': { file: 'voca', fn: 'generateVocaQuestion' },
+      함축의미: { file: 'imp', fn: 'generateImpQuestion' }
+    };
+
+    const types = JSON.parse(localStorage.getItem('types') || '[]');
+    const passage = localStorage.getItem('passage') || '';
+    const withExplanation = localStorage.getItem('withExplanation') === 'true';
+    const mobileOutput = localStorage.getItem('mobileOutput') === 'true';
+
+    if (!mobileOutput) {
+      const vp = document.querySelector('meta[name="viewport"]');
+      if (vp) vp.remove();
+    }
+
+    const questionsContainer = document.getElementById('questions');
+    const answersContainer = document.getElementById('answers');
+    const explanationsContainer = document.getElementById('explanations');
+
+    async function loadAll() {
+      const questionsData = [];
+      for (const type of types) {
+        const map = typeMap[type];
+        if (!map) continue;
+        try {
+          const mod = await import(`./modules/${map.file}.js`);
+          const q = await mod[map.fn](passage);
+          questionsData.push(q);
+        } catch (e) {
+          console.error('문항 로드 실패:', type, e);
+        }
+      }
+
+      for (let i = 0; i < questionsData.length; i += 4) {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'page';
+
+        const columnContainer = document.createElement('div');
+        columnContainer.className = 'column-container';
+
+        for (let c = 0; c < 2; c++) {
+          const columnDiv = document.createElement('div');
+          columnDiv.className = 'column';
+
+          for (let r = 0; r < 2; r++) {
+            const index = i + c * 2 + r;
+            if (index >= questionsData.length) break;
+            const q = questionsData[index];
+            const qDiv = document.createElement('div');
+            qDiv.className = 'question-item';
+            qDiv.innerHTML = `<h3>${index + 1}. ${q.prompt}</h3>${q.body}`;
+            columnDiv.appendChild(qDiv);
+          }
+
+          columnContainer.appendChild(columnDiv);
+        }
+
+        pageDiv.appendChild(columnContainer);
+        questionsContainer.appendChild(pageDiv);
+      }
+
+      questionsData.forEach((q, i) => {
+        const p = document.createElement('p');
+        p.className = 'answer-item';
+        p.innerHTML = `<strong>${i + 1}. 정답:</strong> ${q.answer}`;
+        answersContainer.appendChild(p);
+      });
+
+      if (withExplanation) {
+        questionsData.forEach((q, i) => {
+          const div = document.createElement('div');
+          div.className = 'explanation-item';
+          div.innerHTML = `<h3>${i + 1}. 해설</h3><p>${q.explanation}</p>`;
+          explanationsContainer.appendChild(div);
+        });
+      }
+    }
+
+    loadAll().then(() => {
+      document.body.classList.toggle('paper', !mobileOutput);
+    });
+  </script>
+</body>
+</html>

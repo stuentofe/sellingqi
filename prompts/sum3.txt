@@ -1,0 +1,7 @@
+You are part of an algorithm designed to generate English complete summary-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+지문
+{{p}}
+
+위 지문의 요지를 한국어 20음절 이내로 작성하라. 단, '~라는 글이다' 를 사용해야 한다.

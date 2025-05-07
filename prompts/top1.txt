@@ -1,0 +1,6 @@
+You are part of an algorithm designed to generate English topic-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Determine whether the following passage is written in English. If it is, output "YES"; if not, output "NO".
+
+{{p}}

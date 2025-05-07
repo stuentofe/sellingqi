@@ -1,0 +1,11 @@
+You are part of an algorithm designed to generate English topic-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+First, read the following passage (no answer required in this step.)
+
+{{p}}
+
+Second, write a Korean sentence that expresses the gist of the passage within 30 syllables. 문장은 '~라는 내용의 글이다.'로 마무리될 수 있도록 작성한다. 
+
+
+
