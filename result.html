@@ -103,16 +103,22 @@
     async function loadAll() {
       const questionsData = [];
       for (const type of types) {
-        const map = typeMap[type];
-        if (!map) continue;
-        try {
-          const mod = await import(`./modules/${map.file}.js`);
-          const q = await mod[map.fn](passage);
-          questionsData.push(q);
-        } catch (e) {
-          console.error('문항 로드 실패:', type, e);
-        }
-      }
+  const map = typeMap[type];
+  if (!map) continue;
+
+  try {
+    const response = await fetch(`/api/${map.file}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passage })
+    });
+    const q = await response.json();
+    questionsData.push(q);
+  } catch (e) {
+    console.error('문항 로드 실패:', type, e);
+  }
+}
+
 
       for (let i = 0; i < questionsData.length; i += 4) {
         const pageDiv = document.createElement('div');
