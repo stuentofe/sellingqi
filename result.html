@@ -121,51 +121,6 @@
         }
       }
 
-      for (let i = 0; i < questionsData.length; i += 4) {
-        const pageDiv = document.createElement('div');
-        pageDiv.className = 'page';
-
-        const columnContainer = document.createElement('div');
-        columnContainer.className = 'column-container';
-
-        for (let c = 0; c < 2; c++) {
-          const columnDiv = document.createElement('div');
-          columnDiv.className = 'column';
-
-          for (let r = 0; r < 2; r++) {
-            const index = i + c * 2 + r;
-            if (index >= questionsData.length) break;
-            const q = questionsData[index];
-            const qDiv = document.createElement('div');
-            qDiv.className = 'question-item';
-            qDiv.innerHTML = `<h3>${index + 1}. ${q.prompt}</h3>${q.body}`;
-            columnDiv.appendChild(qDiv);
-          }
-
-          columnContainer.appendChild(columnDiv);
-        }
-
-        pageDiv.appendChild(columnContainer);
-        questionsContainer.appendChild(pageDiv);
-      }
-
-      questionsData.forEach((q, i) => {
-        const p = document.createElement('p');
-        p.className = 'answer-item';
-        p.innerHTML = `<strong>${i + 1}. 정답:</strong> ${q.answer}`;
-        answersContainer.appendChild(p);
-      });
-
-      if (withExplanation) {
-        questionsData.forEach((q, i) => {
-          const div = document.createElement('div');
-          div.className = 'explanation-item';
-          div.innerHTML = `<h3>${i + 1}. 해설</h3><p>${q.explanation}</p>`;
-          explanationsContainer.appendChild(div);
-        });
-      }
-    
-
     loadAll().then(() => {
       document.body.classList.toggle('paper', !mobileOutput);
     });
