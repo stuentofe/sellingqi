@@ -44,6 +44,37 @@ async function generateSumQuestion(passage) {
   const wrongOptions = wrongRaw.trim().split('\n').map(line => line.trim()).filter(Boolean).slice(0, 4);
   const [w1, w2, x1, x2, y1, y2, z1, z2] = wrongOptions.flatMap(opt => opt.split(',').map(s => s.trim()));
 
+
+  const allOptions = [
+  { text: c1, label: '정답' },
+  { text: w1, label: 'w1' },
+  { text: x1, label: 'x1' },
+  { text: y1, label: 'y1' },
+  { text: z1, label: 'z1' },
+];
+
+// 글자 수 기준 정렬
+allOptions.sort((a, b) => a.text.length - b.text.length);
+
+// 선택지 렌더링
+const choices = allOptions.map((opt, idx) => ({
+  no: ['①', '②', '③', '④', '⑤'][idx],
+  text: `${opt.text}`,
+}));
+
+// 정답 인덱스 추출
+const correct = choices.find(choice => choice.text === c1)?.no || '①';
+
+// HTML 출력
+const body = `
+  <div class="box"><p>${p}</p></div>
+  <p style="text-align:center">↓</p>
+  <div class="box"><p>${s3}</p></div>
+  <ul>
+    ${choices.map(choice => `<li>${choice.no} ${choice.text}</li>`).join('\n')}
+  </ul>
+`;
+
   const e1raw = await fetchPrompt('sum3.txt', { p, s: s2, c });
   const e1 = e1raw.trim();
 
@@ -65,20 +96,21 @@ async function generateSumQuestion(passage) {
   const explanation = `${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] ${wrongList}`;
   const s3 = s2.replace(/\(A\)/g, '<u>___(A)___</u>').replace(/\(B\)/g, '<u>___(B)___</u>');
 
-  const body = `
-    <div class="box"><p>${p}</p></div>
-    <p style="text-align:center">↓</p>
-    <div class="box"><p>${s3}</p></div>
-    <ul>
-      <li>① ${c}</li>
-      ${wrongOptions.map((opt, i) => `<li>${['②','③','④','⑤'][i]} ${opt}</li>`).join('')}
-    </ul>
-  `;
+const body = `
+  <div class="box"><p>${p}</p></div>
+  <p style="text-align:center">↓</p>
+  <div class="box"><p>${s3}</p></div>
+  <ul>
+    ${choices.map(choice => `<li>${choice.no} ${choice.text}</li>`).join('\n')}
+  </ul>
+`;
+
+ 
 
   return {
     prompt: '다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?',
     body,
-    answer: '①',
+    answer: 'correct',
     explanation
   };
 }
