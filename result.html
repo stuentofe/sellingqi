@@ -120,7 +120,30 @@ async function loadAll() {
       console.error('문항 로드 실패:', type, e);
     }
   }
-} // ✅ 이 중괄호가 반드시 필요해!
+
+
+questionsContainer.innerHTML = questionsData.map((q, i) => `
+    <div class="question-item">
+      <strong>${i + 1}. ${q.prompt}</strong>
+      ${q.body}
+    </div>
+  `).join('');
+
+  answersContainer.innerHTML = questionsData.map((q, i) => `
+    <div class="question-item">
+      <strong>${i + 1}번 정답:</strong> ${q.answer}
+    </div>
+  `).join('');
+
+  if (withExplanation) {
+    explanationsContainer.innerHTML = questionsData.map((q, i) => `
+      <div class="question-item">
+        <strong>${i + 1}번 해설:</strong> ${q.explanation}
+      </div>
+    `).join('');
+  }
+}
+
 
 loadAll().then(() => {
   document.body.classList.toggle('paper', !mobileOutput);
