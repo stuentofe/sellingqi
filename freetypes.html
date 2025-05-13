@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>문제 생성 마법사</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #49A4D9;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .container.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .box {
+      background-color: white;
+      border-radius: 20px;
+      width: 280px;
+      height: 420px; /* 비율 2:3 정도 */
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    textarea {
+      resize: none;
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .buttons button {
+      flex: 1;
+      background-color: #114BBF;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      padding: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .buttons button:hover {
+      background-color: #0d3ca3;
+    }
+
+    .output-box {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="wizard">
+    <!-- 왼쪽 입력 박스 -->
+    <div class="box">
+      <div class="input-box">
+        <textarea placeholder="지문을 여기에 입력하세요..."></textarea>
+        <div class="buttons">
+          <button>문장 삽입 문제 생성</button>
+          <button>순서 배열 문제 생성</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽 출력 박스 -->
+    <div class="box">
+      <div class="output-box" id="output">
+        <!-- 문제 출력 영역 (스크롤 가능) -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 페이지 로드 시 애니메이션 효과 부여
+    window.onload = () => {
+      const container = document.getElementById('wizard');
+      requestAnimationFrame(() => {
+        container.classList.add('show');
+      });
+    };
+  </script>
+</body>
+</html>
