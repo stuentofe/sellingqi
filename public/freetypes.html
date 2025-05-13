@@ -4,7 +4,101 @@
   <meta charset="UTF-8" />
   <title>문제 생성 마법사</title>
   <style>
-    /* --- (CSS 부분은 기존과 동일, 생략 가능) --- */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      height: 100vh;
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      gap: 40px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .box {
+      background-color: white;
+      border-radius: 20px;
+      width: 450px;
+      height: 460px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+
+    .input-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    textarea {
+      resize: none;
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .buttons button {
+      flex: 1;
+      background-color: #114BBF;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .buttons button:hover {
+      background-color: #0d3ca3;
+    }
+
+    .output-box {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      background-color: #f9f9f9;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -20,10 +114,10 @@
       </div>
     </div>
 
-    <!-- 오른쪽 출력 박스 -->
+    <!-- 오른쪽 결과 박스 -->
     <div class="box">
       <div class="output-box" id="output">
-        <!-- 문제 출력 영역 -->
+        <!-- 결과가 여기에 표시됩니다 -->
       </div>
     </div>
   </div>
@@ -34,7 +128,7 @@
       document.getElementById('wizard').classList.add('show');
     };
 
-    // 순서 배열 문제 생성 버튼 클릭 → 서버 API 호출
+    // 순서 배열 문제 생성 버튼
     document.getElementById('orderBtn').addEventListener('click', async () => {
       const text = document.getElementById('inputText').value.trim();
       const output = document.getElementById('output');
