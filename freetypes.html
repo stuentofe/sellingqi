@@ -13,7 +13,6 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
-
       background-image: url('background.jpg');
       background-size: cover;
       background-position: center;
@@ -90,18 +89,25 @@
       font-size: 14px;
       background-color: #f9f9f9;
     }
+
+    pre {
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
-
   <div class="container" id="wizard">
     <!-- 왼쪽 입력 박스 -->
     <div class="box">
       <div class="input-box">
-        <textarea placeholder="지문을 여기에 입력하세요..."></textarea>
+        <textarea id="inputText" placeholder="지문을 여기에 입력하세요..."></textarea>
         <div class="buttons">
-          <button>문장 삽입 문제 생성</button>
-          <button>순서 배열 문제 생성</button>
+          <button id="insertBtn">문장 삽입 문제 생성</button>
+          <button id="orderBtn">순서 배열 문제 생성</button>
         </div>
       </div>
     </div>
@@ -109,18 +115,46 @@
     <!-- 오른쪽 출력 박스 -->
     <div class="box">
       <div class="output-box" id="output">
-        <!-- 문제 출력 영역 (스크롤 가능) -->
+        <!-- 문제 출력 영역 -->
       </div>
     </div>
   </div>
 
   <script>
+    // 페이드인 애니메이션
     window.onload = () => {
-      const container = document.getElementById('wizard');
-      requestAnimationFrame(() => {
-        container.classList.add('show');
-      });
+      document.getElementById('wizard').classList.add('show');
     };
+  </script>
+
+  <!-- 문제 생성 로직 모듈 가져오기 -->
+  <script type="module">
+    import {
+      splitParagraphIntoSentences,
+      generateAllOrderQuestions
+    } from './api/ordering.js';
+
+    const inputText = document.getElementById('inputText');
+    const output = document.getElementById('output');
+    const orderBtn = document.getElementById('orderBtn');
+
+    orderBtn.addEventListener('click', () => {
+      const text = inputText.value.trim();
+      if (!text) {
+        output.innerHTML = '<p>지문을 입력하세요.</p>';
+        return;
+      }
+
+      const sentences = splitParagraphIntoSentences(text);
+      const questions = generateAllOrderQuestions(sentences);
+
+      output.innerHTML = ''; // 기존 결과 지우기
+      questions.forEach((q, i) => {
+        const pre = document.createElement('pre');
+        pre.textContent = `${i + 1}\n\n${q}`;
+        output.appendChild(pre);
+      });
+    });
   </script>
 </body>
 </html>
