@@ -1,141 +1,231 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>generate</title>
+  <meta charset="UTF-8" />
+  <title>유형별 문제 생성기</title>
   <style>
-    body { margin: 20px; font-family: sans-serif; }
-    textarea, button { font-family: sans-serif; }
-    #options { display:flex; gap:10px; margin:16px 0; }
-    .toggle-btn { padding: 8px 12px; border: 1px solid #ccc; background: #f0f0f0; cursor: pointer; }
-    #type-buttons button.active,
-    .toggle-btn.active { background: #333; color: #fff; }
-    #generate { transition: background 0.3s, color 0.3s, opacity 0.3s; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      height: 100vh;
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      gap: 40px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .box {
+      background-color: white;
+      border-radius: 20px;
+      width: 450px;
+      height: 600px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: none;
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      border-color: #DAF1E0;
+      background-color: white;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .buttons button {
+      flex: 1;
+      background-color: #235347;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .buttons button:hover {
+      background-color: #163832;
+    }
+
+    .switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .switches label {
+      font-size: 13px;
+      background: #eee;
+      border-radius: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .switches input:checked + span {
+      background: #235347;
+      color: white;
+    }
+
+    .output-box {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      border-color: #DAF1E0;
+      padding: 10px;
+      font-size: 14px;
+      background-color: white;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .progress {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
-  <p class="instruction">* 지문 입력, 원하는 유형 선택 후, 설정을 조정하고 문항 생성하기 버튼을 눌러주세요.</p>
-
-  <div class="generator-wrapper" style="display:flex; gap:20px;">
-    <div style="flex:1; display:flex; flex-direction:column;">
-      <textarea id="passage" placeholder="여기에 영어 지문을 입력하세요"></textarea>
-      <div id="word-count">0/300단어</div>
+  <div class="container" id="wizard">
+    <!-- 왼쪽 입력 박스 -->
+    <div class="box">
+      <textarea id="inputText" placeholder="영어 지문을 입력하세요."></textarea>
+      <div class="switches" id="typeSwitches">
+        <!-- JavaScript에서 동적으로 생성 -->
+      </div>
+      <div class="buttons">
+        <button id="generateBtn">문제 생성</button>
+      </div>
+      <div class="progress" id="progressText">진행률: 0%</div>
     </div>
-    <div id="type-buttons" style="display:flex; flex-direction:column; gap:8px; width:100px;">
-      <button data-type="주장" data-tooltip="주장">주장</button>
-      <button data-type="요지">요지</button>
-      <button data-type="주제">주제</button>
-      <button data-type="제목">제목</button>
-      <button data-type="요약">요약</button>
-      <button data-type="불일치">불일치</button>
-      <button data-type="흐름">흐름</button>
-      <button data-type="순서">순서</button>
-      <button data-type="삽입">삽입</button>
-      <button data-type="빈칸">빈칸</button>
-      <button data-type="어법">어법</button>
-      <button data-type="어휘">어휘</button>
-      <button data-type="함축의미">함축의미</button>
+
+    <!-- 오른쪽 출력 박스 -->
+    <div class="box">
+      <div class="output-box" id="outputBox">
+        <!-- 문제 출력됨 -->
+      </div>
     </div>
   </div>
-
-  <div id="options">
-    <button id="opt-explanation-btn" class="toggle-btn">해설</button>
-    <button id="opt-hard-btn" class="toggle-btn">어려움</button>
-    <button id="opt-mobile-btn" class="toggle-btn">모바일</button>
-  </div>
-
-  <button id="generate">문항 생성하기</button>
-  <div id="tooltip"></div>
 
   <script>
-    const textarea    = document.getElementById('passage');
-    const generateBtn = document.getElementById('generate');
-    const counter     = document.getElementById('word-count');
-    const expBtn      = document.getElementById('opt-explanation-btn');
-    const hardBtn     = document.getElementById('opt-hard-btn');
-    const mobileBtn   = document.getElementById('opt-mobile-btn');
+    const TYPES = [
+      '주장', '요지', '주제', '제목', '요약',
+      '세부정보', '어법', '어휘', '빈칸', '함축의미', '흐름'
+    ];
 
-    const MIN_WORDS = 80;
+    const TYPE_KEYS = [
+      'claim', 'gist', 'topic', 'title', 'summary',
+      'detail', 'grammar', 'vocab', 'blank', 'implication', 'flow'
+    ];
 
-    generateBtn.disabled         = true;
-    generateBtn.style.background = '#ccc';
-    generateBtn.style.color      = '#666';
-    generateBtn.textContent      = `영어 지문 ${MIN_WORDS}단어 이상 입력하세요`;
+    window.onload = () => {
+      document.getElementById('wizard').classList.add('show');
+      renderSwitches();
+    };
 
-    const tooltip = document.getElementById('tooltip');
-    document.querySelectorAll('#type-buttons button[data-type="주장"]').forEach(btn => {
-      btn.addEventListener('mouseenter', () => {
-        tooltip.textContent = btn.getAttribute('data-tooltip');
-        tooltip.style.display = 'block';
+    function renderSwitches() {
+      const container = document.getElementById('typeSwitches');
+      TYPES.forEach((label, i) => {
+        const id = 'type_' + TYPE_KEYS[i];
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = id;
+        checkbox.value = TYPE_KEYS[i];
+        checkbox.style.display = 'none';
+
+        const span = document.createElement('span');
+        span.textContent = label;
+
+        const labelEl = document.createElement('label');
+        labelEl.htmlFor = id;
+        labelEl.appendChild(span);
+
+        container.appendChild(checkbox);
+        container.appendChild(labelEl);
       });
-      btn.addEventListener('mouseleave', () => {
-        tooltip.style.display = 'none';
-      });
-    });
-
-    document.querySelectorAll('#type-buttons button').forEach(button => {
-      button.addEventListener('click', () => {
-        button.classList.toggle('active');
-      });
-    });
-
-    expBtn.addEventListener('click', () => expBtn.classList.toggle('active'));
-    hardBtn.addEventListener('click', () => hardBtn.classList.toggle('active'));
-    mobileBtn.addEventListener('click', () => mobileBtn.classList.toggle('active'));
-
-    function isEnglishText(text) {
-      if (/[ㄱ-ㆎ가-힣]/.test(text)) return false;
-      return /[A-Za-z]/.test(text);
     }
 
-    textarea.addEventListener('input', () => {
-      let words = textarea.value.trim().split(/\s+/).filter(w => w);
-      if (words.length > 300) {
-        textarea.value = words.slice(0, 300).join(' ');
-        words = textarea.value.trim().split(/\s+/).filter(w => w);
-        alert('최대 300단어까지 입력 가능합니다.');
-      }
-      counter.textContent = `${words.length}/300단어`;
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+      const text = document.getElementById('inputText').value.trim();
+      const outputBox = document.getElementById('outputBox');
+      const progressText = document.getElementById('progressText');
+      outputBox.innerHTML = '';
+      progressText.textContent = '진행률: 0%';
 
-      if (isEnglishText(textarea.value) && words.length >= MIN_WORDS) {
-        generateBtn.disabled         = false;
-        generateBtn.style.background = '#333';
-        generateBtn.style.color      = '#fff';
-        generateBtn.textContent      = '문항 생성하기';
-      } else {
-        generateBtn.disabled         = true;
-        generateBtn.style.background = '#ccc';
-        generateBtn.style.color      = '#666';
-        generateBtn.textContent      = `영어 지문 ${MIN_WORDS}단어 이상 입력하세요`;
-      }
-    });
-
-    textarea.dispatchEvent(new Event('input'));
-
-    generateBtn.addEventListener('click', () => {
-      const passage       = textarea.value.trim();
-      const selectedTypes = Array.from(document.querySelectorAll('#type-buttons button.active'))
-                              .map(btn => btn.getAttribute('data-type'));
-      const withExplanation = expBtn.classList.contains('active');
-      const hardLevel      = hardBtn.classList.contains('active');
-      const mobileOutput   = mobileBtn.classList.contains('active');
-
-      if (!passage) {
-        alert('지문을 입력해주세요.');
-        return;
-      }
-      if (selectedTypes.length === 0) {
-        alert('문제 유형을 하나 이상 선택하세요.');
+      if (!text) {
+        outputBox.innerHTML = '<p>지문을 입력하세요.</p>';
         return;
       }
 
-      localStorage.setItem('passage', passage);
-      localStorage.setItem('types', JSON.stringify(selectedTypes));
-      localStorage.setItem('withExplanation', withExplanation);
-      localStorage.setItem('hardLevel', hardLevel);
-      localStorage.setItem('mobileOutput', mobileOutput);
-      window.location.href = 'result.html';
+      const selected = Array.from(document.querySelectorAll('.switches input:checked')).map(e => e.value);
+      if (selected.length === 0) {
+        outputBox.innerHTML = '<p>유형을 하나 이상 선택하세요.</p>';
+        return;
+      }
+
+      for (let i = 0; i < selected.length; i++) {
+        const type = selected[i];
+        try {
+          const res = await fetch(`/api/${type}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+          });
+          const data = await res.json();
+          const problemText = data.problem || data.question || '문제를 불러올 수 없습니다.';
+          const pre = document.createElement('pre');
+          pre.textContent = `${i + 1}\n\n${problemText}`;
+          outputBox.appendChild(pre);
+
+          const percent = Math.floor(((i + 1) / selected.length) * 100);
+          progressText.textContent = `문제 제작 중... ${percent}%`;
+        } catch (err) {
+          console.error(err);
+          const pre = document.createElement('pre');
+          pre.textContent = `${i + 1}\n\n⚠️ ${type} 문제 생성 실패`;
+          outputBox.appendChild(pre);
+        }
+      }
     });
   </script>
 </body>
