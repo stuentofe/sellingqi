@@ -2,10 +2,71 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>SellingQI 문제 생성기</title>
+  <title>EasyEnough English</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #114BBF;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 30px;
+      width: 300px;
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #114BBF;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .buttons a {
+      text-decoration: none;
+      text-align: center;
+      background-color: #114BBF;
+      color: white;
+      padding: 12px;
+      border-radius: 25px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .buttons a:hover {
+      background-color: #0d3ca3;
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to SellingQI!</h1>
-  <p><a href="/generate.html">문제 생성하러 가기</a></p>
-  </body>
+  <div class="card">
+    <div class="title">EasyEnough English</div>
+    <div class="buttons">
+      <a href="generate.html">시작하기</a>
+      <a href="freetypes.html">무료 유형 제작 마법사</a>
+    </div>
+  </div>
+</body>
 </html>
