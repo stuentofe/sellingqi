@@ -1,24 +1,20 @@
-<!-- freetypes.html 내부 스크립트 -->
-<script type="module">
-  import {
-    splitParagraphIntoSentences,
-    generateAllOrderQuestions
-  } from './api/ordering.js';
+import {
+  splitParagraphIntoSentences,
+  generateAllOrderQuestions
+} from '../lib/ordering.js';
 
-  const textarea = document.querySelector("textarea");
-  const outputDiv = document.getElementById("output");
-  const orderBtn = document.querySelectorAll("button")[1]; // 순서 배열 문제 생성 버튼
+export default function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
-  orderBtn.addEventListener("click", () => {
-    const raw = textarea.value.trim();
-    const sentences = splitParagraphIntoSentences(raw);
-    const questions = generateAllOrderQuestions(sentences);
+  const { text } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: 'No input text' });
+  }
 
-    outputDiv.innerHTML = "";
-    questions.forEach((q, i) => {
-      const pre = document.createElement("pre");
-      pre.textContent = `${i + 1}\n\n${q}.`;
-      outputDiv.appendChild(pre);
-    });
-  });
-</script>
+  const sentences = splitParagraphIntoSentences(text);
+  const questions = generateAllOrderQuestions(sentences);
+
+  res.status(200).json({ questions });
+}
