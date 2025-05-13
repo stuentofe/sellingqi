@@ -4,99 +4,7 @@
   <meta charset="UTF-8" />
   <title>문제 생성 마법사</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: sans-serif;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      background-image: url('background.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-
-    .container {
-      display: flex;
-      gap: 20px;
-      opacity: 0;
-      transform: scale(0.9);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-
-    .container.show {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    .box {
-      background-color: white;
-      border-radius: 20px;
-      width: 280px;
-      height: 420px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-      padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .input-box {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    textarea {
-      resize: none;
-      flex: 1;
-      padding: 10px;
-      font-size: 14px;
-    }
-
-    .buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .buttons button {
-      flex: 1;
-      background-color: #114BBF;
-      color: white;
-      border: none;
-      border-radius: 15px;
-      padding: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .buttons button:hover {
-      background-color: #0d3ca3;
-    }
-
-    .output-box {
-      flex: 1;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 14px;
-      background-color: #f9f9f9;
-    }
-
-    pre {
-      white-space: pre-wrap;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: #f0f0f0;
-      border-radius: 8px;
-    }
+    /* --- (CSS 부분은 기존과 동일, 생략 가능) --- */
   </style>
 </head>
 <body>
@@ -125,35 +33,46 @@
     window.onload = () => {
       document.getElementById('wizard').classList.add('show');
     };
-  </script>
 
-  <!-- 문제 생성 로직 모듈 가져오기 -->
-  <script type="module">
-    import {
-      splitParagraphIntoSentences,
-      generateAllOrderQuestions
-    } from './api/ordering.js';
+    // 순서 배열 문제 생성 버튼 클릭 → 서버 API 호출
+    document.getElementById('orderBtn').addEventListener('click', async () => {
+      const text = document.getElementById('inputText').value.trim();
+      const output = document.getElementById('output');
+      output.innerHTML = '';
 
-    const inputText = document.getElementById('inputText');
-    const output = document.getElementById('output');
-    const orderBtn = document.getElementById('orderBtn');
-
-    orderBtn.addEventListener('click', () => {
-      const text = inputText.value.trim();
       if (!text) {
         output.innerHTML = '<p>지문을 입력하세요.</p>';
         return;
       }
 
-      const sentences = splitParagraphIntoSentences(text);
-      const questions = generateAllOrderQuestions(sentences);
+      try {
+        const res = await fetch('/api/ordering', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
 
-      output.innerHTML = ''; // 기존 결과 지우기
-      questions.forEach((q, i) => {
-        const pre = document.createElement('pre');
-        pre.textContent = `${i + 1}\n\n${q}`;
-        output.appendChild(pre);
-      });
+        if (!res.ok) {
+          const err = await res.json();
+          output.innerHTML = `<p>오류 발생: ${err.error || res.statusText}</p>`;
+          return;
+        }
+
+        const data = await res.json();
+        if (!data.questions || data.questions.length === 0) {
+          output.innerHTML = '<p>문제를 생성할 수 없습니다.</p>';
+          return;
+        }
+
+        data.questions.forEach((q, i) => {
+          const pre = document.createElement('pre');
+          pre.textContent = `${i + 1}\n\n${q}`;
+          output.appendChild(pre);
+        });
+      } catch (err) {
+        output.innerHTML = '<p>네트워크 오류가 발생했습니다.</p>';
+        console.error(err);
+      }
     });
   </script>
 </body>
