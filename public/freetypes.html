@@ -122,56 +122,7 @@
     </div>
   </div>
 
-  <script>
-<<<<<<< HEAD
-    // 페이드인 애니메이션
-    window.onload = () => {
-      document.getElementById('wizard').classList.add('show');
-    };
-
-    // 순서 배열 문제 생성 버튼
-    document.getElementById('orderBtn').addEventListener('click', async () => {
-      const text = document.getElementById('inputText').value.trim();
-      const output = document.getElementById('output');
-      output.innerHTML = '';
-
-      if (!text) {
-        output.innerHTML = '<p>지문을 입력하세요.</p>';
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/ordering', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text })
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          output.innerHTML = `<p>오류 발생: ${err.error || res.statusText}</p>`;
-          return;
-        }
-
-        const data = await res.json();
-        if (!data.questions || data.questions.length === 0) {
-          output.innerHTML = '<p>문제를 생성할 수 없습니다.</p>';
-          return;
-        }
-
-        data.questions.forEach((q, i) => {
-          const pre = document.createElement('pre');
-          pre.textContent = `${i + 1}\n\n${q}`;
-          output.appendChild(pre);
-        });
-      } catch (err) {
-        output.innerHTML = '<p>네트워크 오류가 발생했습니다.</p>';
-        console.error(err);
-      }
-    });
-  </script>
-=======
-  // 페이지 로드시 애니메이션 실행
+<script>
   window.onload = () => {
     document.getElementById('wizard').classList.add('show');
   };
@@ -181,15 +132,10 @@
   const orderBtn = document.getElementById('orderBtn');
   const insertBtn = document.getElementById('insertBtn');
 
-  // 순서 배열 문제 생성
   orderBtn.addEventListener('click', async () => {
     const text = inputText.value.trim();
     output.innerHTML = '';
-
-    if (!text) {
-      output.innerHTML = '<p>지문을 입력하세요.</p>';
-      return;
-    }
+    if (!text) return output.innerHTML = '<p>지문을 입력하세요.</p>';
 
     try {
       const res = await fetch('/api/ordering', {
@@ -198,14 +144,8 @@
         body: JSON.stringify({ text })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        output.innerHTML = `<p>오류 발생: ${err.error || res.statusText}</p>`;
-        return;
-      }
-
       const data = await res.json();
-      if (!data.questions || data.questions.length === 0) {
+      if (!data.questions || !data.questions.length) {
         output.innerHTML = '<p>문제를 생성할 수 없습니다.</p>';
         return;
       }
@@ -216,20 +156,15 @@
         output.appendChild(pre);
       });
     } catch (err) {
-      output.innerHTML = '<p>네트워크 오류가 발생했습니다.</p>';
+      output.innerHTML = '<p>문제 요청 중 오류가 발생했습니다.</p>';
       console.error(err);
     }
   });
 
-  // 문장 삽입 문제 생성
   insertBtn.addEventListener('click', async () => {
     const text = inputText.value.trim();
     output.innerHTML = '';
-
-    if (!text) {
-      output.innerHTML = '<p>지문을 입력하세요.</p>';
-      return;
-    }
+    if (!text) return output.innerHTML = '<p>지문을 입력하세요.</p>';
 
     try {
       const res = await fetch('/api/inserting', {
@@ -238,14 +173,8 @@
         body: JSON.stringify({ text })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        output.innerHTML = `<p>오류 발생: ${err.error || res.statusText}</p>`;
-        return;
-      }
-
       const data = await res.json();
-      if (!data.problems || data.problems.length === 0) {
+      if (!data.problems || !data.problems.length) {
         output.innerHTML = '<p>문제를 생성할 수 없습니다.</p>';
         return;
       }
@@ -256,7 +185,7 @@
         output.appendChild(pre);
       });
     } catch (err) {
-      output.innerHTML = '<p>네트워크 오류가 발생했습니다.</p>';
+      output.innerHTML = '<p>삽입 문제 요청 중 오류가 발생했습니다.</p>';
       console.error(err);
     }
   });
