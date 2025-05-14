@@ -47,20 +47,26 @@
       margin-bottom: 10px;
     }
 
-    .buttons a {
-      text-decoration: none;
-      text-align: center;
-      background-color: #114BBF;
-      color: white;
-      padding: 12px;
-      border-radius: 25px;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
+     .buttons a {
+       display: flex;                 /* 가운데 정렬을 쉽게 하도록 설정 */
+  justify-content: center;       /* 가로 가운데 정렬 */
+  align-items: center;           /* 세로 가운데 정렬 */
+  width: 100%;
+  height: 50px;
+  background-image: url('button.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #0B2B26;                /* 칠판 배경 색상으로 텍스트 표시 */
+  text-decoration: none;         
+  font-weight: bold;             
+  border-radius: 8px;            
+  transition: opacity 0.3s;
+}
 
-    .buttons a:hover {
-      background-color: #0d3ca3;
-    }
+.buttons a:hover {
+  opacity: 0.8;
+}
   </style>
 </head>
 <body>
