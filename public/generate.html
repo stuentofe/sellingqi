@@ -36,7 +36,7 @@
       background-color: white;
       border-radius: 20px;
       width: 450px;
-      height: 600px;
+      height: 450px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
       padding: 20px;
       display: flex;
@@ -78,22 +78,29 @@
     }
 
     .switches {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
       gap: 6px;
       margin-top: 10px;
     }
 
     .switches label {
       font-size: 13px;
-      background: #eee;
       border-radius: 10px;
       padding: 6px 10px;
+      text-align: center;
       cursor: pointer;
       user-select: none;
+      background: #eee;
+      color: black;
+      transition: all 0.2s ease;
     }
 
-    .switches input:checked + span {
+    .switches input {
+      display: none;
+    }
+
+    .switches input:checked + label {
       background: #235347;
       color: white;
     }
@@ -130,9 +137,7 @@
     <!-- 왼쪽 입력 박스 -->
     <div class="box">
       <textarea id="inputText" placeholder="영어 지문을 입력하세요."></textarea>
-      <div class="switches" id="typeSwitches">
-        <!-- JavaScript에서 동적으로 생성 -->
-      </div>
+      <div class="switches" id="typeSwitches"></div>
       <div class="buttons">
         <button id="generateBtn">문제 생성</button>
       </div>
@@ -141,21 +146,19 @@
 
     <!-- 오른쪽 출력 박스 -->
     <div class="box">
-      <div class="output-box" id="outputBox">
-        <!-- 문제 출력됨 -->
-      </div>
+      <div class="output-box" id="outputBox"></div>
     </div>
   </div>
 
   <script>
     const TYPES = [
-      '주장', '요지', '주제', '제목', '요약',
-      '세부정보', '어법', '어휘', '빈칸', '함축의미', '흐름'
+      '주장', '요지', '주제', '제목', '요약', '세부정보',
+      '어법', '어휘', '삽입', '순서', '흐름', '함축의미'
     ];
 
     const TYPE_KEYS = [
-      'claim', 'gist', 'topic', 'title', 'summary',
-      'detail', 'grammar', 'vocab', 'blank', 'implication', 'flow'
+      'claim', 'gist', 'topic', 'title', 'summary', 'detail',
+      'grammar', 'vocab', 'inserting', 'ordering', 'flow', 'implication'
     ];
 
     window.onload = () => {
@@ -167,20 +170,17 @@
       const container = document.getElementById('typeSwitches');
       TYPES.forEach((label, i) => {
         const id = 'type_' + TYPE_KEYS[i];
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = id;
-        checkbox.value = TYPE_KEYS[i];
-        checkbox.style.display = 'none';
 
-        const span = document.createElement('span');
-        span.textContent = label;
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.id = id;
+        input.value = TYPE_KEYS[i];
 
         const labelEl = document.createElement('label');
         labelEl.htmlFor = id;
-        labelEl.appendChild(span);
+        labelEl.textContent = label;
 
-        container.appendChild(checkbox);
+        container.appendChild(input);
         container.appendChild(labelEl);
       });
     }
