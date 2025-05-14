@@ -30,9 +30,9 @@
     }
 
     .box {
-      background-image: url('box.jpg'); /* 이미지 경로 */
-      background-size: cover;           /* 상자에 꽉 차게 */
-      background-position: center;      /* 중앙 정렬 */
+      background-image: url('box.jpg');
+      background-size: cover;
+      background-position: center;
       background-repeat: no-repeat;
       border-radius: 20px;
       width: 450px;
@@ -52,7 +52,11 @@
       border: 1px solid #ccc;
       border-radius: 10px;
       border-color: #DAF1E0;
-      background-color: white;
+      background-image: url('whiteblank.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: black;
     }
 
     .buttons {
@@ -85,10 +89,13 @@
     }
 
     .switches label {
-      font-size: 13px;
+      font-size: 10px;
       border-radius: 10px;
       padding: 6px 10px;
       text-align: center;
+      align-items: center;    /* 세로 가운데 정렬 */
+      justify-content: center; /* 가로 가운데 정렬 */
+      height: 32px;            /* 버튼 높이 고정 */
       cursor: pointer;
       user-select: none;
       background: #eee;
@@ -113,7 +120,11 @@
       border-color: #DAF1E0;
       padding: 10px;
       font-size: 14px;
-      background-color: white;
+      background-image: url('whiteblank.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: black;
     }
 
     pre {
@@ -124,15 +135,23 @@
       border-radius: 8px;
     }
 
-    .progress {
-      margin-top: 10px;
+    /* 진행률 텍스트 */
+    #progressStatus {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 16px;
       font-weight: bold;
-      font-size: 14px;
-      color: #333;
+      color: white;
+      display: none;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
+  <!-- 진행률 상태 표시 -->
+  <div id="progressStatus"></div>
+
   <div class="container" id="wizard">
     <!-- 왼쪽 입력 박스 -->
     <div class="box">
@@ -141,7 +160,6 @@
       <div class="buttons">
         <button id="generateBtn">문제 생성</button>
       </div>
-      <div class="progress" id="progressText">진행률: 0%</div>
     </div>
 
     <!-- 오른쪽 출력 박스 -->
@@ -188,9 +206,9 @@
     document.getElementById('generateBtn').addEventListener('click', async () => {
       const text = document.getElementById('inputText').value.trim();
       const outputBox = document.getElementById('outputBox');
-      const progressText = document.getElementById('progressText');
+      const progressStatus = document.getElementById('progressStatus');
       outputBox.innerHTML = '';
-      progressText.textContent = '진행률: 0%';
+      progressStatus.style.display = 'none';
 
       if (!text) {
         outputBox.innerHTML = '<p>지문을 입력하세요.</p>';
@@ -202,6 +220,9 @@
         outputBox.innerHTML = '<p>유형을 하나 이상 선택하세요.</p>';
         return;
       }
+
+      progressStatus.style.display = 'block';
+      progressStatus.textContent = '...0%...';
 
       for (let i = 0; i < selected.length; i++) {
         const type = selected[i];
@@ -218,7 +239,13 @@
           outputBox.appendChild(pre);
 
           const percent = Math.floor(((i + 1) / selected.length) * 100);
-          progressText.textContent = `문제 제작 중... ${percent}%`;
+          progressStatus.textContent = `...${percent}%...`;
+
+          if (percent === 100) {
+            setTimeout(() => {
+              progressStatus.style.display = 'none';
+            }, 500);
+          }
         } catch (err) {
           console.error(err);
           const pre = document.createElement('pre');
