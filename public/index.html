@@ -15,6 +15,12 @@
       height: 100vh;
     }
 
+     .title-image {
+        width: 90%;               /* 카드에 잘 맞도록 너비 설정 */
+        height: auto;             /* 비율 유지 */
+        margin-top: 30px;         /* 기존 타이틀과 같은 위치로 조정 */
+    }
+
     .card {
       background-image: url('box.jpg'); /* 이미지 경로 */
       background-size: cover;           /* 상자에 꽉 차게 */
@@ -49,19 +55,19 @@
 
      .buttons a {
        display: flex;                 /* 가운데 정렬을 쉽게 하도록 설정 */
-  justify-content: center;       /* 가로 가운데 정렬 */
-  align-items: center;           /* 세로 가운데 정렬 */
-  width: 100%;
-  height: 50px;
-  background-image: url('button.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  color: #0B2B26;                /* 칠판 배경 색상으로 텍스트 표시 */
-  text-decoration: none;         
-  font-weight: bold;             
-  border-radius: 8px;            
-  transition: opacity 0.3s;
+       justify-content: center;       /* 가로 가운데 정렬 */
+       align-items: center;           /* 세로 가운데 정렬 */
+       width: 100%;
+       height: 50px;
+       background-image: url('button.jpg');
+       background-size: cover;
+       background-position: center;
+       background-repeat: no-repeat;
+       color: #0B2B26;                /* 칠판 배경 색상으로 텍스트 표시 */
+       text-decoration: none;         
+       font-weight: bold;             
+       border-radius: 8px;            
+       transition: opacity 0.3s;
 }
 
 .buttons a:hover {
@@ -70,12 +76,12 @@
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="title">EASYENOUGH ENGLISH</div>
-    <div class="buttons">
-      <a href="generate.html">시작하기</a>
-      <a href="freetypes.html">순서, 삽입 바로가기</a>
-    </div>
+<div class="card">
+  <img src="indexcard.jpg" alt="Easy Enough" class="title-image">
+  <div class="buttons">
+    <a href="generate.html">시작하기</a>
+    <a href="freetypes.html">순서, 삽입 바로가기</a>
   </div>
+</div>
 </body>
 </html>
