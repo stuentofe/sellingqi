@@ -43,28 +43,33 @@
     padding: 20px;
   }
 
-  .input-box {
-    height: 330px; /* 버튼 위 공간까지만 */
-    background-image: url('freetypesbox_left2.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    padding: 10px;
-    box-sizing: border-box;
-  }
+.input-box {
+  position: relative;
+  flex: none;
+  height: 320px; /* 그대로 유지 */
+  background-image: url('freetypesbox_left2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 10px;
+  box-sizing: border-box;
+}
 
-  textarea {
-    width: 100%;
-    height: 100%;
-    resize: none;
-    font-size: 14px;
-    font-family: 'Times New Roman', serif;
-    color: #0B2B26;
-    background-color: transparent;
-    border: none;
-    outline: none;
-    box-sizing: border-box;
-  }
+textarea {
+  width: 100%;
+  height: auto;
+  max-height: 240px; /* ← 이게 핵심! 실제 표시 영역 제한 */
+  resize: none;
+  font-size: 14px;
+  font-family: 'Times New Roman', serif;
+  color: #0B2B26;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
 
   textarea::placeholder {
     color: #0B2B26;
