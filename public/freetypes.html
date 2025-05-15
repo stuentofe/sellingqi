@@ -30,7 +30,7 @@
   }
 
   .box {
-    position: relative; /* 버튼 정렬 기준용 */
+    position: relative;
     background-image: url('box.jpg');
     background-size: cover;
     background-position: center;
@@ -60,13 +60,23 @@
     resize: none;
     flex: 1;
     font-size: 14px;
+    font-style: italic;
+    font-weight: bold;
     border-color: transparent;
     background-color: transparent;
+    color: white;
+  }
+
+  /* placeholder만 따로 스타일 지정 */
+  textarea::placeholder {
+    color: #0B2B26;          /* 칠판색 */
+    font-style: italic;
+    font-weight: bold;
   }
 
   .buttons {
     position: absolute;
-    bottom: 48px; /* ← 여기서 수직 위치 미세 조정 */
+    bottom: 48px;            /* 선과의 간격 조절 */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -74,7 +84,7 @@
   }
 
   #insertBtn, #orderBtn {
-    width: 120px;
+    width: 150px;            /* 이미지 크기에 딱 맞게 */
     height: 40px;
     background-size: cover;
     background-repeat: no-repeat;
@@ -113,7 +123,6 @@
     border-radius: 8px;
   }
 </style>
-
 </head>
 <body>
   <div class="container" id="wizard">
