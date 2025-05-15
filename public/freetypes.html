@@ -59,15 +59,21 @@
 textarea {
   resize: none;
   font-size: 14px;
+  font-style: italic;
   font-weight: bold;
-  border-color: transparent;
-  background-color: transparent;
-  color: #0B2B26;
-  font: Times New Roman;
-  height: 250px;       /* 고정 높이 */
-  max-height: 250px;   /* 혹시 overflow 생길 경우 대비 */
-  flex: none;          /* flex: 1 제거 또는 덮어쓰기 */
+  color: white;
+
+  height: 220px;          /* 원하는 크기 */
+  max-height: 220px;      /* 안전 제한 */
+  width: 90%;             /* 가로 여백도 확보 */
+  margin: 10px auto 0;    /* 위쪽만 여백, 좌우 중앙 정렬 */
+  display: block;
+
+  border: none;           /* 테두리 제거 */
+  outline: none;          /* 클릭 시 생기는 선 제거 */
+  background-color: transparent;  /* 배경 투명 */
 }
+
 
   /* placeholder만 따로 스타일 지정 */
   textarea::placeholder {
