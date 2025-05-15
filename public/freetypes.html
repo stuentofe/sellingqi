@@ -56,16 +56,18 @@
     background-repeat: no-repeat;
   }
 
-  textarea {
-    resize: none;
-    flex: 1;
-    font-size: 14px;
-    font-style: italic;
-    font-weight: bold;
-    border-color: transparent;
-    background-color: transparent;
-    color: white;
-  }
+textarea {
+  resize: none;
+  font-size: 14px;
+  font-weight: bold;
+  border-color: transparent;
+  background-color: transparent;
+  color: #0B2B26;
+  font: Times New Roman;
+  height: 250px;       /* 고정 높이 */
+  max-height: 250px;   /* 혹시 overflow 생길 경우 대비 */
+  flex: none;          /* flex: 1 제거 또는 덮어쓰기 */
+}
 
   /* placeholder만 따로 스타일 지정 */
   textarea::placeholder {
