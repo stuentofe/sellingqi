@@ -46,37 +46,40 @@
   }
 
   .input-box {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    position: relative;
+    flex: none;
+    height: 320px; /* 버튼 위 공간까지 제한 */
     background-image: url('freetypesbox_left2.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    padding: 10px; /* 하얀 칸 안 여백처럼 보이게 */
+    box-sizing: border-box;
   }
 
   textarea {
+    width: 100%;
+    height: 100%;
     resize: none;
-    flex: 1;
     font-size: 14px;
-    font-style: italic;
-    font-weight: bold;
-    border-color: transparent;
+    font-family: 'Times New Roman', serif;
+    color: #0B2B26; /* 칠판색 */
     background-color: transparent;
-    color: white;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
   }
 
-  /* placeholder만 따로 스타일 지정 */
   textarea::placeholder {
-    color: #0B2B26;          /* 칠판색 */
+    color: #0B2B26;
     font-style: italic;
     font-weight: bold;
+    font-family: sans-serif;
   }
 
   .buttons {
     position: absolute;
-    bottom: 48px;            /* 선과의 간격 조절 */
+    bottom: 48px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -84,7 +87,7 @@
   }
 
   #insertBtn, #orderBtn {
-    width: 150px;            /* 이미지 크기에 딱 맞게 */
+    width: 150px;
     height: 40px;
     background-size: cover;
     background-repeat: no-repeat;
