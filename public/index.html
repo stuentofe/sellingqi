@@ -15,16 +15,10 @@
       height: 100vh;
     }
 
-     .title-image {
-        width: 90%;               /* 카드에 잘 맞도록 너비 설정 */
-        height: auto;             /* 비율 유지 */
-        margin-top: 30px;         /* 기존 타이틀과 같은 위치로 조정 */
-    }
-
     .card {
-      background-image: url('box.jpg'); /* 이미지 경로 */
-      background-size: cover;           /* 상자에 꽉 차게 */
-      background-position: center;      /* 중앙 정렬 */
+      background-image: url('box.jpg');
+      background-size: cover;
+      background-position: center;
       background-repeat: no-repeat;
       border-radius: 30px;
       width: 450px;
@@ -37,12 +31,10 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     }
 
-    .title {
-      font-size: 24px;
-      font-weight: bold;
-      color: #DAF1E0;
+    .title-image {
+      width: 90%;
+      height: auto;
       margin-top: 30px;
-      text-align: center;
     }
 
     .buttons {
@@ -50,38 +42,37 @@
       flex-direction: column;
       width: 100%;
       gap: 10px;
-      margin-bottom: 10px;
     }
 
-     .buttons a {
-       display: flex;                 /* 가운데 정렬을 쉽게 하도록 설정 */
-       justify-content: center;       /* 가로 가운데 정렬 */
-       align-items: center;           /* 세로 가운데 정렬 */
-       width: 100%;
-       height: 50px;
-       background-image: url('button.jpg');
-       background-size: cover;
-       background-position: center;
-       background-repeat: no-repeat;
-       color: #0B2B26;                /* 칠판 배경 색상으로 텍스트 표시 */
-       text-decoration: none;         
-       font-weight: bold;             
-       border-radius: 8px;            
-       transition: opacity 0.3s;
-}
+    .buttons a {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 50px;
+      background-image: url('button.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: #0B2B26;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 8px;
+      transition: opacity 0.3s;
+    }
 
-.buttons a:hover {
-  opacity: 0.8;
-}
+    .buttons a:hover {
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body>
-<div class="card">
-  <img src="indextitle.jpg" alt="Easy Enough" class="title-image">
-  <div class="buttons">
-    <a href="generate.html">시작하기</a>
-    <a href="freetypes.html">순서, 삽입 바로가기</a>
+  <div class="card">
+    <img src="indextitle.jpg" alt="Easy Enough" class="title-image">
+    <div class="buttons">
+      <a href="generate.html">시작하기</a>
+      <a href="freetypes.html">순서, 삽입 바로가기</a>
+    </div>
   </div>
-</div>
 </body>
 </html>
