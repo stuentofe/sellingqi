@@ -39,8 +39,8 @@ From the following sentence, identify the part that corresponds to the grammar c
 
   tagSelection: `You are part of a grammar question generation system.
 Never respond in conversational form. Output only the result.
-다음 문장에, 내가 나열한 어법 요소 중 하나 이상이 들어 있다면, 그 중에서 딱 하나만을 골라 그 기호를 답하라.{{exclude}} (단, (a), (d), (e), (j), (r)에 해당하는 어법요소가 있다면, 그것을 우선 선택한다.):
-(a) 긴 주어 다음에 동사 수일치, (b) 문장 수식하는 부사, (c) 분사구문, (d) 수동태, (e) 쉼표 다음 관계대명사, (f) so ~ that 구문, (g) 가주어-진주어(it-to부정사) 구문, (h) 명사 수식하는 과거분사, (i) 부사적용법의 to부정사, (j) it is ~ that 강조구문, (k) 전치사+동명사 구문, (l) 긴 동명사구 주어, (m) 관계부사 when이나 where, (n) how간접의문문, (o) 명사 다음 동격접속사 that, (p) 사역동사(have, let, make), (q) few가 사용된 주어, (r) 대동사가 사용되었음, (s) during, despite, because of 셋 중 하나
+다음 문장에, 내가 나열한 어법 요소 중 하나 이상이 들어 있다면, 그 중에서 딱 하나만을 골라 그 기호를 답하라.{{exclude}}:
+(a) 긴 주어 다음에 동사 수일치, (b) 문장 수식하는 부사, (c) 분사구문, (d) 수동태, (e) 계속적용법 관계대명사 which, (f) result clause with <so ... that>, (g) 가주어-진주어(it-to부정사) 구문, (h) 명사 수식하는 과거분사, (i) 부사적용법의 to부정사, (j) it is ~ that 강조구문, (k) 전치사+동명사 구문, (l) 긴 동명사구 주어, (m) 관계부사 where, (n) how간접의문문, (o) an appositive conjunction that, (p) 사역동사(have, let, make), (q) few가 사용된 주어, (r) 대동사가 사용되었음, (s) during, despite, because of 셋 중 하나
 
 문장: {{s}}`,
 
@@ -72,24 +72,23 @@ Never respond in conversational form. Output only the result.
 const grammarBracketRules = {
 a: '주어와 수일치하는 동사를 딱 한 개 찾아서 <>로 감싼다. (예: A company consisting of competent workers <is> likely to succeed in a competitive market.)',
 b: '문장에 사용된 동사 수식 부사를 딱 한 개 찾아 <>로 감싼다. (예: John and James differ <significantly>.)', 
-c: '현재분사 또는 과거분사가 이끄는 분사구문을 찾아 그 분사(한 단어)를 <>로 감싼다. (예: <Feeling> tired, she went to bed early.)',
+c: '현재분사 또는 과거분사가 이끄는 분사구문이 있다면, 그 분사구문의 분사(오직 그 한 단어만)를 <>로 감싼다. (예: <Feeling> tired, she went to bed early.)',
 d: '수동태가 사용되었을 경우, be동사와 이어지는 과거분사를 함께 <>로 감싼다. 단, 만약 be동사와 과거분사 사이에 다른 어구가 있을 경우, be동사와 과거분사가 바로 인접할 수 있도록 문장을 수정한 뒤에 <>로 감싼다. (예: The book <was written> by Tom.)',
 e: '쉼표 다음에 곧바로 이어지는 관계대명사 which가 있을 경우, which를 <>로 감싼다. (She bought a new phone, <which> was very expensive.)',
-f: 'so ~ that 구문이 사용되었을 경우, that을 <>로 감싼다. (예: He was so tired <that> he fell asleep immediately.)',
+f: 'so ~ that 구문이 사용되었을 경우, that을 찾아 그 한 단어만을 <>로 감싼다. (예: He was so tired <that> he fell asleep immediately.)',
 g: '가주어-진주어 구문 (it ~ to-v)이 사용되었을 경우, to와 이어지는 동사원형을 <>로 감싼다. 단, to와 이어지는 동사원형 사이에 다른 어구가 있을 경우, to와 이어지는 동사원형이 바로 인접할 수 있도록 문장을 수정한 후에 <>로 감싼다. (예: It is important <to drink> enough water.)',
 h: '명사를 수식하는 과거분사가 있는 경우, 과거분사를 <>로 감싼다. (예: The <broken> window was fixed yesterday.)',
 i: '부사적 용법으로 사용된 to부정사가 있을 경우, to와 이어지는 동사원형을 <>로 감싼다. 단, to와 이어지는 동사원형 사이에 다른 어구가 있을 경우, to와 이어지는 동사원형이 바로 인접할 수 있도록 문장을 수정한 후에 <>로 감싼다. (예: She studied hard <to pass> the test.)',
 j: '강조 구문 (It ~ that)이 사용되었을 경우, that을 <>로 감싼다. (예: It was John <that> broke the window.)',
 k: '전치사 뒤 동명사가 이어지는 형식이 사용되었을 경우, 전치사 뒤에 이어지는 동명사를 <>로 감싼다. (예: She improved her English by <watching> movies.)',
-l: '긴 동명사구 주어가 사용되었을 경우, 해당 동명사를 <>로 감싼다. (예: <Getting> up early in the morning every day is good for your health.)',
-m: '관계부사 when또는 where가 사용되었을 경우, 관계부사를 <>로 감싼다. (예: This is the place <where> I met my friend.)',
+l: '긴 동명사구 주어가 사용되었을 경우, 그 동명사구의 동명사(오직 그 한 단어만)를 <>로 감싼다. (예: <Getting> up early in the morning every day is good for your health.)',
+m: '관계부사 where가 사용되었을 경우, 관계부사를 <>로 감싼다. (예: This is the place <where> I met my friend.)',
 n: 'how가 이끄는 간접의문문(의문사절)이 사용되었을 경우, how를 <>로 감싼다. (예: I don’t know <how> she solved the problem.)',
 o: '앞선 명사의 내용을 설명하는 동격 접속사 that이 사용되었을 경우, 그 동격 접속사 that을 <>로 감싼다. (예: The fact <that> he passed the exam surprised everyone.)',
 p: '사역동사(have, make, let)가 사용되었을 경우, 사역동사 뒤에 목적격보어로 온 동사원형 또는 분사를 <>로 감싼다. (예: She had her brother <carry> the bag.)',
 q: 'few가 이끄는 명사(구)가 주어이고, 이어지는 동사가 현재시제일 경우, 동사를 <>로 감싼다. (예: Few students <understand> this concept.)',
 r: '대동사가 사용되었을 경우, 대동사를 <>로 감싼다. (예: He didn’t finish the report, but she <did>.)',
 s: 'during, because of, despite 중에 사용된 것이 있을 경우, 그것을 <>로 감싼다. (예: The game was canceled <because of> the heavy rain.)'
-
 
 };
 
@@ -224,16 +223,14 @@ async function generateGrammarErrorQuestion(passage) {
     return `${['①','②','③','④','⑤'][i]}(${tag}): ` + await fetchInlinePrompt(key, { s: sentence, rule });
   }));
 
-  return {
-    prompt: '다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?',
-    problem: `다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?
+return {
+  prompt: '다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?',
+  problem: `다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?\n\n${fullText}`,
+  answer: ['①','②','③','④','⑤'][wrongIndex],
+  explanation: `정답: ${['①','②','③','④','⑤'][wrongIndex]}
+${explanations.join('\n')}`
+};
 
-${fullText}`,
-    answer: ['①','②','③','④','⑤'][wrongIndex],
-    explanation: `정답: ${['①','②','③','④','⑤'][wrongIndex]}
-` + explanations.join('
-')
-  };
 }
 
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
