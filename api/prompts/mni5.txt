@@ -2,7 +2,7 @@ You are part of an algorithm designed to generate English main point-type questi
 ChatGPT must never respond in conversational form and should only output the required answer.
 
 
-Generate one Korean sentence that is similar in length and style to the following sentences. However, the content of the claim must be completely different. Write the sentence only.
+Generate one Korean sentence that is similar in length and style to the following sentences. However, the content of the gist and the final word must be completely different. Write the sentence only.
 
 {{c}}
 {{w}}
