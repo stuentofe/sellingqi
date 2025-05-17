@@ -23,16 +23,49 @@ export default async function handler(req, res) {
 async function generateSumQuestion(passage) {
   const p = passage;
 
-  // 1단계: 요약문 생성 (sum1a → sum1b)
-  const summary = (await fetchInlinePrompt('sum1a', { p }, 'gpt-4o')).trim();
+const summary = (await fetchInlinePrompt('sum1a', { p }, 'gpt-4o')).trim();
+let s1 = (await fetchInlinePrompt('sum1b', { summary }, 'gpt-4o')).trim();
 
-  const s1 = (await fetchInlinePrompt('sum1b', { summary }, 'gpt-4o')).trim();
+let tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
 
-  const tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
+if (tags.length < 2 || !tags.some(t => t[0].startsWith('@')) || !tags.some(t => t[0].startsWith('#'))) {
+  console.warn('sum1b failed to tag properly. Fallback activated. Original:', s1);
 
-  const c1 = tags[0]?.[1]?.trim() || '';
-  const c2 = tags[1]?.[1]?.trim() || '';
-  const c = `${c1}, ${c2}`;
+  const words = summary.match(/\b\w+\b/g) || [];
+
+  const maxLen = Math.max(...words.map(w => w.length));
+  const longestWords = [...new Set(words.filter(w => w.length === maxLen))];
+
+  const positions = longestWords.map(word => ({
+    word,
+    start: summary.indexOf(word),
+    end: summary.lastIndexOf(word)
+  }));
+
+  const first = positions.reduce((a, b) => (a.start < b.start ? a : b)).word;
+  const last = positions
+    .filter(pos => pos.word !== first)
+    .reduce((a, b) => (a.end > b.end ? a : b), { word: '', end: -1 }).word;
+
+  if (!first || !last) {
+    throw new Error(`Fallback에서 태그할 단어가 부족합니다. summary: ${summary}`);
+  }
+
+  s1 = summary
+    .replace(new RegExp(`\\b${first}\\b`), `@${first}`)
+    .replace(new RegExp(`\\b${last}\\b`), `#${last}`);
+
+  tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
+
+  if (tags.length < 2) {
+    throw new Error('Fallback tagging에도 실패했습니다: ' + s1);
+  }
+}
+
+const c1 = tags.find(t => t[0].startsWith('@'))[1].trim();
+const c2 = tags.find(t => t[0].startsWith('#'))[1].trim();
+const c = `${c1}, ${c2}`;
+
 
   let s2 = s1
     .replace(/@([^\s.,!]+)/g, '(A)')
