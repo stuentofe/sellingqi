@@ -158,7 +158,7 @@ ChatGPT must never respond in conversational form and should only output the req
 
 Below is a summary sentence.
 Identify two core-content words—one from each clause—that are not everyday words and also not technical terms or jargon.
-Mark them by prefixing one with @ and the other with #.
+Mark them by prefixing one with @ and the other with #. (For example: People love @happiness, but tend to #avoid it.)
 
 {{summary}}`,
 
