@@ -176,10 +176,13 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text })
           });
+
           const data = await res.json();
           const problemText = data.problem || data.question || '문제를 불러올 수 없습니다.';
+          const explanationText = data.explanation || '';
+
           const pre = document.createElement('pre');
-          pre.textContent = `${i + 1}\n\n${problemText}`;
+          pre.textContent = `${i + 1}\n\n${problemText}\n\n${explanationText}`;
           outputBox.appendChild(pre);
 
           const percent = Math.floor(((i + 1) / selected.length) * 100);
