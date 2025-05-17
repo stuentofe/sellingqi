@@ -9,4 +9,4 @@ First, read the following. 다음은 5지선다 수능 영어 객관식 요약 �
 [정답]
 {{c}}
 
-Second, create four distractors(wrong answer choices). Since there are two blanks (A) and (B), each distractor must consist of a pair of words. When you output the distractor pairs, list the four pairs with only line breaks between them—no extra separators—using the same formatting as for the correct answer.
+Second, create four distractors(wrong answer choices). Since there are two blanks (A) and (B), each distractor must consist of a pair of words. When you output the distractor pairs, list the four pairs with only line breaks between them—no extra separators—using the same formatting as for the correct answer. Each incorrect choice should significantly distort or subtly alter the original meaning of the sentence when placed in blank (A) or (B).
