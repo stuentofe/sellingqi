@@ -48,12 +48,12 @@ const [w2, x2] = synB.trim().split('\n').map(w => w.trim()).slice(0, 2);
 const [y2, z2] = oppB.trim().split('\n').map(w => w.trim()).slice(0, 2);
 
   const allOptions = [
-    { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
-    { text: `${w1}, ${w2}`, key: 'w', len: w1.length + w2.length },
-    { text: `${x1}, ${x2}`, key: 'x', len: x1.length + x2.length },
-    { text: `${y1}, ${y2}`, key: 'y', len: y1.length + y2.length },
-    { text: `${z1}, ${z2}`, key: 'z', len: z1.length + z2.length },
-  ];
+  { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
+  { text: `${w1}, ${y2}`, key: 'w', len: w1.length + y2.length }, // 유(A) + 반(B)
+  { text: `${x1}, ${z2}`, key: 'x', len: x1.length + z2.length }, // 유(A) + 반(B)
+  { text: `${y1}, ${w2}`, key: 'y', len: y1.length + w2.length }, // 반(A) + 유(B)
+  { text: `${z1}, ${x2}`, key: 'z', len: z1.length + x2.length }  // 반(A) + 유(B)
+];
 
   allOptions.sort((a, b) => a.len - b.len);
 
@@ -117,6 +117,7 @@ ChatGPT must never respond in conversational form and should only output the req
 
 Summarize the following passage in a single sentence within 30 words.
 The sentence must include two minimal clauses (subject + verb units) with key ideas paraphrased from the original passage.
+Avoid any parallel constructions or stacked modifiers. Construct a clean and logically distinct sentence with non-repetitive phrasing.
 
 {{p}}`,
 
