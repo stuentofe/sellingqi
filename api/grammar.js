@@ -252,6 +252,7 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
       model,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
+      max_tokens: 150
     }),
   });
 
