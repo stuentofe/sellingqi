@@ -55,8 +55,8 @@ async function generateDetailMismatchQuestion(passage) {
   const originalKorean = await fetchInlinePrompt('translateOriginal', { s: originalSentence });
 
   // (6) 해설 조립
-  const explanation = `정답: ${labels[wrongIndex]}
-${originalKorean.replace(/\.$/, '')},(${originalSentence})라고 했으므로, 글의 내용과 일치하지 않는 것은 ${labels[wrongIndex]}이다.`;
+    const explanation = `정답: ${labels[wrongIndex]}
+${originalKorean.replace(/\.$/, '')}, (${originalSentence})라고 했으므로, 글의 내용과 일치하지 않는 것은 ${labels[wrongIndex]}이다.`;
 
   // (7) 문제 조립
   const topic = await fetchInlinePrompt('extractTopic', { p: extendedPassage });
