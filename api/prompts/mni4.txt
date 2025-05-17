@@ -3,7 +3,7 @@ ChatGPT must never respond in conversational form and should only output the req
 
 First, only refer to the tone and length of the following: {{c}}
 
-Generate one Korean sentence that is similar in length and style to the given sentence. The content of the sentence may sound similar but the gist must be completely different. Write the sentence only.
+Generate one Korean sentence that is similar in length and style to the given sentence. The content of the sentence may sound similar but the gist and the final word used must be completely different. Write the sentence only.
 
 
 
