@@ -1,5 +1,3 @@
-// 경로: api/claim.js
-
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,7 +6,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // 🔧 text로 들어온 값을 passage로 매핑
+  // generate.html에서 보내는 text 필드로부터 passage 받아오기
   const { text: passage } = req.body;
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
@@ -46,8 +44,8 @@ export default async function handler(req, res) {
     const josa = ['이','가','이','가','가'][correctIndex];
     const explanation = `${e} 필자의 주장은, 문장 ${f}에서 가장 명시적으로 드러난다. 따라서, 글의 주장으로는 ${answerNum}${josa} 가장 적절하다.`;
 
-    // 4. body 조립
-    const body = `
+    // 4. 문제 본문 조립
+    const problem = `
       <p>${finalPassage}</p>
       <ul>
         ${optionItems.map(item => `<li>${item.label} ${item.text}</li>`).join('')}
@@ -56,7 +54,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       prompt: '다음 글에서 필자가 주장하는 것으로 가장 적절한 것은?',
-      body,
+      problem,            // ✅ generate.js가 인식할 수 있도록 필드명 수정
       answer: answerNum,
       explanation
     });
