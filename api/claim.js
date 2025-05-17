@@ -1,4 +1,4 @@
-// 경로: api/clm.js
+// 경로: api/claim.js
 
 import fs from 'fs/promises';
 import path from 'path';
@@ -8,7 +8,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { passage } = req.body;
+  // 🔧 text로 들어온 값을 passage로 매핑
+  const { text: passage } = req.body;
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
