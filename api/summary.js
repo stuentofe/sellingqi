@@ -25,13 +25,10 @@ async function generateSumQuestion(passage) {
 
   // 1단계: 요약문 생성 (sum1a → sum1b)
   const summary = (await fetchInlinePrompt('sum1a', { p }, 'gpt-4o')).trim();
-  console.log('[디버그: summary]', summary); // (추후 삭제)
 
   const s1 = (await fetchInlinePrompt('sum1b', { summary }, 'gpt-4o')).trim();
-  console.log('[디버그: s1]', s1); // (추후 삭제)
 
   const tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
-  console.log('[디버그: tags]', tags.map(t => t[1])); // (추후 삭제)
 
   const c1 = tags[0]?.[1]?.trim() || '';
   const c2 = tags[1]?.[1]?.trim() || '';
@@ -45,7 +42,6 @@ async function generateSumQuestion(passage) {
     .replace(/\b(a|an)\s+(?=\(A\))/gi, 'a(n) ')
     .replace(/\b(a|an)\s+(?=\(B\))/gi, 'a(n) ');
 
-  console.log('[디버그: s2]', s2); // (추후 삭제)
 
   // 2단계: 오답 생성
   const synA = await fetchInlinePrompt('sum2a1', { s2, c1 }, 'gpt-4o');
