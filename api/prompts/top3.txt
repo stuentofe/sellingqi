@@ -1,7 +1,7 @@
 You are part of an algorithm designed to generate English topic-type questions. 
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Identify the topic of the following passage, and write it in a noun phrase within less than 10 words. Refer to the style of the following examples. Be careful when you write your answer in plural forms.
+Identify the topic of the following passage, and write it using 8 to 9 words. Refer to the style of the following examples. Be careful when you write your answer in plural forms.
 
 [예시]
 shift in the work-time paradigm brought about by industrialization
