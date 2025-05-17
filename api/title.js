@@ -1,5 +1,3 @@
-// tit.js
-
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,7 +6,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { passage } = req.body;
+  const { text: passage } = req.body;
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
@@ -18,27 +16,24 @@ export default async function handler(req, res) {
     res.status(200).json(result);
   } catch (error) {
     console.error('tit API error:', error);
-    res.status(500).json({ error: 'Failed to generate title question' });
+    res.status(500).json({ error: error.message || 'Failed to generate title question' });
   }
 }
 
-export async function generateTitQuestion(passage) {
-  if (!passage) {
-    throw new Error('지문이 없습니다.');
-  }
-
+async function generateTitQuestion(passage) {
   const p = passage;
 
   const hasClaim = await fetchPrompt('tit2.txt', { p });
   let finalPassage = p;
+
   if (hasClaim.trim().toUpperCase() === 'NO') {
     const qraw = await fetchPrompt('tit10.txt', { p }, 'gpt-4o');
     finalPassage = qraw.trim();
   }
 
-  // 3. 선택지 생성 (const c만 GPT-4o 모델 사용)
   const c = (await fetchPrompt('tit3.txt', { p: finalPassage }, 'gpt-4o')).trim();
   const wrongRaw = (await fetchPrompt('tit4.txt', { p: finalPassage, c }, 'gpt-4o')).trim();
+
   const wrongOptions = wrongRaw
     .split('\n')
     .map(opt => opt.trim())
@@ -49,38 +44,37 @@ export async function generateTitQuestion(passage) {
   const sorted = [...options].sort((a, b) => a.length - b.length);
   const labels = ['①','②','③','④','⑤'];
   const correctIndex = sorted.findIndex(opt => opt.trim() === c.trim());
-  if (correctIndex === -1) throw new Error('정답 위치를 찾을 수 없습니다.');
 
-  const optionItems = sorted.map((opt, i) => ({ label: labels[i], text: opt }));
+  if (correctIndex === -1) {
+    throw new Error('정답 위치를 찾을 수 없습니다. (정답이 선택지에 없음)');
+  }
 
-  // 4. 해설 생성 (const e만 GPT-4o 모델 사용)
-  const e = (await fetchPrompt('tit8.txt', { p: finalPassage, c }, 'gpt-4o')).trim();
+  const optionItems = sorted.map((opt, i) => `${labels[i]} ${opt}`);
   const answerNum = labels[correctIndex];
   const josa = ['이','가','이','가','가'][correctIndex];
-  const explanation = `${e} 따라서, 글의 제목은 ${answerNum}${josa} 가장 적절하다.`;
 
-  // 5. body 합치기: 지문 + 선택지
-  const body = `
-    <p>${finalPassage}</p>
-    <ul>
-      ${optionItems.map(item => `<li>${item.label} ${item.text}</li>`).join('')}
-    </ul>
-  `;
+  const e = (await fetchPrompt('tit8.txt', { p: finalPassage, c }, 'gpt-4o')).trim();
+  const explanationText = `${e} 따라서, 글의 제목은 ${answerNum}${josa} 가장 적절하다.`;
+
+  const problem =
+`다음 글의 제목으로 가장 적절한 것은?
+
+${finalPassage.trim()}
+
+${optionItems.join('\n')}`;
+
+  const explanation =
+`정답: ${answerNum}
+${explanationText}`;
 
   return {
     prompt: '다음 글의 제목으로 가장 적절한 것은?',
-    body,
+    problem,
     answer: answerNum,
     explanation
   };
 }
 
-/**
- * fetchPrompt: prompts 파일을 로컬에서 읽고 OpenAI API로 직접 요청
- * @param {string} file - prompts 디렉터리 내 파일명
- * @param {object} replacements - 프롬프트 내 치환용 키-값 객체
- * @param {string} model - 사용할 OpenAI 모델 (기본: gpt-3.5-turbo)
- */
 async function fetchPrompt(file, replacements, model = 'gpt-3.5-turbo') {
   const filePath = path.join(process.cwd(), 'api', 'prompts', file);
   let prompt = await fs.readFile(filePath, 'utf-8');
