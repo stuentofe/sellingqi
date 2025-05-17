@@ -7,7 +7,7 @@
     body {
       margin: 0;
       padding: 0;
-      background-color: #0B2B26;
+      background-color: #ffffff;
       font-family: sans-serif;
       display: flex;
       justify-content: center;
@@ -15,64 +15,32 @@
       height: 100vh;
     }
 
-    .card {
-      background-image: url('box.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      border-radius: 30px;
-      width: 450px;
-      height: 450px;
+    .container {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 50px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      gap: 20px;
     }
 
-    .title-image {
-      width: 90%;
-      height: auto;
-      margin-top: 30px;
-    }
-
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      gap: 10px;
-    }
-
-    .buttons a {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 50px;
-      background-image: url('button.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      color: #0B2B26;
+    a {
+      display: block;
+      padding: 12px 20px;
+      background-color: #e0e0e0;
+      color: #000;
+      text-align: center;
       text-decoration: none;
+      border-radius: 6px;
       font-weight: bold;
-      border-radius: 8px;
-      transition: opacity 0.3s;
     }
 
-    .buttons a:hover {
-      opacity: 0.8;
+    a:hover {
+      background-color: #ccc;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <img src="indextitle.jpg" alt="Easy Enough" class="title-image">
-    <div class="buttons">
-      <a href="generate.html">시작하기</a>
-      <a href="freetypes.html">순서, 삽입 바로가기</a>
-    </div>
+  <div class="container">
+    <a href="generate.html">수능유형별 변형문제 자동생성</a>
+    <a href="freetypes.html">순서삽입-경우의 수만큼 자동생성</a>
   </div>
 </body>
 </html>
