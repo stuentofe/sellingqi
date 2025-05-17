@@ -58,14 +58,14 @@ async function generateDetailMismatchQuestion(passage) {
 
   // (6) 해설 조립
   const explanation = `정답: ${labels[wrongIndex]}
-${originalKorean.replace(/\.$/, '')}(${originalSentence})라고 했으므로, 글의 내용과 일치하지 않는 것은 ${labels[wrongIndex]}이다.`;
+'${originalKorean.replace(/\.$/, '')}(${originalSentence})'라고 했으므로, 글의 내용과 일치하지 않는 것은 ${labels[wrongIndex]}이다.`;
 
   // (7) 문제 조립
   const topic = await fetchInlinePrompt('extractTopic', { p: extendedPassage });
   const choices = factSummaries.map((f, i) => (i === wrongIndex ? wrongOption : f));
   const choiceLines = choices.map((c, i) => `${labels[i]} ${c}`).join('\n');
 
-  const problem = `\n'${topic}'에 관한 다음 글의 내용과 일치하지 않는 것은?\n${extendedPassage}\n\n${choiceLines}`;
+  const problem = `'${topic}'에 관한 다음 글의 내용과 일치하지 않는 것은?\n${extendedPassage}\n\n${choiceLines}`;
 
   return {
     prompt: `'${topic}'에 관한 다음 글의 내용과 일치하지 않는 것은?`,
