@@ -37,11 +37,15 @@ async function generateSumQuestion(passage) {
     .replace(/#[^\s.,!]+/g, '(B)');
 
   // 2단계: 오답 생성
-  const wrongA = await fetchInlinePrompt('sum2a', { s2, c1 }, 'gpt-4o');
-  const wrongB = await fetchInlinePrompt('sum2b', { s2, c2 }, 'gpt-4o');
+  const synA = await fetchInlinePrompt('sum2a1', { s2, c1 }, 'gpt-4o');
+  const oppA = await fetchInlinePrompt('sum2a2', { s2, c1 }, 'gpt-4o');
+  const synB = await fetchInlinePrompt('sum2b1', { s2, c2 }, 'gpt-4o');
+  const oppB = await fetchInlinePrompt('sum2b2', { s2, c2 }, 'gpt-4o');
 
-const [w1, x1, y1, z1] = wrongA.trim().split('\n').map(w => w.trim()).slice(0, 4);
-const [w2, x2, y2, z2] = wrongB.trim().split('\n').map(w => w.trim()).slice(0, 4);
+const [w1, x1] = synA.trim().split('\n').map(w => w.trim()).slice(0, 2);
+const [y1, z1] = oppA.trim().split('\n').map(w => w.trim()).slice(0, 2);
+const [w2, x2] = synB.trim().split('\n').map(w => w.trim()).slice(0, 2);
+const [y2, z2] = oppB.trim().split('\n').map(w => w.trim()).slice(0, 2);
 
   const allOptions = [
     { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
@@ -126,39 +130,69 @@ Mark them by prefixing one with @ and the other with #.
 
 {{summary}}`,
 
-  sum2a: `You are part of an algorithm designed to generate English summary-type questions.
+  sum2a1: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Below is a summary sentence with a blank marked as (A), and the word that correctly fills it.
-Your task is to generate four incorrect alternatives (single words) that:
-- Are grammatically and syntactically plausible replacements for (A)
-- Seem superficially acceptable in the sentence
-- But clearly distort or contradict the original meaning
-- Are not variations or synonyms of the correct answer
+Below is a summary sentence with a blank marked as (A), and the correct word that fills it.
+Generate two plausible **synonyms or near-synonyms** of the correct word that:
+- Fit naturally in the sentence syntactically
+- Seem potentially correct on first glance
+- But subtly alter the intended meaning and therefore make the sentence incorrect
 
 [Summary Sentence]
 {{s2}}
 [Correct Word for (A)]
 {{c1}}
 
-List the four incorrect alternatives, one per line.`,
+List the two words, one per line.`,
 
-  sum2b: `You are part of an algorithm designed to generate English summary-type questions.
+  sum2a2: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Below is a summary sentence with a blank marked as (B), and the word that correctly fills it.
-Your task is to generate four incorrect alternatives (single words) that:
-- Are grammatically and syntactically plausible replacements for (B)
-- Seem superficially acceptable in the sentence
-- But clearly distort or contradict the original meaning
-- Are not variations or synonyms of the correct answer
+Below is a summary sentence with a blank marked as (A), and the correct word that fills it.
+Generate two **semantic opponents or contextually inappropriate** words that:
+- Are grammatically acceptable in the blank
+- Appear plausible at a surface level
+- But strongly distort or contradict the original meaning
+
+[Summary Sentence]
+{{s2}}
+[Correct Word for (A)]
+{{c1}}
+
+List the two words, one per line.`,
+
+  sum2b1: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a summary sentence with a blank marked as (B), and the correct word that fills it.
+Generate two plausible **synonyms or near-synonyms** of the correct word that:
+- Fit naturally in the sentence syntactically
+- Seem potentially correct on first glance
+- But subtly alter the intended meaning and therefore make the sentence incorrect
 
 [Summary Sentence]
 {{s2}}
 [Correct Word for (B)]
 {{c2}}
 
-List the four incorrect alternatives, one per line.`,
+List the two words, one per line.`,
+
+  sum2b2: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a summary sentence with a blank marked as (B), and the correct word that fills it.
+Generate two **semantic opponents or contextually inappropriate** words that:
+- Are grammatically acceptable in the blank
+- Appear plausible at a surface level
+- But strongly distort or contradict the original meaning
+
+[Summary Sentence]
+{{s2}}
+[Correct Word for (B)]
+{{c2}}
+
+List the two words, one per line.`,
 
   sum3: `You are part of an algorithm designed to generate English complete summary-type questions. 
 ChatGPT must never respond in conversational form and should only output the required answer.
