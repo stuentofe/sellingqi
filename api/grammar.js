@@ -37,24 +37,32 @@ From the following sentence, identify the part that corresponds to the grammar c
 
 {{s}}`,
 
-  tagSelection: `다음 문장에, 내가 나열한 어법 요소 중 하나 이상이 들어 있다면, 그 중에서 딱 하나만을 골라 그 기호를 답하라.{{exclude}} (단, (a), (d), (e), (j), (r)에 해당하는 어법요소가 있다면, 그것을 우선 선택한다.):
+  tagSelection: `You are part of a grammar question generation system.
+Never respond in conversational form. Output only the result.
+다음 문장에, 내가 나열한 어법 요소 중 하나 이상이 들어 있다면, 그 중에서 딱 하나만을 골라 그 기호를 답하라.{{exclude}} (단, (a), (d), (e), (j), (r)에 해당하는 어법요소가 있다면, 그것을 우선 선택한다.):
 (a) 수일치, (b) 부사/형용사 구별, (c) 분사구문, (d) 태, (e) 관계사 전환, (f) so ~ that 구문, (g) 형식 목적어/진주어 구문, (h) 과거분사, (i) to부정사, (j) 강조 구문, (k) 전치사 뒤 동명사, (l) 동명사(문장 주어), (m) 관계부사, (n) 의문사 용법, (o) 동격 접속사, (p) 사역동사 용법, (q) 복수 취급 대명사, (r) 대동사, (s) 전치사 용법
 
 문장: {{s}}`,
 
-  corrupt: `다음 문장의 <>안에 단어 또는 어구를 변형해서 문장을 어법적으로 틀리게 만들려고 한다. 틀리게 만드는 방식은 다음과 같다.
+  corrupt: `You are part of a grammar question generation system.
+Never respond in conversational form. Output only the result.
+다음 문장의 <>안에 단어 또는 어구를 변형해서 문장을 어법적으로 틀리게 만들려고 한다. 틀리게 만드는 방식은 다음과 같다.
 ({{t}}): {{rule}}
 그에 따라 틀린 문장으로 고친 후, 고친 부분에 <>를 똑같이 표시하고 출력하라.
 
 {{s}}`,
 
-  explainCorrect: `다음 문장은 어법상 옳다. 아래 지시에 따라 해설을 작성하라.
+  explainCorrect: `You are part of a grammar question generation system.
+Never respond in conversational form. Output only the result.
+다음 문장은 어법상 옳다. 아래 지시에 따라 한 문장의 해설을 한국어로 작성하라.
 
 지시: {{rule}}
 
 문장: {{s}}`,
 
-  explainWrong: `다음 문장은 어법상 틀리다. 아래 지시에 따라 해설을 작성하라.
+  explainWrong: `You are part of a grammar question generation system.
+Never respond in conversational form. Output only the result.
+다음 문장은 어법상 틀리다. 아래 지시에 따라 한 문장의 해설을 한국어로 작성하라.
 
 지시: {{rule}}
 
