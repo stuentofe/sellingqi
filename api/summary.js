@@ -23,8 +23,10 @@ export default async function handler(req, res) {
 async function generateSumQuestion(passage) {
   const p = passage;
 
-  // 1단계: 요약문 생성
-  const s1 = (await fetchPrompt('sum1.txt', { p }, 'gpt-4o')).trim();
+  // 1단계: 요약문 생성 (sum1a → sum1b)
+  const summary = (await fetchInlinePrompt('sum1a', { p }, 'gpt-4o')).trim();
+  const s1 = (await fetchInlinePrompt('sum1b', { summary }, 'gpt-4o')).trim();
+
   const tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
   const c1 = tags[0]?.[1]?.trim() || '';
   const c2 = tags[1]?.[1]?.trim() || '';
@@ -35,9 +37,11 @@ async function generateSumQuestion(passage) {
     .replace(/#[^\s.,!]+/g, '(B)');
 
   // 2단계: 오답 생성
-  const wrongRaw = await fetchPrompt('sum2.txt', { p, s2, c }, 'gpt-4o');
-  const wrongOptions = wrongRaw.trim().split('\n').map(line => line.trim()).filter(Boolean).slice(0, 4);
-  const [w1, w2, x1, x2, y1, y2, z1, z2] = wrongOptions.flatMap(opt => opt.split(',').map(s => s.trim()));
+  const wrongA = await fetchInlinePrompt('sum2a', { s2, c1 }, 'gpt-4o');
+  const wrongB = await fetchInlinePrompt('sum2b', { s2, c2 }, 'gpt-4o');
+
+const [w1, x1, y1, z1] = wrongA.trim().split('\n').map(w => w.trim()).slice(0, 4);
+const [w2, x2, y2, z2] = wrongB.trim().split('\n').map(w => w.trim()).slice(0, 4);
 
   const allOptions = [
     { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
@@ -58,11 +62,11 @@ async function generateSumQuestion(passage) {
   const correct = choices.find(choice => choice.text === `${c1}, ${c2}`)?.no || '①';
 
   // 3단계: 해설 생성
-  const e1 = (await fetchPrompt('sum3.txt', { p, s: s2, c })).trim();
-  const e2 = (await fetchPrompt('sum4.txt', { s: s1 })).trim()
+  const e1 = (await fetchInlinePrompt('sum3', { p, s: s2, c })).trim();
+  const e2 = (await fetchInlinePrompt('sum4', { s: s1 })).trim()
     .replace(/\$(.*?)\$/g, (_, word) => `(A)${word}(${c1})`)
     .replace(/\%(.*?)\%/g, (_, word) => `(B)${word}(${c2})`);
-  const e3 = (await fetchPrompt('sum5.txt', { w1, w2, x1, x2, y1, y2, z1, z2 })).trim();
+  const e3 = (await fetchInlinePrompt('sum5', { w1, w2, x1, x2, y1, y2, z1, z2 })).trim();
 
   const defs = e3.split(',').map(d => d.trim());
   const [w3, w4, x3, x4, y3, y4, z3, z4] = defs;
@@ -103,12 +107,87 @@ ${choiceLines}`;
   };
 }
 
-async function fetchPrompt(file, replacements, model = 'gpt-3.5-turbo') {
-  const filePath = path.join(process.cwd(), 'api', 'prompts', file);
-  let prompt = await fs.readFile(filePath, 'utf-8');
+const inlinePrompts = {
+  sum1a: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
 
-  for (const key in replacements) {
-    prompt = prompt.replace(new RegExp(`{{${key}}}`, 'g'), replacements[key]);
+Summarize the following passage in a single sentence within 30 words.
+The sentence must include two minimal clauses (subject + verb units) with key ideas paraphrased from the original passage.
+
+{{p}}`,
+
+  sum1b: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a summary sentence.
+Identify two core-content words—one from each clause—that are not general nouns (e.g., avoid everyday nouns like "thing", "people", "time") and also not specialized technical terms or jargon.
+
+Mark them by prefixing one with @ and the other with #.
+
+{{summary}}`,
+
+  sum2a: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a summary sentence with a blank marked as (A), and the word that correctly fills it.
+Your task is to generate four incorrect alternatives (single words) that:
+- Are grammatically and syntactically plausible replacements for (A)
+- Seem superficially acceptable in the sentence
+- But clearly distort or contradict the original meaning
+- Are not variations or synonyms of the correct answer
+
+[Summary Sentence]
+{{s2}}
+[Correct Word for (A)]
+{{c1}}
+
+List the four incorrect alternatives, one per line.`,
+
+  sum2b: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a summary sentence with a blank marked as (B), and the word that correctly fills it.
+Your task is to generate four incorrect alternatives (single words) that:
+- Are grammatically and syntactically plausible replacements for (B)
+- Seem superficially acceptable in the sentence
+- But clearly distort or contradict the original meaning
+- Are not variations or synonyms of the correct answer
+
+[Summary Sentence]
+{{s2}}
+[Correct Word for (B)]
+{{c2}}
+
+List the four incorrect alternatives, one per line.`,
+
+  sum3: `You are part of an algorithm designed to generate English complete summary-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+지문
+{{p}}
+
+위 지문의 요지를 한국어 20음절 이내로 작성하라. 단, '~라는 글이다' 를 사용해야 한다.`,
+
+  sum4: `You are part of an algorithm designed to generate English complete summary-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+{{s}}
+
+위 요약문을 한국어로 번역하라. 단, @과 #은 삭제하며, '~이다.' 체를 사용한다.`,
+
+  sum5: `You are part of an algorithm designed to generate English complete summary-type questions. 
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+{{w1}}, {{w2}}, {{x1}}, {{x2}}, {{y1}}, {{y2}}, {{z1}}, {{z2}}
+
+위 영어 단어들의 한국어 대응 뜻을 나열하라. 줄바꿈이나 별도의 목록 표기 없이, 한 줄로 작성한다.`
+};
+
+async function fetchInlinePrompt(key, replacements, model = 'gpt-3.5-turbo') {
+  let prompt = inlinePrompts[key];
+
+  for (const k in replacements) {
+    prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
   }
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
