@@ -6,8 +6,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { passage } = req.body;
-
+  const { text: passage } = req.body;
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
@@ -16,87 +15,55 @@ export default async function handler(req, res) {
     const result = await generateSumQuestion(passage);
     res.status(200).json(result);
   } catch (error) {
-    console.error('sum API error:', error);
-    res.status(500).json({ error: 'Failed to generate summary question' });
+    console.error('summary API error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate summary question' });
   }
 }
 
 async function generateSumQuestion(passage) {
-  if (!passage) throw new Error('지문이 없습니다.');
   const p = passage;
 
   // 1단계: 요약문 생성
-  const s1raw = await fetchPrompt('sum1.txt', { p }, 'gpt-4o');
-  const s1 = s1raw.trim();
-
-  // 핵심어 태그 추출
+  const s1 = (await fetchPrompt('sum1.txt', { p }, 'gpt-4o')).trim();
   const tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
-  const c1 = tags[0]?.[1].trim() || '';
-  const c2 = tags[1]?.[1].trim() || '';
+  const c1 = tags[0]?.[1]?.trim() || '';
+  const c2 = tags[1]?.[1]?.trim() || '';
   const c = `${c1}, ${c2}`;
 
-  // 정답 공란 처리
   const s2 = s1
     .replace(/@[^\s.,!]+/g, '(A)')
     .replace(/#[^\s.,!]+/g, '(B)');
 
-  // 2단계: 오답 후보 생성
+  // 2단계: 오답 생성
   const wrongRaw = await fetchPrompt('sum2.txt', { p, s2, c }, 'gpt-4o');
   const wrongOptions = wrongRaw.trim().split('\n').map(line => line.trim()).filter(Boolean).slice(0, 4);
   const [w1, w2, x1, x2, y1, y2, z1, z2] = wrongOptions.flatMap(opt => opt.split(',').map(s => s.trim()));
 
-  // (A) 정답 후보 + 오답 4개 정렬
   const allOptions = [
-  { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
-  { text: `${w1}, ${w2}`, key: 'w', len: w1.length + w2.length },
-  { text: `${x1}, ${x2}`, key: 'x', len: x1.length + x2.length },
-  { text: `${y1}, ${y2}`, key: 'y', len: y1.length + y2.length },
-  { text: `${z1}, ${z2}`, key: 'z', len: z1.length + z2.length },
-];
+    { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
+    { text: `${w1}, ${w2}`, key: 'w', len: w1.length + w2.length },
+    { text: `${x1}, ${x2}`, key: 'x', len: x1.length + x2.length },
+    { text: `${y1}, ${y2}`, key: 'y', len: y1.length + y2.length },
+    { text: `${z1}, ${z2}`, key: 'z', len: z1.length + z2.length },
+  ];
 
-allOptions.sort((a, b) => a.len - b.len);
+  allOptions.sort((a, b) => a.len - b.len);
 
-const choices = allOptions.map((opt, idx) => ({
-  no: ['①', '②', '③', '④', '⑤'][idx],
-  text: opt.text,
-}));
+  const labels = ['①', '②', '③', '④', '⑤'];
+  const choices = allOptions.map((opt, idx) => ({
+    no: labels[idx],
+    text: opt.text
+  }));
 
-const correct = choices.find(choice => choice.text === `${c1}, ${c2}`)?.no || '①';
+  const correct = choices.find(choice => choice.text === `${c1}, ${c2}`)?.no || '①';
 
-
-  // s3는 여기서 정의돼야 body에서 사용할 수 있음
-  const s3 = s2.replace(/\(A\)/g, '<u>___(A)___</u>').replace(/\(B\)/g, '<u>___(B)___</u>');
-
-const dot = '\u2026\u2026'; // 가운뎃점 2개
-const headerLine = `     (A)          (B)`; // (B) 앞 공백 10칸
-
-const choiceLines = choices.map(choice => {
-  const [a, b] = choice.text.split(',').map(s => s.trim());
-  return `${choice.no} ${a}${dot}${b}`;
-}).join('\n');
-
-const body = `
-  <div class="box"><p>${p}</p></div>
-  <p style="text-align:center">↓</p>
-  <div class="box"><p>${s3}</p></div>
-  <pre>
-${headerLine}
-${choiceLines}
-  </pre>
-`;
-
-
-  // 3단계: 해설 구성
-  const e1raw = await fetchPrompt('sum3.txt', { p, s: s2, c });
-  const e1 = e1raw.trim();
-
-  const e2raw = await fetchPrompt('sum4.txt', { s: s1 });
-  const e2 = e2raw.trim()
+  // 3단계: 해설 생성
+  const e1 = (await fetchPrompt('sum3.txt', { p, s: s2, c })).trim();
+  const e2 = (await fetchPrompt('sum4.txt', { s: s1 })).trim()
     .replace(/\$(.*?)\$/g, (_, word) => `(A)${word}(${c1})`)
     .replace(/\%(.*?)\%/g, (_, word) => `(B)${word}(${c2})`);
+  const e3 = (await fetchPrompt('sum5.txt', { w1, w2, x1, x2, y1, y2, z1, z2 })).trim();
 
-  const e3raw = await fetchPrompt('sum5.txt', { w1, w2, x1, x2, y1, y2, z1, z2 });
-  const e3 = e3raw.trim();
   const defs = e3.split(',').map(d => d.trim());
   const [w3, w4, x3, x4, y3, y4, z3, z4] = defs;
 
@@ -105,11 +72,32 @@ ${choiceLines}
     `${y1}(${y3})`, `${y2}(${y4})`, `${z1}(${z3})`, `${z2}(${z4})`,
   ].join(', ');
 
-  const explanation = `${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] ${wrongList}`;
+  const explanation =
+`정답: ${correct}
+${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] ${wrongList}`;
+
+  // 문제 출력 텍스트 조립
+  const dot = '\u2026\u2026';
+  const headerLine = `     (A)          (B)`; // 공백 포함
+  const choiceLines = choices.map(choice => {
+    const [a, b] = choice.text.split(',').map(s => s.trim());
+    return `${choice.no} ${a}${dot}${b}`;
+  }).join('\n');
+
+  const problem =
+`다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?
+
+${p.trim()}
+
+요약문:
+${s2.replace(/\(A\)/g, '___(A)___').replace(/\(B\)/g, '___(B)___')}
+
+${headerLine}
+${choiceLines}`;
 
   return {
     prompt: '다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?',
-    body,
+    problem,
     answer: correct,
     explanation
   };
