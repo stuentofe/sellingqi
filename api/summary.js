@@ -32,9 +32,15 @@ async function generateSumQuestion(passage) {
   const c2 = tags[1]?.[1]?.trim() || '';
   const c = `${c1}, ${c2}`;
 
-  const s2 = s1
-    .replace(/@[^\s.,!]+/g, '(A)')
-    .replace(/#[^\s.,!]+/g, '(B)');
+let s2 = s1
+  .replace(/@([^\s.,!]+)/g, '(A)')
+  .replace(/#([^\s.,!]+)/g, '(B)');
+
+// (A), (B) 앞에 오는 a/an 제거 및 a(n)으로 치환
+s2 = s2
+  .replace(/\b(a|an)\s+(?=\(A\))/gi, 'a(n) ')
+  .replace(/\b(a|an)\s+(?=\(B\))/gi, 'a(n) ');
+
 
   // 2단계: 오답 생성
   const synA = await fetchInlinePrompt('sum2a1', { s2, c1 }, 'gpt-4o');
