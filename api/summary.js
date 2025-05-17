@@ -119,11 +119,11 @@ ${choiceLines}`;
 
 const inlinePrompts = {
   sum1a: `You are part of an algorithm designed to generate English summary-type questions.
-ChatGPT must never respond in conversational form and should only output the required answer.
+ChatGPT must never respond in conversational form and should only output the required answer without labelling or numbering.
 
 Summarize the following passage in a single sentence within 30 words.
-The sentence must include two minimal clauses (subject + verb units) with key ideas paraphrased from the original passage.
-Avoid any parallel constructions or stacked modifiers. Construct a clean and logically distinct sentence with non-repetitive phrasing.
+The sentence must include two minimal clauses (subject + verb units) with key concepts paraphrased from the original passage.
+Do not make use of juxtaposition nor modifer stacking.
 
 {{p}}`,
 
@@ -131,8 +131,7 @@ Avoid any parallel constructions or stacked modifiers. Construct a clean and log
 ChatGPT must never respond in conversational form and should only output the required answer.
 
 Below is a summary sentence.
-Identify two core-content words—one from each clause—that are not general nouns (e.g., avoid everyday nouns like "thing", "people", "time") and also not specialized technical terms or jargon.
-
+Identify two core-content words—one from each clause—that are not everyday words and also not technical terms or jargon.
 Mark them by prefixing one with @ and the other with #.
 
 {{summary}}`,
@@ -140,66 +139,64 @@ Mark them by prefixing one with @ and the other with #.
   sum2a1: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Below is a summary sentence with a blank marked as (A), and the correct word that fills it.
-Generate two interchangeable synonyms of the correct word that:
-- Fit naturally in the sentence syntactically
-- Are commonly used in similar contexts
-- But slightly alter the intended nuance or accuracy of the original meaning
+Below are a sentence and one of the words used in it.
+Name two interchangeable synonyms of the given word that:
+- fit naturally when replacing the original word in the sentence
+- are commonly used in similar contexts
 
 [Summary Sentence]
-{{s2}}
+{{s1}}
 [Correct Word for (A)]
 {{c1}}
 
-List the two words, one per line.`,
+List the two words, one per line without any labelling or numbering.`,
 
   sum2a2: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Below is a summary sentence with a blank marked as (A), and the correct word that fills it.
-Generate two semantic opponents or contextually inappropriate words that:
-- Are grammatically acceptable in the blank
-- Appear plausible at a surface level
-- But strongly distort or contradict the original meaning
+Below are a sentence and one of the words used in it.
+Name two semantic opponents or contextually inappropriate words that:
+- are nonetheless grammatically acceptable in the blank
+- appear plausible at a surface structural level
+- but strongly distort or contradict the original meaning
 
 [Summary Sentence]
-{{s2}}
+{{s1}}
 [Correct Word for (A)]
 {{c1}}
 
-List the two words, one per line.`,
+List the two words, one per line without any labelling or numbering.`,
 
   sum2b1: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Below is a summary sentence with a blank marked as (B), and the correct word that fills it.
-Generate two interchangeable synonyms of the correct word that:
-- Fit naturally in the sentence syntactically
-- Are commonly used in similar contexts
-- But slightly alter the intended nuance or accuracy of the original meaning
+Below are a sentence and one of the words used in it.
+Name two interchangeable synonyms of the given word that:
+- fit naturally when replacing the original word in the sentence
+- are commonly used in similar contexts
 
 [Summary Sentence]
-{{s2}}
+{{s1}}
 [Correct Word for (B)]
 {{c2}}
 
-List the two words, one per line.`,
+List the two words, one per line without any labelling or numbering.`,
 
   sum2b2: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Below is a summary sentence with a blank marked as (B), and the correct word that fills it.
-Generate two semantic opponents or contextually inappropriate words that:
-- Are grammatically acceptable in the blank
-- Appear plausible at a surface level
-- But strongly distort or contradict the original meaning
+Below are a sentence and one of the words used in it.
+Name two semantic opponents or contextually inappropriate words that:
+- are nonetheless grammatically acceptable in the blank
+- appear plausible at a surface structural level
+- but strongly distort or contradict the original meaning
 
 [Summary Sentence]
-{{s2}}
+{{s1}}
 [Correct Word for (B)]
 {{c2}}
 
-List the two words, one per line.`,
+List the two words, one per line without any labelling or numbering.`,
 
   sum3: `You are part of an algorithm designed to generate English complete summary-type questions. 
 ChatGPT must never respond in conversational form and should only output the required answer.
