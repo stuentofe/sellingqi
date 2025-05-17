@@ -34,16 +34,21 @@ export default async function handler(req, res) {
     const sorted = [...options].sort((a, b) => a.length - b.length);
     const labels = ['①','②','③','④','⑤'];
     const correctIndex = sorted.findIndex(opt => opt.trim() === c.trim());
+
+    if (correctIndex === -1) {
+      throw new Error('정답 선택지를 찾을 수 없습니다. (정답이 옵션 목록에 없음)');
+    }
+
     const optionItems = sorted.map((opt, i) => `${labels[i]} ${opt}`);
+    const answerNum = labels[correctIndex];
+    const josa = ['이','가','이','가','가'][correctIndex];
 
     // 3. 해설 생성
     const e = (await fetchPrompt('clm3-5-e.txt', { p: finalPassage, c })).trim();
     const f = (await fetchPrompt('clm3-5-f.txt', { p: finalPassage, c })).trim();
-    const answerNum = labels[correctIndex];
-    const josa = ['이','가','이','가','가'][correctIndex];
     const explanationText = `${e} 필자의 주장은, 문장 ${f}에서 가장 명시적으로 드러난다. 따라서, 글의 주장으로는 ${answerNum}${josa} 가장 적절하다.`;
 
-    // ✅ problem: 지시문 + 지문 + 선택지
+    // 4. 문제 본문 (문항 + 선택지)
     const problem =
 `다음 글에서 필자가 주장하는 것으로 가장 적절한 것은?
 
@@ -51,7 +56,7 @@ ${finalPassage.trim()}
 
 ${optionItems.join('\n')}`;
 
-    // ✅ explanation: 정답 + 해설
+    // 5. 정답 및 해설
     const explanation =
 `정답: ${answerNum}
 ${explanationText}`;
@@ -65,7 +70,7 @@ ${explanationText}`;
 
   } catch (err) {
     console.error('clm API error:', err);
-    res.status(500).json({ error: 'Failed to generate claim question' });
+    res.status(500).json({ error: err.message || '서버 오류 발생' });
   }
 }
 
@@ -78,4 +83,19 @@ async function fetchPrompt(file, replacements, model = 'gpt-3.5-turbo') {
   }
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    metho
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3
+    })
+  });
+
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message || 'GPT 응답 실패');
+  return data.choices[0].message.content.trim();
+}
