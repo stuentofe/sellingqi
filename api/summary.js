@@ -117,7 +117,7 @@ ChatGPT must never respond in conversational form and should only output the req
 
 Summarize the following passage in a single sentence within 30 words.
 The sentence must include two minimal clauses (subject + verb units) with key ideas paraphrased from the original passage.
-Avoid any parallel constructions or stacked modifiers. Also avoid using indefinite articles ("a" or "an").
+Avoid any parallel constructions or stacked modifiers. Construct a clean and logically distinct sentence with non-repetitive phrasing.
 
 {{p}}`,
 
