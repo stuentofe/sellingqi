@@ -23,24 +23,31 @@ export default async function handler(req, res) {
 async function generateSumQuestion(passage) {
   const p = passage;
 
-  // 1단계: 요약문 생성 (sum1a → sum1b)
-  const summary = (await fetchInlinePrompt('sum1a', { p }, 'gpt-4o')).trim();
-  const s1 = (await fetchInlinePrompt('sum1b', { summary }, 'gpt-4o')).trim();
+  // 1단계: 요약문 생성 (3단계 재시도 포함)
+  const summary = await fetchSummaryWithFallback(p);
+  const s1 = await fetchInlinePrompt('sum1b', { summary }, 'gpt-4o');
 
-  const tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
+  if (!s1.includes('@') || !s1.includes('#')) {
+    throw new Error('마킹된 요약문이 유효하지 않습니다.');
+  }
+
+  const tags = [...s1.matchAll(/[@#]([^
+\s.,!]+)/g)];
   const c1 = tags[0]?.[1]?.trim() || '';
   const c2 = tags[1]?.[1]?.trim() || '';
   const c = `${c1}, ${c2}`;
 
-let s2 = s1
-  .replace(/@([^\s.,!]+)/g, '(A)')
-  .replace(/#([^\s.,!]+)/g, '(B)');
+  let s2 = s1
+    .replace(/@([^
+\s.,!]+)/g, '(A)')
+    .replace(/#([^
+\s.,!]+)/g, '(B)')
+    .replace(/\b(a|an)\s+(?=\(A\))/gi, 'a(n) ')
+    .replace(/\b(a|an)\s+(?=\(B\))/gi, 'a(n) ');
 
-// (A), (B) 앞에 오는 a/an 제거 및 a(n)으로 치환
-s2 = s2
-  .replace(/\b(a|an)\s+(?=\(A\))/gi, 'a(n) ')
-  .replace(/\b(a|an)\s+(?=\(B\))/gi, 'a(n) ');
-
+  if (!s2.includes('(A)') || !s2.includes('(B)')) {
+    throw new Error('치환된 요약문이 유효하지 않습니다.');
+  }
 
   // 2단계: 오답 생성
   const synA = await fetchInlinePrompt('sum2a1', { s2, c1 }, 'gpt-4o');
@@ -48,27 +55,22 @@ s2 = s2
   const synB = await fetchInlinePrompt('sum2b1', { s2, c2 }, 'gpt-4o');
   const oppB = await fetchInlinePrompt('sum2b2', { s2, c2 }, 'gpt-4o');
 
-const [w1, x1] = synA.trim().split('\n').map(w => w.trim()).slice(0, 2);
-const [y1, z1] = oppA.trim().split('\n').map(w => w.trim()).slice(0, 2);
-const [w2, x2] = synB.trim().split('\n').map(w => w.trim()).slice(0, 2);
-const [y2, z2] = oppB.trim().split('\n').map(w => w.trim()).slice(0, 2);
+  const [w1, x1] = synA.trim().split('\n').map(w => w.trim()).slice(0, 2);
+  const [y1, z1] = oppA.trim().split('\n').map(w => w.trim()).slice(0, 2);
+  const [w2, x2] = synB.trim().split('\n').map(w => w.trim()).slice(0, 2);
+  const [y2, z2] = oppB.trim().split('\n').map(w => w.trim()).slice(0, 2);
 
   const allOptions = [
-  { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
-  { text: `${w1}, ${y2}`, key: 'w', len: w1.length + y2.length }, // 유(A) + 반(B)
-  { text: `${x1}, ${z2}`, key: 'x', len: x1.length + z2.length }, // 유(A) + 반(B)
-  { text: `${y1}, ${w2}`, key: 'y', len: y1.length + w2.length }, // 반(A) + 유(B)
-  { text: `${z1}, ${x2}`, key: 'z', len: z1.length + x2.length }  // 반(A) + 유(B)
-];
+    { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
+    { text: `${w1}, ${y2}`, key: 'w', len: w1.length + y2.length },
+    { text: `${x1}, ${z2}`, key: 'x', len: x1.length + z2.length },
+    { text: `${y1}, ${w2}`, key: 'y', len: y1.length + w2.length },
+    { text: `${z1}, ${x2}`, key: 'z', len: z1.length + x2.length }
+  ];
 
   allOptions.sort((a, b) => a.len - b.len);
-
   const labels = ['①', '②', '③', '④', '⑤'];
-  const choices = allOptions.map((opt, idx) => ({
-    no: labels[idx],
-    text: opt.text
-  }));
-
+  const choices = allOptions.map((opt, idx) => ({ no: labels[idx], text: opt.text }));
   const correct = choices.find(choice => choice.text === `${c1}, ${c2}`)?.no || '①';
 
   // 3단계: 해설 생성
@@ -77,7 +79,6 @@ const [y2, z2] = oppB.trim().split('\n').map(w => w.trim()).slice(0, 2);
     .replace(/\$(.*?)\$/g, (_, word) => `(A)${word}(${c1})`)
     .replace(/\%(.*?)\%/g, (_, word) => `(B)${word}(${c2})`);
   const e3 = (await fetchInlinePrompt('sum5', { w1, w2, x1, x2, y1, y2, z1, z2 })).trim();
-
   const defs = e3.split(',').map(d => d.trim());
   const [w3, w4, x3, x4, y3, y4, z3, z4] = defs;
 
@@ -86,45 +87,24 @@ const [y2, z2] = oppB.trim().split('\n').map(w => w.trim()).slice(0, 2);
     `${y1}(${y3})`, `${y2}(${y4})`, `${z1}(${z3})`, `${z2}(${z4})`,
   ].join(', ');
 
-  const explanation =
-`정답: ${correct}
-${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] ${wrongList}`;
+  const explanation = `정답: ${correct}\n${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] ${wrongList}`;
 
-  // 문제 출력 텍스트 조립
   const dot = '\u2026\u2026';
-  const headerLine = `     (A)          (B)`; // 공백 포함
+  const headerLine = `     (A)          (B)`;
   const choiceLines = choices.map(choice => {
     const [a, b] = choice.text.split(',').map(s => s.trim());
     return `${choice.no} ${a}${dot}${b}`;
   }).join('\n');
 
-  const problem =
-`다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?
+  const problem = `다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?\n\n${p.trim()}\n\n요약문:\n${s2.replace(/\(A\)/g, '___(A)___').replace(/\(B\)/g, '___(B)___')}\n\n${headerLine}\n${choiceLines}`;
 
-${p.trim()}
-
-요약문:
-${s2.replace(/\(A\)/g, '___(A)___').replace(/\(B\)/g, '___(B)___')}
-
-${headerLine}
-${choiceLines}`;
-
-  return {
-    prompt: '다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?',
-    problem,
-    answer: correct,
-    explanation
-  };
+  return { prompt: '다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?', problem, answer: correct, explanation };
 }
 
 const inlinePrompts = {
-  sum1a: `You are part of an algorithm designed to generate English summary-type questions.
-ChatGPT must never respond in conversational form and should only output the required answer without labelling or numbering.
+  sum1a: `You are part of an algorithm designed to generate English summary-type questions.\nChatGPT must never respond in conversational form and should only output the required answer without labelling or numbering.\n\nSummarize the following passage in a single sentence within 30 words.\nParaphrase so that the sentence can include two minimal clauses (subject + verb units) and does not use juxtaposition nor modifer stacking.\n\n{{p}}`,
 
-Summarize the following passage in a single sentence within 30 words.
-Paraphrase so that the sentence can include two minimal clauses (subject + verb units) and does not use juxtaposition nor modifer stacking.
-
-{{p}}`,
+  sum1a_relaxed: `You are part of an algorithm designed to generate English summary-type questions.\nChatGPT must never respond in conversational form and should only output the required answer.\n\nSummarize the following passage in a single sentence within 30 words.\n\n{{p}}`,
 
   sum1b: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
@@ -220,9 +200,30 @@ ChatGPT must never respond in conversational form and should only output the req
 위 영어 단어들의 한국어 대응 뜻을 나열하라. 줄바꿈이나 별도의 목록 표기 없이, 한 줄로 작성한다.`
 };
 
+async function fetchSummaryWithFallback(p) {
+  for (let i = 0; i < 2; i++) {
+    const result = await tryOnce('sum1a', { p });
+    if (isValidSummary(result)) return result;
+  }
+  const fallback = await tryOnce('sum1a_relaxed', { p });
+  if (isValidSummary(fallback)) return fallback;
+  throw new Error('요약문 생성에 3회 모두 실패했습니다.');
+}
+
+function isValidSummary(summary) {
+  return summary && summary.trim().split(/\s+/).length >= 6;
+}
+
+async function tryOnce(key, replacements, model = 'gpt-4o') {
+  try {
+    return await fetchInlinePrompt(key, replacements, model);
+  } catch (_) {
+    return '';
+  }
+}
+
 async function fetchInlinePrompt(key, replacements, model = 'gpt-3.5-turbo') {
   let prompt = inlinePrompts[key];
-
   for (const k in replacements) {
     prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
   }
@@ -244,3 +245,4 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-3.5-turbo') {
   if (data.error) throw new Error(data.error.message || 'GPT 응답 실패');
   return data.choices[0].message.content.trim();
 }
+
