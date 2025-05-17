@@ -134,10 +134,10 @@ Mark them by prefixing one with @ and the other with #.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
 Below is a summary sentence with a blank marked as (A), and the correct word that fills it.
-Generate two plausible **synonyms or near-synonyms** of the correct word that:
+Generate two interchangeable synonyms of the correct word that:
 - Fit naturally in the sentence syntactically
-- Seem potentially correct on first glance
-- But subtly alter the intended meaning and therefore make the sentence incorrect
+- Are commonly used in similar contexts
+- But slightly alter the intended nuance or accuracy of the original meaning
 
 [Summary Sentence]
 {{s2}}
@@ -150,7 +150,7 @@ List the two words, one per line.`,
 ChatGPT must never respond in conversational form and should only output the required answer.
 
 Below is a summary sentence with a blank marked as (A), and the correct word that fills it.
-Generate two **semantic opponents or contextually inappropriate** words that:
+Generate two semantic opponents or contextually inappropriate words that:
 - Are grammatically acceptable in the blank
 - Appear plausible at a surface level
 - But strongly distort or contradict the original meaning
@@ -166,10 +166,10 @@ List the two words, one per line.`,
 ChatGPT must never respond in conversational form and should only output the required answer.
 
 Below is a summary sentence with a blank marked as (B), and the correct word that fills it.
-Generate two plausible **synonyms or near-synonyms** of the correct word that:
+Generate two interchangeable synonyms of the correct word that:
 - Fit naturally in the sentence syntactically
-- Seem potentially correct on first glance
-- But subtly alter the intended meaning and therefore make the sentence incorrect
+- Are commonly used in similar contexts
+- But slightly alter the intended nuance or accuracy of the original meaning
 
 [Summary Sentence]
 {{s2}}
@@ -182,7 +182,7 @@ List the two words, one per line.`,
 ChatGPT must never respond in conversational form and should only output the required answer.
 
 Below is a summary sentence with a blank marked as (B), and the correct word that fills it.
-Generate two **semantic opponents or contextually inappropriate** words that:
+Generate two semantic opponents or contextually inappropriate words that:
 - Are grammatically acceptable in the blank
 - Appear plausible at a surface level
 - But strongly distort or contradict the original meaning
