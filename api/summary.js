@@ -113,7 +113,7 @@ const inlinePrompts = {
 ChatGPT must never respond in conversational form and should only output the required answer without labelling or numbering.
 
 Summarize the following passage in a single sentence within 30 words.
-Paraphrase so that the sentence can include two minimal clauses (subject + verb units) and does not use juxtaposition nor modifer stacking.
+Paraphrase so that the sentence consists of at least two clauses (subject + verb units). Write in the most concise way you can.
 
 {{p}}`,
 
