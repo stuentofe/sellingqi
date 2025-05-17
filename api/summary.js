@@ -122,8 +122,7 @@ const inlinePrompts = {
 ChatGPT must never respond in conversational form and should only output the required answer without labelling or numbering.
 
 Summarize the following passage in a single sentence within 30 words.
-The sentence must include two minimal clauses (subject + verb units) with key concepts paraphrased from the original passage.
-Do not make use of juxtaposition nor modifer stacking.
+Paraphrase so that the sentence can include two minimal clauses (subject + verb units) and does not use juxtaposition nor modifer stacking.
 
 {{p}}`,
 
@@ -204,7 +203,7 @@ ChatGPT must never respond in conversational form and should only output the req
 지문
 {{p}}
 
-위 지문의 요지를 한국어 20음절 이내로 작성하라. 단, '~라는 글이다' 를 사용해야 한다.`,
+위 지문의 요지를 한국어 '~라는 글이다'로 마무리되는 완성된 20음절 이내의 한 문장으로 작성하라. 20음절 이내로 작성하라.`,
 
   sum4: `You are part of an algorithm designed to generate English complete summary-type questions. 
 ChatGPT must never respond in conversational form and should only output the required answer.
