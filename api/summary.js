@@ -263,7 +263,8 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-3.5-turbo') {
     body: JSON.stringify({
       model,
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3
+      temperature: 0.3,
+      max_tokens: 100
     })
   });
 
