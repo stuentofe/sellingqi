@@ -365,13 +365,20 @@ export async function generateGrammarErrorQuestion(passage) {
     revisedMap[r.id] = i === wrongIndex ? wrongSentence : marked[i];
   });
 
-  const fullText = tagResults
-    .map(({ id }) => {
-      const rev = revisedMap[id];
-      const mark = ['①', '②', '③', '④', '⑤'][tagResults.findIndex(r => r.id === id)];
-      return rev.replace(/<([^>]+)>/, `${mark}<$1>`);
-    })
-    .join(' ');
+const fullTextWithAll = indexed
+  .map(s => {
+    const taggedIndex = tagResults.findIndex(r => r.id === s.id);
+    if (taggedIndex !== -1) {
+      const content = taggedIndex === wrongIndex ? wrongSentence : marked[taggedIndex];
+      const mark = ['①', '②', '③', '④', '⑤'][taggedIndex];
+      return content.replace(/<([^>]+)>/, `${mark}<$1>`);
+    } else {
+      // 태그 없는 문장: 원문 그대로 출력
+      return s.text;
+    }
+  })
+  .join(' ');
+
 
   // 해설 생성 (오답 문장만)
   const explanations = await Promise.all(
@@ -388,7 +395,7 @@ export async function generateGrammarErrorQuestion(passage) {
 
   return {
     prompt: '다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?',
-    problem: `다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?\n\n${fullText}`,
+    problem: `다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?\n\n${fullTextWithAll}`,
     answer: ['①', '②', '③', '④', '⑤'][wrongIndex],
     explanation: `정답: ${['①', '②', '③', '④', '⑤'][wrongIndex]}\n${explanations.join('\n')}`,
   };
