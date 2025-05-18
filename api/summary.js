@@ -237,7 +237,7 @@ ChatGPT must never respond in conversational form and should only output the req
 
 {{s}}
 
-위 요약문을 한국어로 번역하라. 단, @과 #은 삭제하며, '~이다.' 체를 사용한다.`,
+위 요약문을 한국어로 번역하라. 단, @과 #은 삭제하며, 문체는 '~(이)다'를 사용하라.`,
 
   sum5: `You are part of an algorithm designed to generate English complete summary-type questions. 
 ChatGPT must never respond in conversational form and should only output the required answer.
