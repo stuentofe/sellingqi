@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { passage } = req.body;
+  const { text: passage } = req.body;  // summary.js처럼 여기서 text를 받아서 passage로 할당
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
@@ -20,7 +20,16 @@ export default async function handler(req, res) {
 
 // 기존 grammar.js 내 함수들 재사용 (필요시 아래 함수들도 함께 넣거나 import로 관리)
 async function generateGrammarProblem(passage) {
-  // ... (기존 코드와 동일)
+  console.log('[START] generateGrammarProblem');
+  console.log('입력 지문:', passage);
+
+  if (!passage || typeof passage !== 'string') {
+    throw new Error('Invalid or missing passage');
+  }
+
+  const result = await generateGrammarErrorQuestion(passage);
+  console.log('[END] generateGrammarProblem - result:', result);
+  return result;
 }
 
 const priorityTags = ['a', 'd', 'e', 'j', 'r'];
