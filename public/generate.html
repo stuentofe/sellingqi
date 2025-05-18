@@ -147,6 +147,21 @@
       });
     }
 
+    // 안전하게 HTML 이스케이프
+    function escapeHTML(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // < > 감싸진 텍스트를 밑줄 처리하고, 줄바꿈도 <br>로 변환
+    function underlineAngleBrackets(text) {
+      let escaped = escapeHTML(text);
+      escaped = escaped.replace(/&lt;([^&]+)&gt;/g, '<u>$1</u>');
+      escaped = escaped.replace(/\n/g, '<br>');
+      return escaped;
+    }
+
     document.getElementById('generateBtn').addEventListener('click', async () => {
       const text = document.getElementById('inputText').value.trim();
       const outputBox = document.getElementById('outputBox');
@@ -182,7 +197,7 @@
           const explanationText = data.explanation || '';
 
           const pre = document.createElement('pre');
-          pre.textContent = `${i + 1}\n\n${problemText}\n\n${explanationText}`;
+          pre.innerHTML = `${i + 1}<br><br>${underlineAngleBrackets(problemText)}<br><br>${underlineAngleBrackets(explanationText)}`;
           outputBox.appendChild(pre);
 
           const percent = Math.floor(((i + 1) / selected.length) * 100);
