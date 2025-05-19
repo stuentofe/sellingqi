@@ -335,6 +335,8 @@ export async function generateGrammarErrorQuestion(passage) {
     throw new Error('어법 태그를 5개 확보하지 못했습니다.');
   }
 
+  tagResults = indexed.map(s => tagResults.find(r => r.id === s.id)).filter(Boolean);
+  
   // marking 작업
   const marked = await Promise.all(
     tagResults.map(async ({ text, tag }) =>
