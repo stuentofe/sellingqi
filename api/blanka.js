@@ -8,10 +8,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
   try {
-    const result = await generateWordReplacementProblem(passage);
+    const result = await generateBlankaProblem(passage);
     return res.status(200).json(result);
   } catch (error) {
-    console.error('WordReplacement API error:', error);
+    console.error('Blanka API error:', error);
     return res.status(500).json({ error: error.message });
   }
 }
@@ -21,7 +21,7 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
 }
 
-async function generateWordReplacementProblem(passage) {
+async function generateBlankaProblem(passage) {
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
 
@@ -29,15 +29,19 @@ async function generateWordReplacementProblem(passage) {
   if (!c1 || c1.trim().toLowerCase() === 'none') {
     throw new Error('중요한 단어를 추출하지 못했습니다.');
   }
-  const safeC1 = escapeRegExp(c1);
+  const safeC1 = escapeRegExp(c1.toLowerCase());
 
-  const targetEntry = indexedSentences.find(({ text }) =>
-    new RegExp(`\\b${safeC1}\\b`, 'i').test(text)
-  );
-  if (!targetEntry) {
-    throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
-  }
-  const targetSentence = targetEntry.text;
+const targetEntries = indexedSentences.filter(({ text }) =>
+  text.toLowerCase().match(new RegExp(`\\b${safeC1}\\b`))
+);
+
+if (targetEntries.length === 0) {
+  throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
+}
+
+// 가장 나중에 등장한 문장(id가 가장 큰 것)
+const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
+
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
   if (!c2) {
@@ -49,32 +53,35 @@ async function generateWordReplacementProblem(passage) {
     '[ ]'
   );
 
-  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1 });
-  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, w1 });
-  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, w1, w2 });
-  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, w1, w2, w3 });
+  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c2 });
+  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c2, w1 });
+  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c2, w1, w2 });
+  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c2, w1, w2, w3 });
 
   const options = [c2, w1, w2, w3, w4].filter(Boolean).sort((a, b) => a.length - b.length);
-  const numberedOptions = options.map((word, i) => `${i + 1}. ${word}`);
 
-  const answerIndex = options.indexOf(c2);
-  if (answerIndex < 0) throw new Error('정답을 선택지에서 찾지 못했습니다.');
-  const answer = (answerIndex + 1).toString();
 
-  const blankedPassage = passage.replace(
-    new RegExp(`\\b${safeC1}\\b`, 'g'),
-    `<${' '.repeat(10)}>`
-  );
+const blankedPassage = passage.replace(
+  new RegExp(`\\b${safeC1}\\b`, 'i'), // 'g' 제거 → 첫 1개만 매칭
+  `<${' '.repeat(10)}>`
+);
 
-  const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
 
-  return {
-    prompt: '다음 빈칸에 들어갈 말로 가장 적절한 것은?',
-    problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}`,
-    choices: numberedOptions.join('\n'),
-    answer,
-    explanation: explanationText
-  };
+const numberSymbols = ['①', '②', '③', '④', '⑤'];
+const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
+
+const answerIndex = options.indexOf(c2);
+if (answerIndex < 0) throw new Error('정답을 선택지에서 찾지 못했습니다.');
+const answer = numberSymbols[answerIndex];
+
+const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
+const explanation = `정답: ${answer}\n${explanationText}`;
+
+return {
+  problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
+  answer,
+  explanation
+};
 }
 
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
