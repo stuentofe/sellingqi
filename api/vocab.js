@@ -199,5 +199,5 @@ const inlinePrompts = {
   verifyDerivation: `Does the bracketed word (including its derivational forms) appear twice or more in the sentence? Answer only with yes or no.\n\nSentence: {{s}}`,
   forcedMarking: `Never respond in conversational form. Answer carefully after reading all the conditions below:\nPick one and only one word that has an opposite and that is not an element of a compound word. Output the whole sentence again with the selected word wrapped with angle brackets <>.\nSentence: {{s}}`,
   corruptSentence: `Never respond in conversational form. There is a sentence with one word bracketed with <>. The bracketed word has a clear antonym. Rewrite the sentence so that the bracketed word is replaced with its antonym, but the resulting sentence must still be grammtically well-formed. If the bracketed word is 'little' or 'few' that immediately follows, delete the 'a' in front of it. Output the whole sentence again with the substitution bracketed just like the original sentence. 문장: {{s}}:`,
-  corruptExplain: `{{s}}이 틀렸기 때문에 {{original}}으로 고쳐야 하는 이유를 설명하는 해설을 한국어로 작성하라. (다음 예시를 참고하여 20자 이상 50자 이내로 작성할 것. <예시> ~~인 글이다. 따라서, ~를 ~와 같은 낱말로 바꿔야 한다.`
+  corruptExplain: `{{s}}이 틀렸기 때문에 {{original}}으로 고쳐야 하는 이유를 문맥을 바탕으로 설명하는 해설을 한국어로 작성하라. (<예시> ~~인 글이다. 따라서, ~를 ~와 같은 낱말로 바꿔야 한다.`
 };
