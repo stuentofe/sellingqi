@@ -1,6 +1,3 @@
-// pages/api/wordReplacement.js
-// Vercel 배포용 API Route: 단어 교체형 문제 생성
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
