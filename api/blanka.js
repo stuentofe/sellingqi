@@ -146,5 +146,6 @@ Do not say in conversational form. Only output the result.
 글의 전반적 내용을 근거로 삼거나, 앞뒤 문맥을 근거로 삼고,
 문체는 "~(이)다"체를 사용한다. 
 지문: {{p}}
+정답: {{c2}}
   `
 };
