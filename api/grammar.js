@@ -133,7 +133,7 @@ const grammarTagNames = {
   s: 'one of the following three: during, despite, because of',
   t: `relfexives such as himself, themselves, etc.`,
   u: `"as" followed by a clause (subject + verb)`,
-  v: `listing of two or more verbs by part of speech as in "Drink, dance, and laugh!"`,
+  v: `listing of verbs (verbs in terms of part of speech)`,
   w: 'an adjective as an object complement',
   x: 'one of the following three: what, that, or whether',
   y: `a string of "that of" or "those of"`
