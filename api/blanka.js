@@ -98,39 +98,38 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 const inlinePrompts = {
   firstPrompt: `
 Do not say in conversational form. Only output the result.
-If there is a contextually very important word that is only used once in the following passage, say it.
+Find a contextually very important word that is used in the following passage, and output it.
 If there isn’t, output none.
 Write in lowercase and do not use punctuation.
 Passage: {{p}}
   `,
   secondPrompt: `
 Do not say in conversational form. Only output the result.
-I’d like to replace ‘{{c1}}’ in the following passage with a contextually interchangeable word that has never been used in the passage and that is similar in its word difficulty level.
-What can it be?
+I’d like to replace ‘{{c1}}’ in the following passage with a word not used in the passage at all. Recommend one.
 Write in lowercase and do not use punctuation.
 Passage: {{p}}
   `,
   thirdPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   fourthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}' or '{{w1}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}' or '{{w1}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   fifthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}', '{{w1}}', or '{{w2}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}', '{{w1}}', or '{{w2}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   sixthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}', '{{w1}}', '{{w2}}', or '{{w3}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}', '{{w1}}', '{{w2}}', or '{{w3}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
@@ -140,5 +139,5 @@ Do not say in conversational form. Only output the result.
 글의 전반적 내용을 근거로 삼거나, 앞뒤 문맥을 근거로 삼고,
 문체는 "~(이)다"체를 사용한다. 
 지문: {{p}}
-  `,
+  `
 };
