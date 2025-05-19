@@ -98,9 +98,10 @@ Never respond in conversational form. Output only the result.
 문장: {{s}}`,
 
   confirmStructure: `You are part of a grammar question generation system.
-묻습니다: 다음 문장에 다음 어법 요소가 확실히 포함되어 있습니까? 포함되어 있으면 'yes', 아니면 'no'를 출력하세요. 어법요소: {{tagName}} 
+  Never respond in conversational form. Output only the result.
+  Does the entence below contain the following grammar feature? If so, answer 'yes', if not, say 'no'. Grammar Feature: {{tagName}} 
 
-문장: {{s}}`,
+Sentence: {{s}}`,
 
 verbMark: `You are part of a grammar question generation system.
 Never respond in conversational form. Output only the result.
@@ -133,7 +134,7 @@ const grammarTagNames = {
   s: 'one of the following three: during, despite, because of',
   t: `relfexives such as himself, themselves, etc.`,
   u: `"as" followed by a clause (subject + verb)`,
-  v: `listing of verbs (verbs in terms of part of speech)`,
+  v: `listing of verbs phrases like "sing, dance, and laugh"`,
   w: 'an adjective as an object complement',
   x: 'one of the following three: what, that, or whether',
   y: `a string of "that of" or "those of"`
