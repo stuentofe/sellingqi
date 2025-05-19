@@ -133,7 +133,7 @@ const grammarTagNames = {
   s: 'one of the following three: during, despite, because of',
   t: `relfexives such as himself, themselves, etc.`,
   u: `"as" followed by a clause (subject + verb)`,
-  v: `listing of two or more items as in "a, b, c, and d"`,
+  v: `listing of two or more verbs as in "a, b, c, and d"`,
   w: 'an adjective as an object complement',
   x: 'one of the following three: what, that, or whether',
   y: `a string of "that of" or "those of"`
@@ -170,7 +170,7 @@ const grammarBracketRules = {
   s: `Bracket only the preposition phrase (during, despite, or because of). For example, we stayed indoors <because of> the rain.`,
   t: `Bracket only the reflexive pronoun (ending in -self or -selves). For example, he hurt <himself> while lifting weights.`,
   u: `Bracket only the conjunction (as) that introduces a clause. For example, <As> I was leaving, it started to rain.`,
-  v: `Bracket only the last one among the listed items. For example, she smiled, waved and <left>.`,
+  v: `Bracket only the last one among the listed verbs. For example, she smiled, waved and <left>.`,
   w: `Bracket only the adjective (used as an object complement). For example, the movie made her <happy>.`,
   x: `Bracket only the complementizer (what, that, or whether) introducing a clause. For example, I don’t know <whether> she will come.`,
   z: `Bracket only one word the sentence. For example, I don't know <whether> she will come.`,
