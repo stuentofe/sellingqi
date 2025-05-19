@@ -146,7 +146,7 @@ function removeCloseConjunctionMarks(sentence) {
   const bannedWords = new Set([
     'good','bad','big','hot','cold','old','young',
     'happy','sad','new','tall','short','clean','dirty',
-    'kind','nice','smart','dumb'
+    'kind','nice','smart','dumb', 'less', 'more'
   ]);
 
   for (let i = 0; i < tokens.length; i++) {
