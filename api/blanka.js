@@ -113,7 +113,7 @@ Do not say in conversational form. Only output the result.
 If there is a contextually very important word that is only used once in the following passage, say it.
 If there isn’t, output none.
 Write in lowercase and do not use punctuation.
-Sentence: {{b}}
+Sentence: {{p}}
   `.trim(),
 
   secondPrompt: `
@@ -121,7 +121,7 @@ Do not say in conversational form. Only output the result.
 I’d like to replace ‘{{c1}}’ in the following passage with a contextually interchangeable word that has never been used in the passage and that is similar in its word level.
 What can it be?
 Write in lowercase and do not use punctuation.
-Sentence: {{b}}
+Sentence: {{p}}
   `.trim(),
 
   thirdPrompt: `
@@ -156,7 +156,8 @@ Sentence: {{b}}
 Do not say in conversational form. Only output the result.
 다음 지문의 빈칸에 정답 낱말이 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라.
 글의 전반적 내용을 근거로 삼거나, 앞뒤 문맥을 근거로 삼고,
-문체는 "~(이)다"체를 사용한다.
+문체는 "~(이)다"체를 사용한다. 
+지문: {{p}}
   `.trim(),
 };
 
