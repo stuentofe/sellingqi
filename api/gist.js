@@ -31,7 +31,7 @@ async function generateMniQuestion(passage) {
     finalPassage = qraw.trim();
   }
 
-  const c = (await fetchPrompt('mni3.txt', { p: finalPassage }, 'gpt-4o')).trim();
+  const c = (await fetchPrompt('mni3.txt', { p: finalPassage })).trim();
   const w = (await fetchPrompt('mni4.txt', { p: finalPassage, c })).trim();
   const x = (await fetchPrompt('mni5.txt', { p: finalPassage, c, w })).trim();
   const y = (await fetchPrompt('mni6.txt', { p: finalPassage, c, w, x })).trim();
@@ -88,7 +88,7 @@ async function fetchPrompt(file, replacements, model = 'gpt-3.5-turbo') {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      model,
+      model: "gpt-4o",
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3
     })
