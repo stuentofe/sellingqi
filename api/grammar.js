@@ -291,9 +291,9 @@ export async function generateGrammarErrorQuestion(passage) {
 
   async function assignTagToSentences(sentences, candidateTags, groupName) {
     for (const s of sentences) {
-      if (tagResults.find(r => r.id === s.id)) continue; // 이미 태그 붙은 문장 제외
+      if (tagResults.find(r => r.id === s.id)) continue;
       const availableTags = candidateTags.filter(t => !usedTags.has(t));
-      if (availableTags.length === 0) break;
+      if (!availableTags.length) break;
 
       const tag = await getTagFromGroup(s.text, availableTags);
       if (tag && tag !== 'none') {
@@ -307,22 +307,15 @@ export async function generateGrammarErrorQuestion(passage) {
     }
   }
 
-  // 1. High 그룹 시도
   await assignTagToSentences(indexed, tagGroups.high, 'high');
-
-  // 2. Mid 그룹 시도 (중복 태그 방지 유지)
   if (tagResults.length < 5) {
     await assignTagToSentences(indexed, [...tagGroups.midA, ...tagGroups.midB], 'mid');
   }
-
-  // 3. Low 그룹은 세 개 그룹으로 쪼개서 순차 처리
   const lowGroupsSplit = [tagGroups.lowA, tagGroups.lowB, tagGroups.lowC];
   for (const lowSubGroup of lowGroupsSplit) {
     if (tagResults.length >= 5) break;
     await assignTagToSentences(indexed, lowSubGroup, 'low');
   }
-
-  // 4. z 태그로 부족분 채우기
   if (tagResults.length < 5) {
     const untagged = indexed.filter(s => !tagResults.find(r => r.id === s.id));
     for (const s of untagged) {
@@ -330,16 +323,18 @@ export async function generateGrammarErrorQuestion(passage) {
       tagResults.push({ ...s, tag: 'z', group: 'z' });
     }
   }
-
   if (tagResults.length < 5) {
     throw new Error('어법 태그를 5개 확보하지 못했습니다.');
   }
 
-  tagResults = indexed.map(s => tagResults.find(r => r.id === s.id)).filter(Boolean);
-  
-  // marking 작업
+  // 순서를 보정하여 원본 인덱스 순서대로 정렬
+  const sortedTagResults = indexed
+    .map(s => tagResults.find(r => r.id === s.id))
+    .filter(Boolean);
+
+  // 마킹 작업
   const marked = await Promise.all(
-    tagResults.map(async ({ text, tag }) =>
+    sortedTagResults.map(async ({ text, tag }) =>
       tag === 'z'
         ? fetchInlinePrompt('verbMark', { s: text })
         : fetchInlinePrompt('mark', {
@@ -354,42 +349,35 @@ export async function generateGrammarErrorQuestion(passage) {
   // 오답 문장 선택
   const INVALID = ['f', 'g', 'i', 'k', 's', 'u', 'z'];
   const candidates = marked
-    .map((m, i) => ({ i, len: m.length, tag: tagResults[i].tag }))
+    .map((m, i) => ({ i, len: m.length, tag: sortedTagResults[i].tag }))
     .filter(c => !INVALID.includes(c.tag));
 
   if (!candidates.length) throw new Error('오답으로 사용할 수 있는 태그가 없습니다.');
   const wrongIndex = candidates.reduce((a, b) => (b.len > a.len ? b : a)).i;
 
-  const wrongTag = tagResults[wrongIndex].tag;
+  const wrongTag = sortedTagResults[wrongIndex].tag;
   const wrongMarked = marked[wrongIndex];
   const wrongSentence =
     wrongTag === 'z'
       ? wrongMarked
       : await fetchInlinePrompt('corrupt', { s: wrongMarked, t: wrongTag, rule: grammarCorruptRules[wrongTag] });
 
-  const revisedMap = {};
-  tagResults.forEach((r, i) => {
-    revisedMap[r.id] = i === wrongIndex ? wrongSentence : marked[i];
-  });
-
-const fullTextWithAll = indexed
-  .map(s => {
-    const taggedIndex = tagResults.findIndex(r => r.id === s.id);
-    if (taggedIndex !== -1) {
-      const content = taggedIndex === wrongIndex ? wrongSentence : marked[taggedIndex];
-      const mark = ['①', '②', '③', '④', '⑤'][taggedIndex];
-      return content.replace(/<([^>]+)>/, `${mark}<$1>`);
-    } else {
-      // 태그 없는 문장: 원문 그대로 출력
+  // 문제 텍스트 조합
+  const fullTextWithAll = indexed
+    .map(s => {
+      const idx = sortedTagResults.findIndex(r => r.id === s.id);
+      if (idx !== -1) {
+        const content = idx === wrongIndex ? wrongSentence : marked[idx];
+        const mark = ['①', '②', '③', '④', '⑤'][idx];
+        return content.replace(/<([^>]+)>/, `${mark}<$1>`);
+      }
       return s.text;
-    }
-  })
-  .join(' ');
+    })
+    .join(' ');
 
-
-  // 해설 생성 (오답 문장만)
+  // 해설 생성
   const explanations = await Promise.all(
-    tagResults.map(async ({ tag }, i) => {
+    sortedTagResults.map(async ({ tag }, i) => {
       if (i === wrongIndex) {
         const s = wrongSentence;
         const rule = grammarWrongRules[tag];
@@ -407,7 +395,6 @@ const fullTextWithAll = indexed
     explanation: `정답: ${['①', '②', '③', '④', '⑤'][wrongIndex]}\n${explanations.join('\n')}`,
   };
 }
-
 
 
 
