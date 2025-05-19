@@ -105,7 +105,7 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 const inlinePrompts = {
   firstPrompt: `
 Do not say in conversational form. Only output the result.
-Find a contextually very important word that is used in the following passage, and output it.
+Find a contextually very important word that is used in the following passage and which is not a proper noun nor an academic word, and output it.
 If there isn’t, output none.
 Write in lowercase and do not use punctuation.
 Passage: {{p}}
