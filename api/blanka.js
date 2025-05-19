@@ -29,7 +29,20 @@ async function generateWordReplacementProblem(passage) {
   if (!c1 || c1.trim().toLowerCase() === 'none') {
     throw new Error('중요한 단어를 추출하지 못했습니다.');
   }
-  const safeC1 = escapeRegExp(c1.trim());
+  const safeC1 = escapeRegExp(c1);
+let targetSentence;
+try {
+  const regex = new RegExp(`\\b${safeC1}\\b`, 'i'); // 'i'는 대소문자 무시
+  targetSentence = sentences.find(s => regex.test(s));
+} catch (err) {
+  console.error('RegExp 생성 에러:', err, 'safeC1:', safeC1);
+  throw new Error('정규표현식 생성 실패');
+}
+
+if (!targetSentence) {
+  console.error('c1이 포함된 문장을 찾지 못함', { c1, safeC1, sentences });
+  throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
+}
 
   // 2) c1의 유의어(c2) 추출
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
@@ -113,15 +126,15 @@ Do not say in conversational form. Only output the result.
 If there is a contextually very important word that is only used once in the following passage, say it.
 If there isn’t, output none.
 Write in lowercase and do not use punctuation.
-Sentence: {{p}}
+Passage: {{p}}
   `,
 
   secondPrompt: `
 Do not say in conversational form. Only output the result.
-I’d like to replace ‘{{c1}}’ in the following passage with a contextually interchangeable word that has never been used in the passage and that is similar in its word level.
+I’d like to replace ‘{{c1}}’ in the following passage with a contextually interchangeable word that has never been used in the passage and that is similar in its word difficulty level.
 What can it be?
 Write in lowercase and do not use punctuation.
-Sentence: {{p}}
+Passage: {{p}}
   `,
 
   thirdPrompt: `
