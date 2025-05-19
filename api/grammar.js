@@ -421,7 +421,7 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      model,
+      model: "gpt-4o",
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       max_tokens: 300
