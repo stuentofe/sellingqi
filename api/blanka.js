@@ -112,7 +112,7 @@ Passage: {{p}}
   `,
   secondPrompt: `
 Do not say in conversational form. Only output the result.
-I’d like to replace ‘{{c1}}’ in the following passage with a word not used in the passage at all. Recommend one.
+I’d like to replace ‘{{c1}}’ in the following passage with a word which was not used in the passage at all, but which completes the sentence both grammatically and semantically. Recommend one.
 Write in lowercase and do not use punctuation.
 Passage: {{p}}
   `,
