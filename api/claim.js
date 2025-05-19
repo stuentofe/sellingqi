@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     }
 
     // 2. 선택지 생성
-    const c = (await fetchPrompt('clm3-1.txt', { p: finalPassage }, 'gpt-4o')).trim();
+    const c = (await fetchPrompt('clm3-1.txt', { p: finalPassage })).trim();
     const w = (await fetchPrompt('clm3-2-w.txt', { p: finalPassage, c })).trim();
     const x = (await fetchPrompt('clm3-2-x.txt', { p: finalPassage, c, w })).trim();
     const y = (await fetchPrompt('clm3-3-y.txt', { p: finalPassage, c, w, x })).trim();
@@ -89,7 +89,7 @@ async function fetchPrompt(file, replacements, model = 'gpt-3.5-turbo') {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      model,
+      model: "gpt-4o",
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3
     })
