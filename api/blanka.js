@@ -105,7 +105,7 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 const inlinePrompts = {
   firstPrompt: `
 Do not say in conversational form. Only output the result.
-Find a contextually very important word that is used in the following passage. If it is either a proper noun, an academic word or a jargon, find something else. Output the result.
+Find a contextually very important word that is used in the following passage. But make sure it is not a technical term or a proper naoun.
 If there isn’t, output none.
 Write in lowercase and do not use punctuation.
 Passage: {{p}}
@@ -142,7 +142,7 @@ Sentence: {{b}}
   `,
   explanationPrompt: `
 Do not say in conversational form. Only output the result.
-다음 지문의 빈칸에 정답 낱말이 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라.
+다음 지문의 빈칸에 {{c2}}(이)가 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라.
 글의 전반적 내용을 근거로 삼거나, 앞뒤 문맥을 근거로 삼고,
 문체는 "~(이)다"체를 사용한다. (20자 이상 50자 이내로 작성할 것)
 지문: {{p}}
