@@ -23,8 +23,8 @@ export default async function handler(req, res) {
 async function generateSumQuestion(passage) {
   const p = passage;
 
-const summary = (await fetchInlinePrompt('sum1a', { p }, 'gpt-4o')).trim();
-let s1 = (await fetchInlinePrompt('sum1b', { summary }, 'gpt-4o')).trim();
+const summary = (await fetchInlinePrompt('sum1a', { p })).trim();
+let s1 = (await fetchInlinePrompt('sum1b', { summary })).trim();
 
 let tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
 
@@ -77,10 +77,10 @@ const c = `${c1}, ${c2}`;
 
 
   // 2단계: 오답 생성
-  const synA = await fetchInlinePrompt('sum2a1', { s2, c1 }, 'gpt-4o');
-  const oppA = await fetchInlinePrompt('sum2a2', { s2, c1 }, 'gpt-4o');
-  const synB = await fetchInlinePrompt('sum2b1', { s2, c2 }, 'gpt-4o');
-  const oppB = await fetchInlinePrompt('sum2b2', { s2, c2 }, 'gpt-4o');
+  const synA = await fetchInlinePrompt('sum2a1', { s2, c1 });
+  const oppA = await fetchInlinePrompt('sum2a2', { s2, c1 });
+  const synB = await fetchInlinePrompt('sum2b1', { s2, c2 });
+  const oppB = await fetchInlinePrompt('sum2b2', { s2, c2 });
 
   const [w1, x1] = synA.trim().split('\n').map(w => w.trim()).slice(0, 2);
   const [y1, z1] = oppA.trim().split('\n').map(w => w.trim()).slice(0, 2);
@@ -247,7 +247,7 @@ ChatGPT must never respond in conversational form and should only output the req
 위 영어 단어들의 한국어 대응 뜻을 나열하라. 줄바꿈이나 별도의 목록 표기 없이, 한 줄로 작성한다.`
 };
 
-async function fetchInlinePrompt(key, replacements, model = 'gpt-3.5-turbo') {
+async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
   let prompt = inlinePrompts[key];
 
   for (const k in replacements) {
@@ -261,7 +261,7 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-3.5-turbo') {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      model,
+      model: "gpt-4o",
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       max_tokens: 100
