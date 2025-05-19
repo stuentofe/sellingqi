@@ -27,11 +27,11 @@ async function generateTopQuestion(passage) {
   let finalPassage = p;
 
   if (hasClaim.trim().toUpperCase() === 'NO') {
-    const qraw = await fetchPrompt('top10.txt', { p }, 'gpt-4o');
+    const qraw = await fetchPrompt('top10.txt', { p });
     finalPassage = qraw.trim();
   }
 
-  const c = (await fetchPrompt('top3.txt', { p: finalPassage }, 'gpt-4o')).trim();
+  const c = (await fetchPrompt('top3.txt', { p: finalPassage })).trim();
   const wrongRaw = (await fetchPrompt('top4.txt', { p: finalPassage, c }, 'gpt-4o')).trim();
 
   const wrongOptions = wrongRaw
@@ -53,7 +53,7 @@ async function generateTopQuestion(passage) {
   const answerNum = labels[correctIndex];
   const josa = ['이','가','이','가','가'][correctIndex];
 
-  const e = (await fetchPrompt('top8.txt', { p: finalPassage, c }, 'gpt-4o')).trim();
+  const e = (await fetchPrompt('top8.txt', { p: finalPassage, c })).trim();
   const f = (await fetchPrompt('top9.txt', { p: finalPassage, c })).trim();
   const explanationText = `${e} 따라서, 글의 주제는 ${answerNum}${josa} 가장 적절하다.`;
 
@@ -76,7 +76,7 @@ ${explanationText}`;
   };
 }
 
-async function fetchPrompt(file, replacements, model = 'gpt-3.5-turbo') {
+async function fetchPrompt(file, replacements, model = 'gpt-4o') {
   const filePath = path.join(process.cwd(), 'api', 'prompts', file);
   let prompt = await fs.readFile(filePath, 'utf-8');
 
@@ -91,7 +91,7 @@ async function fetchPrompt(file, replacements, model = 'gpt-3.5-turbo') {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      model,
+      model: "gpt-4o",
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3
     })
