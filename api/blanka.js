@@ -21,11 +21,33 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
 }
 
+
+function extractUniqueContentWords(text) {
+  const functionWords = new Set([
+    'a', 'an', 'the', 'in', 'on', 'at', 'by', 'for', 'from', 'of', 'to', 'with', 'about',
+    'is', 'am', 'are', 'was', 'were', 'be', 'being', 'been',
+    'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would',
+    'shall', 'should', 'may', 'might', 'must',
+    'and', 'or', 'but', 'if', 'because', 'as', 'while', 'than', 'so', 'though', 'although',
+    'that', 'which', 'who', 'whom', 'whose'
+  ]);
+  const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+  return [...new Set(words.filter(word => word && !functionWords.has(word)))];
+}
+
+
 async function generateBlankaProblem(passage) {
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
 
-  const c1 = await fetchInlinePrompt('firstPrompt', { p: passage });
+  const contentWordList = extractUniqueContentWords(passage);
+const wordListStr = contentWordList.join(', ');
+
+const c1 = await fetchInlinePrompt('firstPrompt', {
+  p: passage,
+  words: wordListStr
+});
+
   if (!c1 || c1.trim().toLowerCase() === 'none') {
     throw new Error('중요한 단어를 추출하지 못했습니다.');
   }
@@ -104,12 +126,18 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 
 const inlinePrompts = {
   firstPrompt: `
-Do not say in conversational form. Only output the result.
-Find a contextually very important word that is used in the following passage. But make sure it is not a technical term or a proper naoun.
-If there isn’t, output none.
-Write in lowercase and do not use punctuation.
+Do not respond in conversational form. Only output the result.
+You are given a passage and a list of words that were extracted from the passage.
+
+From the list, select the single word that plays the most important semantic or contextual role in understanding the passage.
+
+Only select one word from the list. If no word from the list is considered important, output "none".
+Do not include punctuation. Write in lowercase.
+
 Passage: {{p}}
-  `,
+Word list: {{words}}
+`
+,
   secondPrompt: `
 Do not say in conversational form. Only output the result.
 I’d like to replace ‘{{c1}}’ in the following passage with a word which was not used in the passage at all, but which completes the sentence both grammatically and semantically. Recommend one.
