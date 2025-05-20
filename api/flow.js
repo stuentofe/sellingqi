@@ -104,7 +104,7 @@ async function generateFlowProblem(passage) {
   return {
     problem: `다음 글에서 전체 흐름과 관계 없는 문장은?\n\n${incoherentPassage}\n\n`,
     answer,
-    explanation
+    explanation:
   };
 }
 
@@ -133,9 +133,9 @@ const inlinePrompts = {
 
   extract_main_idea: `What is the main idea of the passage? Write within 15 words limit.\n\n{{passage}}`,
 
-  generate_incoherent_sentence: `Write a sentence using {{r1}} and {{r2}} in the mentioned order, but the resulting sentence must not share its main idea with the following sentence. Sentence: {{main}}`,
+  generate_incoherent_sentence: `Write a sentence using {{r1}} and {{r2}} in the mentioned order, but make sure that the resulting sentence does deviate with its main idea from the following sentence. Sentence: {{main}}`,
 
-  refine_incoherent_sentence: `대화 형식으로 대답하지말고, 요구한 질문에 대한 답만을 출력하라. 문장1과 문장3 사이에 흐름상 관련 없는 문장2를 넣어서, 전체 흐름과 무관한 문장을 고르도록 하는 문제를 제작하는 중이다. 문장2가 전체 흐름과 무관한 문장이지만, 겉으로 보기에는 자연스러운 것처럼 착각할 수 있도록, 문장의 내용은 바꾸지 않으면서 문체를 문장1과 문장3과 동일하게 수정하고, 또, 연결부사(Therefore, For example, In addition, In other words, On the other hand 같은 것)을 추가해 피상적인 관련성 함정을 추가하려고 한다. 여기에 맞춰 문장2의 수정본을 출력하라. 결과 문장(문장2의 수정본)만을 출력하고, 다른 기호나 설명은 금지한다.\n\n문장1: {{sentence1}}\n문장2: {{sentence2}}\n문장3: {{sentence3}}`,
+  refine_incoherent_sentence: `대화 형식으로 대답하지말고, 요구한 질문에 대한 답만을 출력하라. 문장1과 문장3 사이에 흐름상 관련 없는 문장2를 넣어서, 전체 흐름과 무관한 문장을 고르도록 하는 문제를 제작하는 중이다. 문장2가 전체 흐름과 무관한 문장이 되도록 해야한다. 겉으로 보기에는 자연스러운 것처럼 착각할 수 있도록, 문장의 메시지는 그대로 유지하면서 문장 스타일만을 문장1과 문장3과 비슷하게 고쳐라. 또, 연결부사(Therefore, For example, In addition, In other words, On the other hand 같은 것)을 추가해 피상적인 관련성 함정을 추가하려고 한다. 여기에 맞춰 문장2의 수정본을 출력하라. 결과 문장(문장2의 수정본)만을 출력하고, 다른 기호나 설명은 금지한다.\n\n문장1: {{sentence1}}\n문장2: {{sentence2}}\n문장3: {{sentence3}}`,
 
   explain_incoherence: `대화체로 답하는 것은 금지된다. 요구한 요청에 대한 답만을 출력하라. 다음은 전체 흐름과 관계 없는 문장을 선택하는 문제이고, 그 문제의 정답이다. {{answer}}번 문장이 흐름과 관계 없는 문장인 이유를 해설하는 한국어 문장을 다음 틀에 맞추어 작성하라. 틀: \"~한 내용의 글이므로, ~라는 내용의 {{answer}}는 전체 흐름과 관계가 없다.\" 문제: 다음 글의 전체 흐름과 관계 없는 것은? {{incoherentPassage}}`
 };
