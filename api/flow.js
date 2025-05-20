@@ -102,7 +102,7 @@ async function generateFlowProblem(passage) {
   });
 
   const explanation =
-`정답: ${answerNum}
+`정답: ${answer}
 ${explanationText}`;
   
   return {
