@@ -21,7 +21,7 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
 }
 
-async function generateBlankaProblem(passage) {
+async function generateBlankbProblem(passage) {
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
 
