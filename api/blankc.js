@@ -155,7 +155,7 @@ Sentence: {{b}}
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence using both '{{r3}}' and '{{r6}}'. Make sure your suggestion is also similar in its length to '{{c2}}'. If you can't come up with one, it's okay to use only one of the two words.
 
-Make sure that when your suggestion is put in the blank, it creates a totally different meaning compared to when '{{c1}}', '{{w1}}', '{{w2}}, or '{{c2}}' is in it. 
+Make sure that when your suggestion is put in the blank, it creates a totally different meaning compared to when '{{c1}}', '{{w1}}', '{{w2}}', or '{{c2}}' is in it. 
 Write in lowercase and do not use punctuation. Do not repeat the whole sentence, and only ouput the part that fills the blank.
 Sentence: {{b}}
   `,
