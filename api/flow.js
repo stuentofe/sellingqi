@@ -96,11 +96,15 @@ async function generateFlowProblem(passage) {
   const incoherentPassage = labeled.join(' ');
   const answer = labels[incoherentIdx - (totalLen - 5)];
 
-  const explanation = await fetchInlinePrompt('explain_incoherence', {
+  const explanationText = await fetchInlinePrompt('explain_incoherence', {
     answer,
     incoherentPassage
   });
 
+  const explanation =
+`정답: ${answerNum}
+${explanationText}`;
+  
   return {
     problem: `다음 글에서 전체 흐름과 관계 없는 문장은?\n\n${incoherentPassage}\n\n`,
     answer,
