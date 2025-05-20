@@ -108,7 +108,7 @@ ${explanationText}`;
   return {
     problem: `다음 글에서 전체 흐름과 관계 없는 문장은?\n\n${incoherentPassage}\n\n`,
     answer,
-    explanation:
+    explanation
   };
 }
 
