@@ -53,10 +53,10 @@ const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).tex
     '[ ]'
   );
 
-  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c2 });
-  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c2, w1 });
-  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c2, w1, w2 });
-  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c2, w1, w2, w3 });
+  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
+  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1 });
+  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, c2, w1, w2 });
+  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, c2, w1, w2, w3 });
 
   const options = [c2, w1, w2, w3, w4].filter(Boolean).sort((a, b) => a.length - b.length);
 
@@ -118,32 +118,31 @@ Passage: {{p}}
   `,
   thirdPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}' or '{{c2}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   fourthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}' or '{{w1}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}', '{{c2}}' or '{{w1}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   fifthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}', '{{w1}}', or '{{w2}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}', '{{c2}}', '{{w1}}', or '{{w2}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   sixthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c2}}', '{{w1}}', '{{w2}}', or '{{w3}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}, '{{c2}}', '{{w1}}', '{{w2}}', or '{{w3}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   explanationPrompt: `
 Do not say in conversational form. Only output the result.
-다음 지문의 빈칸에 정답 어구가 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라. 글의 전반적 내용을 근거로 삼거나, 앞뒤 문맥을 근거로 삼고,
-문체는 "~(이)다"체를 사용해야 한다. 
+다음 지문의 빈칸에 정답 어구가 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라. 문체는 "~(이)다"체를 사용해야 한다. 지문을 직접 인용해서는 안된다. 다음 형식을 참고하라: ~라는 글이다. (필요할 경우 추가 근거) 따라서, 빈칸에 들어갈 말로 가장 적절한 것은 ~이다.
 지문: {{p}}
 정답: {{c2}}
   `
