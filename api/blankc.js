@@ -121,7 +121,7 @@ const inlinePrompts = {
   firstPrompt: `
 You are part of a english question item developing system. Do not say in conversational form.
 
-Find a contextually meaningful phrase in the following passage which consists of seven to fifteen words in one of the following grammatical categories: a verb phrase, or a subordinate clause (not the whole sentence). Do not cross a comma.
+Find a contextually meaningful phrase in the following passage which consists of seven to fifteen words in one of the following grammatical categories: a verb phrase, or a subordinate clause (not the whole sentence). Never choose a phrase that contains a comma.
 
 When you write your answer, do not include the initial subordinating conjunction, not "to" in front of an infinitive.
 
