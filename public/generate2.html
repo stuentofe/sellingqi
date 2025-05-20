@@ -198,7 +198,7 @@
             const explanationText = (data.explanation || '') + '';
 
             const pre = document.createElement('pre');
-            pre.innerHTML = `지문 ${p + 1} - ${type}<br><br>${underlineAngleBracketsBeforeEscape(problemText)}<br><br>${underlineAngleBracketsBeforeEscape(explanationText)}`;
+            pre.innerHTML = `${p + 1}.${underlineAngleBracketsBeforeEscape(problemText)}<br><br>${underlineAngleBracketsBeforeEscape(explanationText)}`;
             outputBox.appendChild(pre);
 
           } catch (err) {
