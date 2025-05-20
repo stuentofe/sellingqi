@@ -113,8 +113,8 @@ const inlinePrompts = {
 
   validateC2Fit: `Do not say in conversational form. Only output the result. 
     Is the phrase {{impliedMeaning}} okay to be put in the blank of the sentence grammatically? 
-    If so, say yes. 
-    If not, provide me with a revised version of {{impliedMeaning}} so that it fits perfectly in the blank. 
+    If the answer is yes, return {{impliedMeaning}} without changing anything.
+    If the answer is no, provide me with a revised version of {{impliedMeaning}} so that now it fits perfectly in the blank. 
     Say no more than that.
 
     Sentence: {{blankedSentence}}`,
@@ -149,7 +149,7 @@ const inlinePrompts = {
     Sentence: {{blankedSentence}}`,
 
   explanationPrompt: `Do not say in conversational form. Only output the result.
-    다음 지문의 <>로 감싼 어구가 의미하는 것이 {{c2}}이유를 설명하는 한국어 해설을 작성하여 한다. 문체는 "~(이)다"체를 사용해야 하고, 지문을 직접 인용해서는 안된다. 100자 이내로 쓰고 반드시 다음 형식을 참고하여 써라: ~라는 내용의 글이다. 따라서, 밑줄 친 문장이 의미하는 바로 가장 적절한 것은 {{c2}} '(c2의 우리말 해석)'이다. 
+    다음 지문의 <>로 감싼 어구가 의미하는 것이 {{c2}}이유를 설명하는 한국어 해설을 작성하여 한다. 문체는 "~(이)다"체를 사용해야 하고, 지문을 직접 인용해서는 안된다. 100자 이내로 쓰고 반드시 다음 형식을 참고하여 써라: ~라는 내용의 글이다. 따라서, 밑줄 친 문장이 의미하는 바로 가장 적절한 것은 '(c2의 우리말 해석)'이다. 
     지문: {{underlinedPassage}}
     정답: {{c2}}`
 };
