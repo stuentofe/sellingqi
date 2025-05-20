@@ -103,11 +103,13 @@ const inlinePrompts = {
     
     Passage: {{passage}}`,
 
-  impliedMeaning: `You are part of an English question generation algorithm.
-    Never respond in conversational form. Output only the result. 
-    What does the underlined phrase in the following passage figuratively mean? 
-    As an answer to the question, provide a grammatically interchangeable expression. 
-    Make sure that the parts of speech of the original phrase and your answer are the same.
+  impliedMeaning: `You are a tool for performing explication.
+Do not respond in conversational form. Only output the result.
+
+Explication is a detailed and explicit interpretation of a word or phrase, especially to reveal an implied or hidden meaning that is not immediately clear from the context.
+
+Given the following passage, explicate the phrase enclosed in angle brackets (<>), so that the implied meaning is made explicit.
+Your output must be grammatically interchangeable with the original phrase — that is, it must be the same part of speech and could replace the original phrase in the sentence without disrupting grammar
 
     Passage: {{underlinedPassage}}`,
 
