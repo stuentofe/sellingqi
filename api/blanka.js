@@ -202,7 +202,7 @@ Passage with blank:
 
 Word: {{w}}
 
-If it sounds okay to put the word in the blank, think of a different word of similar length that does NOT fit naturally or correctly in this context, and output it. 
+If it sounds okay to put the word in the blank, think of a different word of similar length that sounds awkward and unrelated in this context, and output it. 
 If the word does NOT fit naturally, just output "no".
 
 Only output one word or "no" with no punctuation or explanation.
