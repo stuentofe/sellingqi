@@ -146,7 +146,7 @@ Passage: {{p}}
   `,
   thirdPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a different meaning compared to when '{{c1}}' or '{{c2}}' is in it.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}' or '{{c2}}' is in it.
 Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
