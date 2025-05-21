@@ -229,19 +229,19 @@ Sentence: {{b}}
   `,
   fourthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{c1}}', '{{c2}}' or '{{w1}}'.
+Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{w1}}'.
 Do not use punctuation.
 Sentence: {{b}}
   `,
   fifthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{c1}}', '{{c2}}', '{{w1}}', or '{{w2}}'.
+Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{w1}}', or '{{w2}}'.
 Do not use punctuation.
 Sentence: {{b}}
   `,
   sixthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{c1}}, '{{c2}}', '{{w1}}', '{{w2}}', or '{{w3}}'.
+Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{w1}}', '{{w2}}', or '{{w3}}'.
 Do not use punctuation.
 Sentence: {{b}}
   `,
