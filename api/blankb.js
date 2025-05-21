@@ -123,12 +123,10 @@ Only output the summary.
   step2_concepts: `
 According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "it being royal but fierce" is new information. 
 Read the following sentence, and identify key phrases consisting of 2 to 6 words that can be considered 'new information' in terms of information processing. Output the key phrases only.
+Separate them with line breaks.
 
 Sentence:
 {{summary}}
-
-Original passage for reference:
-{{p}}
   `,
 
   // 🆕 STEP 3: 지문에서 key concept에 해당하는 어구 선택 (verbatim)
