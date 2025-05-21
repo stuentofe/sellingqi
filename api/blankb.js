@@ -41,7 +41,7 @@ async function generateBlankbProblem(passage) {
   }
 
   const blankSentence = targetSentence.replaceAll(c1, '[ ]');
-  const blankedPassage = passage.replace(c1, `<${' '.repeat(10)}>`);
+  const blankedPassage = passage.replace(c1, `${'_'.repeat(15)}`);
 
   const w1Raw = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
   const w2Raw = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1: w1Raw });
@@ -118,7 +118,7 @@ Make sure you do not add any of 'old information' to the list. Output the items 
 Only separate them with line breaks.
 
 Passage:
-{{summary}}
+{{p}}
   `,
 
   // 🆕 STEP 3: 지문에서 key concept에 해당하는 어구 선택 (verbatim)
