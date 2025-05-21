@@ -40,10 +40,8 @@ function extractUniqueContentWords(text) {
 
 // 메인 문제 생성 함수
 async function generateBlankaProblem(passage) {
-  const summary = await fetchInlinePrompt('step1_summary', { p: passage });
-  if (!summary) throw new Error('요약 생성에 실패했습니다.');
-
-  const keywords = await fetchInlinePrompt('step2_keywords', { summary, p: passage });
+  
+  const keywords = await fetchInlinePrompt('step2_keywords', { p: passage });
   if (!keywords) throw new Error('요약 키워드 추출에 실패했습니다.');
 
   const c1 = await fetchInlinePrompt('step3_word_selection', { keywords, p: passage });
@@ -148,17 +146,13 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 
 
 const inlinePrompts = {
-  step1_summary: `
-Summarize the following passage. Do not write in conversational tone. Do not include labels or headings. Only output the summary.
-{{p}}
-`,
   step2_keywords: `
 According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "its being royal but fierce" is new information. 
-Read the following sentence, and make a list of 1-word items that can be considered 'new information' in terms of information processing from the sentence. 
+Read the following passage, consider its main idea and make a list from the passage of 1-word items that can be considered 'new information' in terms of information processing.
 Make sure you do not add any of 'old information' to the list. Output the items.
 Separate them with line breaks.
 
-Sentence:
+Passage:
 {{summary}}
 `,
   step3_word_selection: `
