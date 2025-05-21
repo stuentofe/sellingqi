@@ -39,8 +39,15 @@ function extractUniqueContentWords(text) {
 }
 
 // 메인 문제 생성 함수
+function fixArticleBeforeBlank(passageWithBlank, wordToInsert) {
+  return passageWithBlank.replace(/\b(a|an)\s+(_{5,})/gi, (match, article, blank) => {
+    const startsWithVowel = /^[aeiou]/i.test(wordToInsert.trim());
+    const correctArticle = startsWithVowel ? 'an' : 'a';
+    return `${correctArticle} ${blank}`;
+  });
+}
+
 async function generateBlankaProblem(passage) {
-  
   const keywords = await fetchInlinePrompt('step2_keywords', { p: passage });
   if (!keywords) throw new Error('요약 키워드 추출에 실패했습니다.');
 
@@ -50,7 +57,6 @@ async function generateBlankaProblem(passage) {
   }
   const safeC1 = escapeRegExp(c1.toLowerCase());
 
-  // 이하 동일
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
   const targetEntries = indexedSentences.filter(({ text }) =>
@@ -67,10 +73,13 @@ async function generateBlankaProblem(passage) {
     throw new Error('유의어(c2) 추출 실패');
   }
 
-  const blankedPassage = passage.replace(
+  let blankedPassage = passage.replace(
     new RegExp(`\\b${safeC1}\\b`, 'i'),
-    `<${' '.repeat(10)}>`
+    `${'_'.repeat(10)}`
   );
+
+  // ✅ a/an 자동 수정 추가
+  blankedPassage = fixArticleBeforeBlank(blankedPassage, c1);
 
   const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
   const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankedPassage, c1, c2, w1 });
@@ -102,6 +111,7 @@ async function generateBlankaProblem(passage) {
     explanation
   };
 }
+
 
 // 오답 검증 함수 (blankedPassage 인자로 받음)
 async function validateWrongWord(word, blankedPassage) {
