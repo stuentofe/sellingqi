@@ -223,25 +223,28 @@ Passage: {{p}}
   `,
   thirdPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{c1}}' or '{{c2}}'.
-Do not use punctuation.
+Name a single word which, when put in the blank, creates an incoherent sentence.
+Make sure the new word must not be any of the followings: {{c1}}, {{c2}}
 Sentence: {{b}}
   `,
   fourthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{w1}}'.
+Name a single word which, when put in the blank, creates an incoherent sentence.
+Make sure the new word must not be any of the followings: {{w1}}
 Do not use punctuation.
 Sentence: {{b}}
   `,
   fifthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{w1}}', or '{{w2}}'.
+Name a single word which, when put in the blank, creates an incoherent sentence.
+Make sure the new word must not be any of the followings: {{w1}}, {{w2}}
 Do not use punctuation.
 Sentence: {{b}}
   `,
   sixthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word to be the wrong answer for the blank of the following sentence. It must create a totally different meaning from '{{w1}}', '{{w2}}', or '{{w3}}'.
+Name a single word which, when put in the blank, creates an incoherent sentence.
+Make sure the new word must not be any of the followings: {{w1}}, {{w2}}, {{w3}}
 Do not use punctuation.
 Sentence: {{b}}
   `,
