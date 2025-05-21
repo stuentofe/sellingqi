@@ -22,23 +22,31 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
 }
 
-function fixArticleBeforeBlank(passageWithBlank, wordToInsert) {
-  return passageWithBlank.replace(/\b(a|an)\s+(_{5,})/gi, (match, article, blank) => {
-    const startsWithVowel = /^[aeiou]/i.test(wordToInsert.trim());
-    const correctArticle = startsWithVowel ? 'an' : 'a';
-    return `${correctArticle} ${blank}`;
-  });
+function extractAsteriskedText(passage) {
+  const match = passage.match(/^(.*?)(\*.+)$/s); // 줄바꿈 포함 전체 매치
+  if (match) {
+    return {
+      passage: match[1].trim(),       // 앞쪽 본문
+      asterisked: match[2].trim()     // * 포함 주석
+    };
+  } else {
+    return {
+      passage: passage.trim(),        // 주석이 없을 경우 전체 본문 반환
+      asterisked: null
+    };
+  }
 }
 
-async function generateBlankcProblem(passage) {
+async function generateBlankcProblem(originalPassage) {
+  const { passage, asterisked } = extractAsteriskedText(originalPassage); // ✅ 주석 분리
+
   const concepts = await fetchInlinePrompt('step2_concepts', { p: passage });
   if (!concepts) throw new Error('요약 개념 추출에 실패했습니다.');
 
   let c1 = await fetchInlinePrompt('step3_c1_selection', { concepts, p: passage });
   if (!c1 || c1.toLowerCase() === 'none') throw new Error('어구 선택 실패');
 
-  // 선행 동사 제거 처리
-  c1 = await fetchInlinePrompt('trimVerbThatPrompt', { c1 });
+  c1 = await fetchInlinePrompt('trimVerbThatPrompt', { c1 }); // ✅ 선행 동사 제거
   const safeC1 = escapeRegExp(c1.toLowerCase());
 
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
@@ -55,9 +63,7 @@ async function generateBlankcProblem(passage) {
   const blankSentence = targetSentence.replace(new RegExp(`\\b${safeC1}\\b`, 'g'), '[ ]');
   let blankedPassage = passage.replace(new RegExp(`\\b${safeC1}\\b`, 'i'), `${'_'.repeat(20)}`);
 
-  // ✅ a/an 자동 수정 추가
-  blankedPassage = fixArticleBeforeBlank(blankedPassage, c1);
-
+  // ✅ 오답 생성을 위한 단어 선정
   const uniqueWords = [...new Set(passage.toLowerCase().match(/\b[a-zA-Z]{4,}\b/g))];
   const longestWords = uniqueWords.sort((a, b) => b.length - a.length).slice(0, 8);
   const [r1, r2, r3, r4, r5, r6, r7, r8] = longestWords;
@@ -76,6 +82,20 @@ async function generateBlankcProblem(passage) {
     .filter(Boolean)
     .sort((a, b) => a.length - b.length);
 
+  // ✅ a(n) 중립화 처리
+  const hasArticleBeforeBlank = /\b(a|an)\s+(?=(\[ ?\]|\_+))/i.test(blankedPassage);
+  const shouldNeutralizeArticle = (() => {
+    const isVowel = w => /^[aeiou]/i.test(w.trim());
+    const vowelFlags = options.map(isVowel);
+    const allVowel = vowelFlags.every(Boolean);
+    const allConsonant = vowelFlags.every(v => !v);
+    return !(allVowel || allConsonant);
+  })();
+
+  if (hasArticleBeforeBlank && shouldNeutralizeArticle) {
+    blankedPassage = blankedPassage.replace(/\b(a|an)\s+(?=(\[ ?\]|\_+))/i, 'a(n) ');
+  }
+
   const numberSymbols = ['①', '②', '③', '④', '⑤'];
   const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
 
@@ -89,9 +109,11 @@ async function generateBlankcProblem(passage) {
   return {
     problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
     answer,
-    explanation
+    explanation,
+    asterisked // ✅ 주석 따로 보관
   };
 }
+
 
 
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
@@ -113,7 +135,9 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.choices[0].message.content.trim();
+    return data.choices[0].message.content
+    .trim()
+    .replace(/^"+(.*?)"+$/, '$1');
 }
 
 async function validateWrongWord(word, blankedPassage) {
