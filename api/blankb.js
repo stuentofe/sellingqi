@@ -1,12 +1,15 @@
-// Vercel 배포용 API Route: 단어 교체형 문제 생성
+// Vercel 배포용 API Route: 어구 교체형 문제 생성
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
+
   const { text: passage } = req.body;
+
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
+
   try {
     const result = await generateBlankbProblem(passage);
     return res.status(200).json(result);
@@ -62,10 +65,10 @@ function normalizePhrases(phrases) {
   return phrases.map(phrase => {
     let result = phrase.trim();
 
-    if (/^not\\s+/i.test(result)) {
+    if (/^not\s+/i.test(result)) {
       result = removeLeading('not', result);
     }
-    if (/^to\\s+/i.test(result)) {
+    if (/^to\s+/i.test(result)) {
       result = removeLeading('to', result);
     }
     for (const modal of modalVerbs) {
@@ -119,15 +122,21 @@ async function generateBlankbProblem(passage) {
   }
 
   const blankSentence = targetSentence.replaceAll(c1, '[ ]');
-
-  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
-  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1 });
-  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, c2, w1, w2 });
-  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, c2, w1, w2, w3 });
-
-  const options = [c2, w1, w2, w3, w4].filter(Boolean).sort((a, b) => a.length - b.length);
-
   const blankedPassage = passage.replace(c1, `<${' '.repeat(10)}>`);
+
+  const w1Raw = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
+  const w2Raw = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1: w1Raw });
+  const w3Raw = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, c2, w1: w1Raw, w2: w2Raw });
+  const w4Raw = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, c2, w1: w1Raw, w2: w2Raw, w3: w3Raw });
+
+  const validatedW1 = await validateWrongWord(w1Raw, blankedPassage);
+  const validatedW2 = await validateWrongWord(w2Raw, blankedPassage);
+  const validatedW3 = await validateWrongWord(w3Raw, blankedPassage);
+  const validatedW4 = await validateWrongWord(w4Raw, blankedPassage);
+
+  const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
+    .filter(Boolean)
+    .sort((a, b) => a.length - b.length);
 
   const numberSymbols = ['①', '②', '③', '④', '⑤'];
   const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
@@ -144,6 +153,15 @@ async function generateBlankbProblem(passage) {
     answer,
     explanation
   };
+}
+
+async function validateWrongWord(word, blankedPassage) {
+  if (!word) return null;
+  const result = await fetchInlinePrompt('verifyWrongWord', {
+    p: blankedPassage,
+    w: word
+  });
+  return result.toLowerCase() === 'no' ? word : result;
 }
 
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
@@ -255,5 +273,18 @@ Do not say in conversational form. Only output the result.
 
 지문: {{p}}
 정답: {{c2}}
-  `
+  `,
+  verifyWrongWord: `
+Evaluate whether the following phrase fits naturally in the blank of the given passage.
+
+Passage with blank:
+{{p}}
+
+Phrase: {{w}}
+
+If the phrase fits naturally and makes the sentence contextually appropriate, output a different phrase of similar length that does NOT fit naturally or correctly in this context. 
+If the phrase does NOT fit naturally, just output "no".
+
+Only output one phrase or "no" with no punctuation or explanation.
+`
 };
