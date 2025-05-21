@@ -3,10 +3,13 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
+
   const { text: passage } = req.body;
+
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
+
   try {
     const result = await generateBlankaProblem(passage);
     return res.status(200).json(result);
@@ -16,12 +19,12 @@ export default async function handler(req, res) {
   }
 }
 
-// RegExp 특수문자 이스케이프
+// 정규표현식 특수문자 이스케이프
 function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-
+// 의미 있는 단어 추출 (불용어 제거)
 function extractUniqueContentWords(text) {
   const functionWords = new Set([
     'a', 'an', 'the', 'in', 'on', 'at', 'by', 'for', 'from', 'of', 'to', 'with', 'about',
@@ -35,7 +38,7 @@ function extractUniqueContentWords(text) {
   return [...new Set(words.filter(word => word && !functionWords.has(word)))];
 }
 
-
+// 메인 문제 생성 함수
 async function generateBlankaProblem(passage) {
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
@@ -43,11 +46,7 @@ async function generateBlankaProblem(passage) {
   const contentWordList = extractUniqueContentWords(passage);
   const wordListStr = contentWordList.join(', ');
 
-  const c1 = await fetchInlinePrompt('firstPrompt', {
-    p: passage,
-    words: wordListStr
-  });
-
+  const c1 = await fetchInlinePrompt('firstPrompt', { p: passage, words: wordListStr });
   if (!c1 || c1.trim().toLowerCase() === 'none') {
     throw new Error('중요한 단어를 추출하지 못했습니다.');
   }
@@ -56,12 +55,10 @@ async function generateBlankaProblem(passage) {
   const targetEntries = indexedSentences.filter(({ text }) =>
     text.toLowerCase().match(new RegExp(`\\b${safeC1}\\b`))
   );
-
   if (targetEntries.length === 0) {
     throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
   }
 
-  // 가장 나중에 등장한 문장(id가 가장 큰 것)
   const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
@@ -70,7 +67,7 @@ async function generateBlankaProblem(passage) {
   }
 
   const blankedPassage = passage.replace(
-    new RegExp(`\\b${safeC1}\\b`, 'i'), // 'g' 제거 → 첫 1개만 매칭
+    new RegExp(`\\b${safeC1}\\b`, 'i'),
     `<${' '.repeat(10)}>`
   );
 
@@ -79,11 +76,10 @@ async function generateBlankaProblem(passage) {
   const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankedPassage, c1, c2, w1, w2 });
   const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankedPassage, c1, c2, w1, w2, w3 });
 
-  // 오답 단어들을 검증하여 교체해야 하면 교체
-  const validatedW1 = await validateWrongWord(w1);
-  const validatedW2 = await validateWrongWord(w2);
-  const validatedW3 = await validateWrongWord(w3);
-  const validatedW4 = await validateWrongWord(w4);
+  const validatedW1 = await validateWrongWord(w1, blankedPassage);
+  const validatedW2 = await validateWrongWord(w2, blankedPassage);
+  const validatedW3 = await validateWrongWord(w3, blankedPassage);
+  const validatedW4 = await validateWrongWord(w4, blankedPassage);
 
   const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
     .filter(Boolean)
@@ -106,7 +102,8 @@ async function generateBlankaProblem(passage) {
   };
 }
 
-async function validateWrongWord(word) {
+// 오답 검증 함수 (blankedPassage 인자로 받음)
+async function validateWrongWord(word, blankedPassage) {
   if (!word) return null;
   const judgment = await fetchInlinePrompt('verifyWrongWord', {
     p: blankedPassage,
@@ -115,23 +112,37 @@ async function validateWrongWord(word) {
   return judgment.toLowerCase() === 'no' ? word : judgment;
 }
 
+// 프롬프트 기반 요청 함수
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
   let prompt = inlinePrompts[key] || '';
   for (const k in replacements) {
     prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
   }
+
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
     },
-    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.3 })
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3
+    })
   });
+
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
+  if (!data.choices || !data.choices[0]?.message?.content) {
+    throw new Error('OpenAI 응답이 비정상적입니다.');
+  }
+
   return data.choices[0].message.content.trim();
 }
+
+// (inlinePrompts 그대로 유지, 길어서 생략 가능)
+
 
 const inlinePrompts = {
   firstPrompt: `
