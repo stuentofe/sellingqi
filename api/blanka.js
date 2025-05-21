@@ -47,7 +47,24 @@ function fixArticleBeforeBlank(passageWithBlank, wordToInsert) {
   });
 }
 
-async function generateBlankaProblem(passage) {
+function extractAsteriskedText(passage) {
+  const match = passage.match(/^(.*?)(\*.+)$/s); // s 플래그: 줄바꿈 포함
+  if (match) {
+    return {
+      passage: match[1].trim(),       // 본문만
+      asterisked: match[2].trim()     // 주석 별도 저장
+    };
+  } else {
+    return {
+      passage: passage.trim(),
+      asterisked: null
+    };
+  }
+}
+
+async function generateBlankaProblem(originalPassage) {
+  const { passage, asterisked } = extractAsteriskedText(originalPassage);
+  
   const keywords = await fetchInlinePrompt('step2_keywords', { p: passage });
   if (!keywords) throw new Error('요약 키워드 추출에 실패했습니다.');
 
@@ -105,11 +122,12 @@ async function generateBlankaProblem(passage) {
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
   const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
 
-  return {
-    problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
-    answer,
-    explanation
-  };
+return {
+  problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
+  answer,
+  explanation,
+  asterisked  // 👈 주석은 별도 보관, 출력에는 포함하지 않음
+};
 }
 
 
@@ -149,7 +167,9 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
     throw new Error('OpenAI 응답이 비정상적입니다.');
   }
 
-  return data.choices[0].message.content.trim();
+  return data.choices[0].message.content
+    .trim()
+    .replace(/^"+(.*?)"+$/, '$1'); // ✅ 앞뒤 큰따옴표 제거
 }
 
 // (inlinePrompts 그대로 유지, 길어서 생략 가능)
