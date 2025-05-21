@@ -282,9 +282,9 @@ Passage with blank:
 
 Phrase: {{w}}
 
-If the phrase fits naturally and makes the sentence contextually appropriate, output a different phrase of similar length that does NOT fit naturally or correctly in this context. 
+If the phrase fits naturally and makes the sentence contextually appropriate, output a different phrase of similar length that sounds inappropriate in this context. 
 If the phrase does NOT fit naturally, just output "no".
 
-Only output one phrase or "no" with no punctuation or explanation.
+Only output the phrase or "no" with no punctuation or explanation.
 `
 };
