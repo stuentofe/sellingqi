@@ -195,14 +195,14 @@ Do not say in conversational form. Only output the result.
 정답: {{c2}}
   `,
   verifyWrongWord: `
-Evaluate whether the following word fits naturally in the blank of the given passage.
+Evaluate whether the following word fits in the blank of the given passage.
 
 Passage with blank:
 {{p}}
 
 Word: {{w}}
 
-If the word fits naturally and makes the sentence contextually appropriate, output a different word of similar length that does NOT fit naturally or correctly in this context. 
+If it sounds okay to put the word in the blank, think of a different word of similar length that does NOT fit naturally or correctly in this context, and output it. 
 If the word does NOT fit naturally, just output "no".
 
 Only output one word or "no" with no punctuation or explanation.
