@@ -231,7 +231,7 @@ const supabase = createClient(
 );
 
 async function saveToDB(data) {
-  const { error } = await supabase.from('problems').insert([data]);
+  const { error } = await supabase.from('generated').insert([data]);
   if (error) {
     console.error('❌ Supabase 저장 실패:', error.message);
     throw new Error('Supabase 저장 실패');
