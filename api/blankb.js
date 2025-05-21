@@ -67,11 +67,21 @@ async function generateBlankbProblem(passage) {
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
   const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
 
-  return {
-    problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
-    answer,
-    explanation
-  };
+const problem = `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`;
+
+// ✅ 여기에 저장
+await saveToDB({
+  passage,
+  problem,
+  answer,
+  explanation
+});
+
+return {
+  problem,
+  answer,
+  explanation
+};
 }
 
 async function extractC1(passage) {
@@ -209,21 +219,17 @@ Only output the phrase or "no" with no punctuation or explanation.
 };
 
 
-await saveToDB({
-  passage,
-  answer,
-  explanation,
-  fullProblemText: problemText,
-  ...(saveDebugData && {
-    debug_data: {
-      c1,
-      c2,
-      distractors: [validatedW1, validatedW2, validatedW3, validatedW4],
-      summary,
-      concepts,
-      targetSentence,
-      blankedPassage,
-      prompts: debugLog
-    }
-  })
-});
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+async function saveToDB(data) {
+  const { error } = await supabase.from('problems').insert([data]);
+  if (error) {
+    console.error('❌ Supabase 저장 실패:', error.message);
+    throw new Error('Supabase 저장 실패');
+  }
+}
