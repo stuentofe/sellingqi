@@ -22,6 +22,14 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
 }
 
+function fixArticleBeforeBlank(passageWithBlank, wordToInsert) {
+  return passageWithBlank.replace(/\b(a|an)\s+(_{5,})/gi, (match, article, blank) => {
+    const startsWithVowel = /^[aeiou]/i.test(wordToInsert.trim());
+    const correctArticle = startsWithVowel ? 'an' : 'a';
+    return `${correctArticle} ${blank}`;
+  });
+}
+
 async function generateBlankcProblem(passage) {
   const concepts = await fetchInlinePrompt('step2_concepts', { p: passage });
   if (!concepts) throw new Error('요약 개념 추출에 실패했습니다.');
@@ -45,7 +53,10 @@ async function generateBlankcProblem(passage) {
   if (!c2) throw new Error('paraphrase(c2) 생성 실패');
 
   const blankSentence = targetSentence.replace(new RegExp(`\\b${safeC1}\\b`, 'g'), '[ ]');
-  const blankedPassage = passage.replace(new RegExp(`\\b${safeC1}\\b`, 'i'), `${'_'.repeat(20)}`);
+  let blankedPassage = passage.replace(new RegExp(`\\b${safeC1}\\b`, 'i'), `${'_'.repeat(20)}`);
+
+  // ✅ a/an 자동 수정 추가
+  blankedPassage = fixArticleBeforeBlank(blankedPassage, c1);
 
   const uniqueWords = [...new Set(passage.toLowerCase().match(/\b[a-zA-Z]{4,}\b/g))];
   const longestWords = uniqueWords.sort((a, b) => b.length - a.length).slice(0, 8);
@@ -62,9 +73,8 @@ async function generateBlankcProblem(passage) {
   const validatedW4 = await validateWrongWord(w4, blankedPassage);
 
   const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
-  .filter(Boolean)
-  .sort((a, b) => a.length - b.length);
-
+    .filter(Boolean)
+    .sort((a, b) => a.length - b.length);
 
   const numberSymbols = ['①', '②', '③', '④', '⑤'];
   const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
@@ -82,6 +92,7 @@ async function generateBlankcProblem(passage) {
     explanation
   };
 }
+
 
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
   let prompt = inlinePrompts[key] || '';
