@@ -2,11 +2,7 @@
   "name": "sellingqi",
   "version": "1.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
+  "scripts": { },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.5"
   }
