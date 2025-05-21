@@ -133,7 +133,7 @@ Sentence:
   step3_c1_selection: `
 The following list of key concepts correspond to some phrases from the following passage. 
 Choose one from the list randomly, and find a corresponding phrase consisting of 2 to 6 words from the passage.
-Only output the exact phrase in a verbatim way. Do not paraphrase or explain.
+Only output the exact phrase in a verbatim way.
 
 Key concepts:
 {{concepts}}
