@@ -16,42 +16,109 @@ export default async function handler(req, res) {
   }
 }
 
-// RegExp 특수문자 이스케이프
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+function excludePhrasesWithDisallowedPunctuation(phrases) {
+  return phrases.filter(phrase => {
+    const hasParen = phrase.includes('(') || phrase.includes(')');
+    const hasEmDash = phrase.includes('—');
+    const commaIndex = phrase.indexOf(',');
+    const hasMidComma = commaIndex !== -1 && commaIndex !== phrase.length - 1;
+    return !hasParen && !hasEmDash && !hasMidComma;
+  });
+}
+
+function excludePhrasesWithAdjacentAndOr(passage, phrases) {
+  const normalizedPassage = passage.replace(/\s+/g, ' ');
+  const lowerPassage = normalizedPassage.toLowerCase();
+
+  return phrases.filter(phrase => {
+    const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const phraseRegex = new RegExp(`\\b${escapedPhrase}\\b`, 'i');
+    const match = lowerPassage.match(phraseRegex);
+    if (!match) return false;
+
+    const index = match.index;
+    const before = lowerPassage.slice(Math.max(0, index - 5), index).trimEnd();
+    const after = lowerPassage.slice(index + phrase.length, index + phrase.length + 5).trimStart();
+
+    const hasAndOrBefore = /\b(and|or)$/.test(before);
+    const hasAndOrAfter = /^(and|or)\b/.test(after);
+
+    return !(hasAndOrBefore || hasAndOrAfter);
+  });
+}
+
+function normalizePhrases(phrases) {
+  const modalVerbs = [
+    'can', 'will', 'may', 'should', 'must',
+    "can't", "cannot", "won't", "mayn't", "mustn't",
+    'can not', 'will not', 'may not', 'should not', 'must not'
+  ];
+
+  function removeLeading(word, phrase) {
+    const pattern = new RegExp(`^${word}\\s+`, 'i');
+    return phrase.replace(pattern, '').trim();
+  }
+
+  return phrases.map(phrase => {
+    let result = phrase.trim();
+
+    if (/^not\\s+/i.test(result)) {
+      result = removeLeading('not', result);
+    }
+    if (/^to\\s+/i.test(result)) {
+      result = removeLeading('to', result);
+    }
+    for (const modal of modalVerbs) {
+      const pattern = new RegExp(`^${modal}\\s+`, 'i');
+      if (pattern.test(result)) {
+        result = result.replace(pattern, '').trim();
+        break;
+      }
+    }
+    return result;
+  });
 }
 
 async function generateBlankbProblem(passage) {
+  const chunkListRaw = await fetchInlinePrompt('extractChunk', { p: passage });
+  const chunkList = chunkListRaw.split('\n').map(s => s.trim()).filter(Boolean);
+  const cleanChunkList = excludePhrasesWithDisallowedPunctuation(chunkList);
+  const refinedChunkList = excludePhrasesWithAdjacentAndOr(passage, cleanChunkList);
+
+  const danglingPhrasesRaw = await fetchInlinePrompt('detectDanglingEndings', { list: refinedChunkList.join('\n') });
+  const danglingPhrases = danglingPhrasesRaw.split('\n').map(s => s.trim()).filter(Boolean);
+  const noDanglingPhrases = refinedChunkList.filter(p => !danglingPhrases.includes(p));
+
+  const relativePhrasesRaw = await fetchInlinePrompt('detectRelativePronounEndings', { list: noDanglingPhrases.join('\n') });
+  const relativePhrases = relativePhrasesRaw.split('\n').map(s => s.trim()).filter(Boolean);
+  const finalChunkList = noDanglingPhrases.filter(p => !relativePhrases.includes(p));
+
+  const normalizedChunkList = normalizePhrases(finalChunkList);
+
+  const c1 = await fetchInlinePrompt('chooseC1FromCleanList', {
+    p: passage,
+    list: normalizedChunkList.join('\n')
+  });
+
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
 
-  const c1 = await fetchInlinePrompt('firstPrompt', { p: passage });
-  if (!c1 || c1.toLowerCase() === 'none') {
-    throw new Error('중요한 어구를 추출하지 못했습니다.');
+  const targetEntries = indexedSentences.filter(({ text }) =>
+    text.toLowerCase().includes(c1.toLowerCase())
+  );
+
+  if (targetEntries.length === 0) {
+    throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
   }
-  const safeC1 = escapeRegExp(c1.toLowerCase());
 
-const targetEntries = indexedSentences.filter(({ text }) =>
-  text.toLowerCase().match(new RegExp(`\\b${safeC1}\\b`))
-);
-
-if (targetEntries.length === 0) {
-  throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
-}
-
-// 가장 나중에 등장한 문장(id가 가장 큰 것)
-const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
-
+  const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
   if (!c2) {
     throw new Error('paraphrase에 실패했습니다.');
   }
 
-  const blankSentence = targetSentence.replace(
-    new RegExp(`\\b${safeC1}\\b`, 'g'),
-    '[ ]'
-  );
+  const blankSentence = targetSentence.replaceAll(c1, '[ ]');
 
   const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
   const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1 });
@@ -60,28 +127,23 @@ const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).tex
 
   const options = [c2, w1, w2, w3, w4].filter(Boolean).sort((a, b) => a.length - b.length);
 
+  const blankedPassage = passage.replace(c1, `<${' '.repeat(10)}>`);
 
-const blankedPassage = passage.replace(
-  new RegExp(`\\b${safeC1}\\b`, 'i'), // 'g' 제거 → 첫 1개만 매칭
-  `<${' '.repeat(10)}>`
-);
+  const numberSymbols = ['①', '②', '③', '④', '⑤'];
+  const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
 
+  const answerIndex = options.indexOf(c2);
+  if (answerIndex < 0) throw new Error('정답을 선택지에서 찾지 못했습니다.');
+  const answer = numberSymbols[answerIndex];
 
-const numberSymbols = ['①', '②', '③', '④', '⑤'];
-const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
+  const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
+  const explanation = `정답: ${answer}\n${explanationText}`;
 
-const answerIndex = options.indexOf(c2);
-if (answerIndex < 0) throw new Error('정답을 선택지에서 찾지 못했습니다.');
-const answer = numberSymbols[answerIndex];
-
-const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
-const explanation = `정답: ${answer}\n${explanationText}`;
-
-return {
-  problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
-  answer,
-  explanation
-};
+  return {
+    problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
+    answer,
+    explanation
+  };
 }
 
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
@@ -103,15 +165,59 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 }
 
 const inlinePrompts = {
-  firstPrompt: `
-You are part of a english question item developing system. Do not say in conversational form.
+  extractChunk: `
+Do not respond in conversational form. Only output the result.
 
-Find a contextually meaningful phrase in the following passage which consists of two to six words in one of the following grammatical categories: a noun phrase, or a verb phrase. 
+You are given a passage. Segment the passage into meaningful grammatical phrases consisting of a consecutive string of three to five words that represent constituent meaning units. Each phrase must be either a complete noun phrase or a complete verb phrase.
 
-Do not cross sentence boundaries; the selection must stay within a single sentence.
+Write the phrases in a verbatim way including punctuation marks.
 
-Write your answer in lowercase and do not use any punctuation.
+Write each phrase on a new line.
 Passage: {{p}}
+  `,
+  detectDanglingEndings: `
+Do not respond in conversational form. Only output the result. 
+
+You are given a list of phrases from a passage. (They are all unrelated individual phrases!) 
+Identify all phrases that have a dangling element at the end that requires something to be followed after it.
+
+Only include in your output the phrases that meet this condition.
+Write each phrase on a new line.
+Do not use any additional punctuation.
+Do not insert any blank lines.
+Do not include any explanation or commentary.
+
+Phrase list: {{list}}
+  `,
+  detectRelativePronounEndings: `
+Do not respond in conversational form. Only output the result.
+
+You are given a list of phrases from a passage. (They are all unrelated individual phrases!) 
+Identify all phrases that end with a relative pronoun.
+
+Only include in your output the phrases that meet this condition.
+Write each phrase on a new line.
+Do not use any additional punctuation.
+Do not insert any blank lines.
+Do not include any explanation or commentary.
+
+Phrase list: {{list}}
+  `,
+  chooseC1FromCleanList: `
+Do not respond in conversational form. Only output the result.
+
+You are given a passage and a list of refined, grammatically clean phrases extracted from that passage.
+From this list, choose one phrase that best captures the central meaning or focus of the passage. 
+Base your decision only on the context and content of the passage.
+
+Only return the exact phrase. Do not modify it.
+Do not explain your reasoning.
+Do not include any other commentary.
+
+Passage: {{p}}
+
+Phrase list:
+{{list}}
   `,
   secondPrompt: `
 Do not say in conversational form. Only output the result.
