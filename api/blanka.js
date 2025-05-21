@@ -187,11 +187,8 @@ Passage:
 {{summary}}
 `,
   step3_word_selection: `
-You are given a list of 1-word key concepts and the original passage.
-
-Choose the single most important word that appears verbatim in the original passage.
-
-Only output the word as it appears in the passage. No explanation or punctuation.
+From the listed vocabulary, select one key word that appears in the latter half of the passage and output it verbatim as written in the passage. Do not choose proper nouns such as personal names.
+Do not add any explanation. Just output the result only.
 
 Keywords:
 {{keywords}}
