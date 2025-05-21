@@ -90,10 +90,10 @@ async function generateBlankaProblem(originalPassage) {
   const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankedPassage, c1, c2, w1, w2 });
   const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankedPassage, c1, c2, w1, w2, w3 });
 
-  const validatedW1 = await validateWrongWord(w1, blankedPassage);
-  const validatedW2 = await validateWrongWord(w2, blankedPassage);
-  const validatedW3 = await validateWrongWord(w3, blankedPassage);
-  const validatedW4 = await validateWrongWord(w4, blankedPassage);
+const validatedW1 = await validateWrongWord(w1, blankedPassage, { others: [w2, w3, w4].join(', ') });
+const validatedW2 = await validateWrongWord(w2, blankedPassage, { others: [validatedW1, w3, w4].join(', ') });
+const validatedW3 = await validateWrongWord(w3, blankedPassage, { others: [validatedW1, validatedW2, w4].join(', ') });
+const validatedW4 = await validateWrongWord(w4, blankedPassage, { others: [validatedW1, validatedW2, validatedW3].join(', ') });
 
   const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
     .filter(Boolean)
@@ -133,14 +133,16 @@ async function generateBlankaProblem(originalPassage) {
 
 
 // 오답 검증 함수 (blankedPassage 인자로 받음)
-async function validateWrongWord(word, blankedPassage) {
+async function validateWrongWord(word, blankedPassage, options = {}) {
   if (!word) return null;
   const judgment = await fetchInlinePrompt('verifyWrongWord', {
     p: blankedPassage,
-    w: word
+    w: word,
+    others: options.others || ''
   });
   return judgment.toLowerCase() === 'no' ? word : judgment;
 }
+
 
 // 프롬프트 기반 요청 함수
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
@@ -240,7 +242,7 @@ Passage with blank:
 
 Word: {{w}}
 
-If it sounds okay to put the word in the blank, think of a different word of similar length that sounds awkward and unrelated in this context, and output it. 
+If it sounds okay to put the word in the blank, think of a different word of similar length that sounds awkward and unrelated in this context, and output it. But this new word must not be the same as any of the following: {{others}}.
 If the word does NOT fit naturally, just output "no".
 
 Only output one word or "no" with no punctuation or explanation.
