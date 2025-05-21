@@ -75,8 +75,7 @@ async function generateBlankbProblem(passage) {
 }
 
 async function extractC1(passage) {
-  const summary = await fetchInlinePrompt('step1_summary', { p: passage });
-  const concepts = await fetchInlinePrompt('step2_concepts', { summary, p: passage });
+  const concepts = await fetchInlinePrompt('step2_concepts', { p: passage });
   const c1 = await fetchInlinePrompt('step3_c1_selection', { concepts, p: passage });
 
   if (!c1) throw new Error('c1 추출에 실패했습니다.');
@@ -112,20 +111,13 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 
 const inlinePrompts = {
   // 🆕 STEP 1: 요약
-  step1_summary: `
-Summarize the following passage:
-{{p}}
-Do not respond in conversational form. Do not include labels, headings, or explanations.
-Only output the summary.
-  `,
-
-  // 🆕 STEP 2: 요약에서 key concepts 추출
   step2_concepts: `
-According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "it being royal but fierce" is new information. 
-Read the following sentence, and identify key phrases consisting of 2 to 6 words that can be considered 'new information' in terms of information processing. Output the key phrases only.
-Separate them with line breaks.
+According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "its being royal but fierce" is new information. 
+Read the following passage, consider its main idea and make a list from the passage of key phrases consisting of two to six words that can be considered 'new information' in terms of information processing.
+Make sure you do not add any of 'old information' to the list. Output the items only with no explanation or labling.
+Only separate them with line breaks.
 
-Sentence:
+Passage:
 {{summary}}
   `,
 
