@@ -113,7 +113,7 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 const inlinePrompts = {
   // 🆕 STEP 1: 요약
   step1_summary: `
-Summarize the following within 30 words limit:
+Summarize the following passage:
 {{p}}
 Do not respond in conversational form. Do not include labels, headings, or explanations.
 Only output the summary.
