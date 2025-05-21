@@ -225,12 +225,11 @@ Phrase list: {{list}}
 Do not respond in conversational form. Only output the result.
 
 You are given a passage and a list of refined, grammatically clean phrases extracted from that passage.
-From this list, choose one phrase that best captures the central meaning or focus of the passage. 
+From this list, choose one phrase that best captures the central meaning or focus of the passage.
+But make sure you choose one that is not a complete sentence or a clause.
 Base your decision only on the context and content of the passage.
 
-Only return the exact phrase. Do not modify it.
-Do not explain your reasoning.
-Do not include any other commentary.
+Only return the exact phrase, ant nothing more.
 
 Passage: {{p}}
 
