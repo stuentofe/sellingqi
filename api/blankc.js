@@ -59,7 +59,15 @@ async function generateBlankcProblem(passage) {
   const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, c2, w1, w2, r3, r6 });
   const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, c2, w1, w2, w3, r4, r5 });
 
-  const options = [c2, w1, w2, w3, w4].filter(Boolean).sort((a, b) => a.length - b.length);
+  const validatedW1 = await validateWrongWord(w1, blankedPassage);
+  const validatedW2 = await validateWrongWord(w2, blankedPassage);
+  const validatedW3 = await validateWrongWord(w3, blankedPassage);
+  const validatedW4 = await validateWrongWord(w4, blankedPassage);
+
+  const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
+  .filter(Boolean)
+  .sort((a, b) => a.length - b.length);
+
 
   const numberSymbols = ['①', '②', '③', '④', '⑤'];
   const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
@@ -98,6 +106,15 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   return data.choices[0].message.content.trim();
+}
+
+async function validateWrongWord(word, blankedPassage) {
+  if (!word) return null;
+  const judgment = await fetchInlinePrompt('verifyWrongWord', {
+    p: blankedPassage,
+    w: word
+  });
+  return judgment.toLowerCase() === 'no' ? word : judgment;
 }
 
 const inlinePrompts = {
@@ -172,5 +189,19 @@ Do not say in conversational form. Only output the result.
 Read the following phrase. If it begins with the combination of 'a verb + that', then output only the remaining phrase following the combination. If it does not begin with that pattern, output the phrase unchanged. 
 All output should be in lowercase.
 Phrase: {{c1}}
+`,
+  verifyWrongWord: `
+Evaluate whether the following phrase fits naturally in the blank of the given passage.
+
+Passage with blank:
+{{p}}
+
+Phrase: {{w}}
+
+If the phrase fits naturally and makes the sentence contextually appropriate, output a different phrase of similar length that sounds inappropriate in this context. 
+If the phrase does NOT fit naturally, just output "no".
+
+Only output the phrase or "no" with no punctuation or explanation.
 `
+
 };
