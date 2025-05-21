@@ -38,15 +38,6 @@ function extractUniqueContentWords(text) {
   return [...new Set(words.filter(word => word && !functionWords.has(word)))];
 }
 
-// 메인 문제 생성 함수
-function fixArticleBeforeBlank(passageWithBlank, wordToInsert) {
-  return passageWithBlank.replace(/\b(a|an)\s+(_{5,})/gi, (match, article, blank) => {
-    const startsWithVowel = /^[aeiou]/i.test(wordToInsert.trim());
-    const correctArticle = startsWithVowel ? 'an' : 'a';
-    return `${correctArticle} ${blank}`;
-  });
-}
-
 function extractAsteriskedText(passage) {
   const match = passage.match(/^(.*?)(\*.+)$/s); // s 플래그: 줄바꿈 포함
   if (match) {
@@ -64,7 +55,7 @@ function extractAsteriskedText(passage) {
 
 async function generateBlankaProblem(originalPassage) {
   const { passage, asterisked } = extractAsteriskedText(originalPassage);
-  
+
   const keywords = await fetchInlinePrompt('step2_keywords', { p: passage });
   if (!keywords) throw new Error('요약 키워드 추출에 실패했습니다.');
 
@@ -72,6 +63,7 @@ async function generateBlankaProblem(originalPassage) {
   if (!c1 || c1.trim().toLowerCase() === 'none') {
     throw new Error('중요 단어(c1)를 선택하지 못했습니다.');
   }
+
   const safeC1 = escapeRegExp(c1.toLowerCase());
 
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
@@ -86,17 +78,12 @@ async function generateBlankaProblem(originalPassage) {
   const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
-  if (!c2) {
-    throw new Error('유의어(c2) 추출 실패');
-  }
+  if (!c2) throw new Error('유의어(c2) 추출 실패');
 
   let blankedPassage = passage.replace(
     new RegExp(`\\b${safeC1}\\b`, 'i'),
     `${'_'.repeat(10)}`
   );
-
-  // ✅ a/an 자동 수정 추가
-  blankedPassage = fixArticleBeforeBlank(blankedPassage, c1);
 
   const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
   const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankedPassage, c1, c2, w1 });
@@ -112,6 +99,20 @@ async function generateBlankaProblem(originalPassage) {
     .filter(Boolean)
     .sort((a, b) => a.length - b.length);
 
+  // ✅ a(n) 중립 관사 처리
+  const hasArticleBeforeBlank = /\b(a|an)\s+(?=(\[ ?\]|\_+))/i.test(blankedPassage);
+  const shouldNeutralizeArticle = (() => {
+    const isVowel = w => /^[aeiou]/i.test(w.trim());
+    const vowelFlags = options.map(isVowel);
+    const allVowel = vowelFlags.every(Boolean);
+    const allConsonant = vowelFlags.every(v => !v);
+    return !(allVowel || allConsonant); // 혼합일 때만 true
+  })();
+
+  if (hasArticleBeforeBlank && shouldNeutralizeArticle) {
+    blankedPassage = blankedPassage.replace(/\b(a|an)\s+(?=(\[ ?\]|\_+))/i, 'a(n) ');
+  }
+
   const numberSymbols = ['①', '②', '③', '④', '⑤'];
   const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
 
@@ -122,12 +123,12 @@ async function generateBlankaProblem(originalPassage) {
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
   const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
 
-return {
-  problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
-  answer,
-  explanation,
-  asterisked  // 👈 주석은 별도 보관, 출력에는 포함하지 않음
-};
+  return {
+    problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
+    answer,
+    explanation,
+    asterisked
+  };
 }
 
 
