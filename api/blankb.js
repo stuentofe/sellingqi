@@ -132,7 +132,7 @@ Sentence:
   // 🆕 STEP 3: 지문에서 key concept에 해당하는 어구 선택 (verbatim)
   step3_c1_selection: `
 The following list of key concepts correspond to some phrases from the following passage. 
-Choose one from the list randomly, and find a corresponding phrase consisting of 2 to 6 words from the passage.
+Choose one from the list randomly, and find a corresponding phrase consisting of from the passage.
 Only output the exact phrase in a verbatim way.
 
 Key concepts:
@@ -194,8 +194,8 @@ Passage with blank:
 Phrase: {{w}}
 
 If the phrase fits naturally and makes the sentence contextually appropriate, output a different phrase of similar length that sounds inappropriate in this context. 
-If the phrase does NOT fit naturally, just output "no".
+If the phrase does NOT fit naturally, just output no.
 
-Only output the phrase or "no" with no punctuation or explanation.
+Only output the phrase or no.
   `
 };
