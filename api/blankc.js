@@ -23,9 +23,6 @@ function escapeRegExp(str) {
 }
 
 async function generateBlankcProblem(passage) {
-  const summary = await fetchInlinePrompt('step1_summary', { p: passage });
-  if (!summary) throw new Error('요약 생성에 실패했습니다.');
-
   const concepts = await fetchInlinePrompt('step2_concepts', { summary, p: passage });
   if (!concepts) throw new Error('요약 개념 추출에 실패했습니다.');
 
@@ -118,16 +115,13 @@ async function validateWrongWord(word, blankedPassage) {
 }
 
 const inlinePrompts = {
-  step1_summary: `
-Summarize the following passage. Only output the summary. Do not write in conversational form or include labels.
-{{p}}
-`,
   step2_concepts: `
 According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "its being royal but fierce" is new information. 
-Read the following sentence, and identify key phrases consisting of 7 or more words that can be considered 'new information' in terms of information processing. Output the key phrases only.
-Separate them with line breaks.
+Read the following passage, consider its main idea and make a list from the passage of key phrases consisting of more than 7 words that can be considered 'new information' in terms of information processing.
+Make sure you do not add any of 'old information' to the list. Output the items only with no explanation or labling.
+Only separate them with line breaks.
 
-Summary:
+Passage:
 {{summary}}
 `,
   step3_c1_selection: `
