@@ -123,7 +123,7 @@ Only output the summary.
   step2_concepts: `
 The following is a summary of a passage. 
 Extract key concepts from this summary that help grasp the meaning of the original passage.
-Each concept should be a noun phrase or a verb phrase (2–7 words).
+Each concept should be a noun phrase or a verb phrase (2–7 words). a specific example of the main idea is not considered a key concept.
 Do not add any explanations, labels, or formatting. Write each concept on a new line.
 
 Summary:
@@ -137,7 +137,8 @@ Original passage for reference:
   step3_c1_selection: `
 The following is a list of key concepts extracted from the summary of the passage.
 
-If any of these key concepts (in the form of noun or verb phrases, 2–7 words) appear in the original passage, select one that is most relevant and copy it exactly as it appears in the original passage. If the key concepts correspond to a whole sentence, then only select a part of it, preferrably a noun phrase or a verb phrase in the sentence.
+If any of these key concepts appear in the original passage in the form of a phrase (not a sentence) consisting of 2–7 words, 
+select one such phrase that you think is important to the main idea of the passage and copy it exactly as it appears in the original passage. If the key concepts correspond to a whole sentence, then only select a part of it, preferrably a noun phrase or a verb phrase in the sentence.
 
 Preserve original casing and punctuation.  
 Do not output anything other than the exact phrase.
