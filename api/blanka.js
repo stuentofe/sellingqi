@@ -135,13 +135,30 @@ const validatedW4 = await validateWrongWord(w4, blankedPassage, { others: [valid
 // 오답 검증 함수 (blankedPassage 인자로 받음)
 async function validateWrongWord(word, blankedPassage, options = {}) {
   if (!word) return null;
+
   const judgment = await fetchInlinePrompt('verifyWrongWord', {
     p: blankedPassage,
     w: word,
     others: options.others || ''
   });
-  return judgment.toLowerCase() === 'no' ? word : judgment;
+
+  if (
+    judgment === 'no' ||
+    judgment === 'No' ||
+    judgment === 'NO' ||
+    judgment === 'no.' ||
+    judgment === 'No.' ||
+    judgment === '"no"' ||
+    judgment === '"No."' ||
+    judgment === "'no'" ||
+    judgment === "'No.'"
+  ) {
+    return word;
+  }
+
+  return judgment;
 }
+
 
 
 // 프롬프트 기반 요청 함수
