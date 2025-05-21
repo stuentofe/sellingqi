@@ -207,4 +207,3 @@ If the phrase does NOT fit naturally, just output "no".
 Only output the phrase or "no" with no punctuation or explanation.
   `
 };
-~
