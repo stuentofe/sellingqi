@@ -40,18 +40,21 @@ function extractUniqueContentWords(text) {
 
 // 메인 문제 생성 함수
 async function generateBlankaProblem(passage) {
-  const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
-  const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
+  const summary = await fetchInlinePrompt('step1_summary', { p: passage });
+  if (!summary) throw new Error('요약 생성에 실패했습니다.');
 
-  const contentWordList = extractUniqueContentWords(passage);
-  const wordListStr = contentWordList.join(', ');
+  const keywords = await fetchInlinePrompt('step2_keywords', { summary, p: passage });
+  if (!keywords) throw new Error('요약 키워드 추출에 실패했습니다.');
 
-  const c1 = await fetchInlinePrompt('firstPrompt', { p: passage, words: wordListStr });
+  const c1 = await fetchInlinePrompt('step3_word_selection', { keywords, p: passage });
   if (!c1 || c1.trim().toLowerCase() === 'none') {
-    throw new Error('중요한 단어를 추출하지 못했습니다.');
+    throw new Error('중요 단어(c1)를 선택하지 못했습니다.');
   }
   const safeC1 = escapeRegExp(c1.toLowerCase());
 
+  // 이하 동일
+  const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
+  const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
   const targetEntries = indexedSentences.filter(({ text }) =>
     text.toLowerCase().match(new RegExp(`\\b${safeC1}\\b`))
   );
@@ -63,7 +66,7 @@ async function generateBlankaProblem(passage) {
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
   if (!c2) {
-    throw new Error('유의어를 추출하지 못했습니다.');
+    throw new Error('유의어(c2) 추출 실패');
   }
 
   const blankedPassage = passage.replace(
@@ -93,7 +96,7 @@ async function generateBlankaProblem(passage) {
   const answer = numberSymbols[answerIndex];
 
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
-  const explanation = `정답: ${answer}\n${explanationText}`;
+  const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
 
   return {
     problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
@@ -145,19 +148,34 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 
 
 const inlinePrompts = {
-  firstPrompt: `
-Do not respond in conversational form. Only output the result.
-You are given a passage and a list of words that were extracted from the passage.
+  step1_summary: `
+Summarize the following passage in 25 words or fewer. Do not write in conversational tone. Do not include labels or headings. Only output the summary.
+{{p}}
+`,
+  step2_keywords: `
+Extract 1-word key concepts from the following summary. Each keyword should be a single, meaningful word relevant to the main idea of the original passage. 
 
-From the list, select the single word that plays the most important semantic or contextual role in understanding the passage.
+Write one keyword per line. Do not include punctuation, numbering, or explanations.
 
-Only select one word from the list. If no word from the list is considered important, output "none".
-Do not include punctuation. Write in lowercase.
+Summary:
+{{summary}}
 
-Passage: {{p}}
-Word list: {{words}}
-`
-,
+Original passage:
+{{p}}
+`,
+  step3_word_selection: `
+You are given a list of 1-word key concepts and the original passage.
+
+Choose the single most important word that appears verbatim in the original passage.
+
+Only output the word as it appears in the passage. No explanation or punctuation.
+
+Keywords:
+{{keywords}}
+
+Passage:
+{{p}}
+`,
   secondPrompt: `
 Do not say in conversational form. Only output the result.
 I’d like to replace ‘{{c1}}’ in the following passage with a word which was not used in the passage at all, but which completes the sentence both grammatically and semantically. Recommend one.
@@ -207,5 +225,4 @@ If the word does NOT fit naturally, just output "no".
 
 Only output one word or "no" with no punctuation or explanation.
 `
-
 };
