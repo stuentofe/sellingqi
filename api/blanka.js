@@ -41,69 +41,78 @@ async function generateBlankaProblem(passage) {
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
 
   const contentWordList = extractUniqueContentWords(passage);
-const wordListStr = contentWordList.join(', ');
+  const wordListStr = contentWordList.join(', ');
 
-const c1 = await fetchInlinePrompt('firstPrompt', {
-  p: passage,
-  words: wordListStr
-});
+  const c1 = await fetchInlinePrompt('firstPrompt', {
+    p: passage,
+    words: wordListStr
+  });
 
   if (!c1 || c1.trim().toLowerCase() === 'none') {
     throw new Error('중요한 단어를 추출하지 못했습니다.');
   }
   const safeC1 = escapeRegExp(c1.toLowerCase());
 
-const targetEntries = indexedSentences.filter(({ text }) =>
-  text.toLowerCase().match(new RegExp(`\\b${safeC1}\\b`))
-);
+  const targetEntries = indexedSentences.filter(({ text }) =>
+    text.toLowerCase().match(new RegExp(`\\b${safeC1}\\b`))
+  );
 
-if (targetEntries.length === 0) {
-  throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
-}
+  if (targetEntries.length === 0) {
+    throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
+  }
 
-// 가장 나중에 등장한 문장(id가 가장 큰 것)
-const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
-
+  // 가장 나중에 등장한 문장(id가 가장 큰 것)
+  const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
   if (!c2) {
     throw new Error('유의어를 추출하지 못했습니다.');
   }
 
-  const blankSentence = targetSentence.replace(
-    new RegExp(`\\b${safeC1}\\b`, 'g'),
-    '[ ]'
+  const blankedPassage = passage.replace(
+    new RegExp(`\\b${safeC1}\\b`, 'i'), // 'g' 제거 → 첫 1개만 매칭
+    `<${' '.repeat(10)}>`
   );
 
-  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
-  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1 });
-  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, c2, w1, w2 });
-  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, c2, w1, w2, w3 });
+  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
+  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankedPassage, c1, c2, w1 });
+  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankedPassage, c1, c2, w1, w2 });
+  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankedPassage, c1, c2, w1, w2, w3 });
 
-  const options = [c2, w1, w2, w3, w4].filter(Boolean).sort((a, b) => a.length - b.length);
+  // 오답 단어들을 검증하여 교체해야 하면 교체
+  const validatedW1 = await validateWrongWord(w1);
+  const validatedW2 = await validateWrongWord(w2);
+  const validatedW3 = await validateWrongWord(w3);
+  const validatedW4 = await validateWrongWord(w4);
 
+  const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
+    .filter(Boolean)
+    .sort((a, b) => a.length - b.length);
 
-const blankedPassage = passage.replace(
-  new RegExp(`\\b${safeC1}\\b`, 'i'), // 'g' 제거 → 첫 1개만 매칭
-  `<${' '.repeat(10)}>`
-);
+  const numberSymbols = ['①', '②', '③', '④', '⑤'];
+  const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
 
+  const answerIndex = options.indexOf(c2);
+  if (answerIndex < 0) throw new Error('정답을 선택지에서 찾지 못했습니다.');
+  const answer = numberSymbols[answerIndex];
 
-const numberSymbols = ['①', '②', '③', '④', '⑤'];
-const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
+  const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
+  const explanation = `정답: ${answer}\n${explanationText}`;
 
-const answerIndex = options.indexOf(c2);
-if (answerIndex < 0) throw new Error('정답을 선택지에서 찾지 못했습니다.');
-const answer = numberSymbols[answerIndex];
+  return {
+    problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
+    answer,
+    explanation
+  };
+}
 
-const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
-const explanation = `정답: ${answer}\n${explanationText}`;
-
-return {
-  problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
-  answer,
-  explanation
-};
+async function validateWrongWord(word) {
+  if (!word) return null;
+  const judgment = await fetchInlinePrompt('verifyWrongWord', {
+    p: blankedPassage,
+    w: word
+  });
+  return judgment.toLowerCase() === 'no' ? word : judgment;
 }
 
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
@@ -173,5 +182,19 @@ Do not say in conversational form. Only output the result.
 다음 지문의 빈칸에 정답 어구가 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라. 문체는 "~(이)다"체를 사용해야 한다. 지문을 직접 인용해서는 안된다. 100자 이내로 다음 형식을 참고하여 써라: ~라는 글이다. (필요할 경우 추가 근거) 따라서, 빈칸에 들어갈 말로 가장 적절한 것은 ~이다.
 지문: {{p}}
 정답: {{c2}}
-  `
+  `,
+  verifyWrongWord: `
+Evaluate whether the following word fits naturally in the blank of the given passage.
+
+Passage with blank:
+{{p}}
+
+Word: {{w}}
+
+If the word fits naturally and makes the sentence contextually appropriate, output a different word of similar length that does NOT fit naturally or correctly in this context. 
+If the word does NOT fit naturally, just output "no".
+
+Only output one word or "no" with no punctuation or explanation.
+`
+
 };
