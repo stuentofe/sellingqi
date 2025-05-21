@@ -151,9 +151,9 @@ async function validateWrongWord(word, blankedPassage) {
 
 const inlinePrompts = {
   step2_concepts: `
-According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "its being royal but fierce" is new information. 
-Read the following passage, consider its main idea and make a list from the passage of key phrases consisting of more than 7 words that can be considered 'new information' in terms of information processing.
-Make sure you do not add any of 'old information' to the list. Output the items only with no explanation or labling.
+According to Information Processing in a sentence like "The dog is a royal but fierce creature," "The dog" is old information and "its being royal but fierce" is new information. 
+Read the following passage, consider its main idea and make a list from the passage of key phrases consisting of two to six words that can be considered 'new information' in terms of information processing.
+But if the corresponding phrase turns out to be placed between parantheses, choose a different one. Make sure you do not add any of 'old information' to the list. Output the items only with no explanation or labeling.
 Only separate them with line breaks.
 
 Passage:
@@ -161,8 +161,9 @@ Passage:
 `,
   step3_c1_selection: `
 The following list of key concepts correspond to some phrases from the following passage. 
-Choose one from the list randomly, and find a corresponding phrase consisting of 7 or more words from the passage.
-Only output the exact phrase in a verbatim way. Do not paraphrase or explain.
+You are going to choose one from the list, and find a corresponding phrase from the passage. Skip any phrase that is merely an example. 
+Also, skip any phrase that comes after 'and' or 'or', or is followed by 'and' or 'or'. Also skip a phrase placed between parantheses. Choose a different one.
+Only output the exact phrase in a verbatim way.
 
 Key Concepts:
 {{concepts}}
