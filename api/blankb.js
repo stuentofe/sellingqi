@@ -19,93 +19,12 @@ export default async function handler(req, res) {
   }
 }
 
-function excludePhrasesWithDisallowedPunctuation(phrases) {
-  return phrases.filter(phrase => {
-    const hasParen = phrase.includes('(') || phrase.includes(')');
-    const hasEmDash = phrase.includes('—');
-    const commaIndex = phrase.indexOf(',');
-    const hasMidComma = commaIndex !== -1 && commaIndex !== phrase.length - 1;
-    return !hasParen && !hasEmDash && !hasMidComma;
-  });
-}
-
-function excludePhrasesWithAdjacentAndOr(passage, phrases) {
-  const normalizedPassage = passage.replace(/\s+/g, ' ');
-  const lowerPassage = normalizedPassage.toLowerCase();
-
-  return phrases.filter(phrase => {
-    const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const phraseRegex = new RegExp(`\\b${escapedPhrase}\\b`, 'i');
-    const match = lowerPassage.match(phraseRegex);
-    if (!match) return false;
-
-    const index = match.index;
-    const before = lowerPassage.slice(Math.max(0, index - 5), index).trimEnd();
-    const after = lowerPassage.slice(index + phrase.length, index + phrase.length + 5).trimStart();
-
-    const hasAndOrBefore = /\b(and|or)$/.test(before);
-    const hasAndOrAfter = /^(and|or)\b/.test(after);
-
-    return !(hasAndOrBefore || hasAndOrAfter);
-  });
-}
-
-function normalizePhrases(phrases) {
-  const modalVerbs = [
-    'can', 'will', 'may', 'should', 'must',
-    "can't", "cannot", "won't", "mayn't", "mustn't",
-    'can not', 'will not', 'may not', 'should not', 'must not'
-  ];
-
-  function removeLeading(word, phrase) {
-    const pattern = new RegExp(`^${word}\\s+`, 'i');
-    return phrase.replace(pattern, '').trim();
-  }
-
-  return phrases.map(phrase => {
-    let result = phrase.trim();
-
-    if (/^not\s+/i.test(result)) {
-      result = removeLeading('not', result);
-    }
-    if (/^to\s+/i.test(result)) {
-      result = removeLeading('to', result);
-    }
-    for (const modal of modalVerbs) {
-      const pattern = new RegExp(`^${modal}\\s+`, 'i');
-      if (pattern.test(result)) {
-        result = result.replace(pattern, '').trim();
-        break;
-      }
-    }
-    return result;
-  });
-}
-
 async function generateBlankbProblem(passage) {
-  const chunkListRaw = await fetchInlinePrompt('extractChunk', { p: passage });
-  const chunkList = chunkListRaw.split('\n').map(s => s.trim()).filter(Boolean);
-  const cleanChunkList = excludePhrasesWithDisallowedPunctuation(chunkList);
-  const refinedChunkList = excludePhrasesWithAdjacentAndOr(passage, cleanChunkList);
-
-  const danglingPhrasesRaw = await fetchInlinePrompt('detectDanglingEndings', { list: refinedChunkList.join('\n') });
-  const danglingPhrases = danglingPhrasesRaw.split('\n').map(s => s.trim()).filter(Boolean);
-  const noDanglingPhrases = refinedChunkList.filter(p => !danglingPhrases.includes(p));
-
-  const relativePhrasesRaw = await fetchInlinePrompt('detectRelativePronounEndings', { list: noDanglingPhrases.join('\n') });
-  const relativePhrases = relativePhrasesRaw.split('\n').map(s => s.trim()).filter(Boolean);
-  const finalChunkList = noDanglingPhrases.filter(p => !relativePhrases.includes(p));
-
-  const normalizedChunkList = normalizePhrases(finalChunkList);
-
-  const c1 = await fetchInlinePrompt('chooseC1FromCleanList', {
-    p: passage,
-    list: normalizedChunkList.join('\n')
-  });
+  // ✅ 새 방식으로 c1 추출
+  const c1 = await extractC1(passage);
 
   const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
   const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
-
   const targetEntries = indexedSentences.filter(({ text }) =>
     text.toLowerCase().includes(c1.toLowerCase())
   );
@@ -155,6 +74,15 @@ async function generateBlankbProblem(passage) {
   };
 }
 
+async function extractC1(passage) {
+  const summary = await fetchInlinePrompt('step1_summary', { p: passage });
+  const concepts = await fetchInlinePrompt('step2_concepts', { summary, p: passage });
+  const c1 = await fetchInlinePrompt('step3_c1_selection', { concepts, p: passage });
+
+  if (!c1) throw new Error('c1 추출에 실패했습니다.');
+  return c1;
+}
+
 async function validateWrongWord(word, blankedPassage) {
   if (!word) return null;
   const result = await fetchInlinePrompt('verifyWrongWord', {
@@ -183,89 +111,80 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 }
 
 const inlinePrompts = {
-  extractChunk: `
-Do not respond in conversational form. Only output the result.
-
-You are given a passage. Segment the passage into meaningful grammatical phrases consisting of a consecutive string of three to five words that represent constituent meaning units. Each phrase must be either a complete noun phrase or a complete verb phrase.
-
-Write the phrases in a verbatim way including punctuation marks.
-
-Write each phrase on a new line.
-Passage: {{p}}
+  // 🆕 STEP 1: 요약
+  step1_summary: `
+Summarize the following within 30 words limit:
+{{p}}
+Do not respond in conversational form. Do not include labels, headings, or explanations.
+Only output the summary.
   `,
-  detectDanglingEndings: `
-Do not respond in conversational form. Only output the result. 
 
-You are given a list of phrases from a passage. (They are all unrelated individual phrases!) 
-Identify all phrases that have a dangling element at the end that requires something to be followed after it.
+  // 🆕 STEP 2: 요약에서 key concepts 추출
+  step2_concepts: `
+The following is a summary of a passage. 
+Extract key concepts from this summary that help grasp the meaning of the original passage.
+Each concept should be a noun phrase or a verb phrase (2–7 words).
+Do not add any explanations, labels, or formatting. Write each concept on a new line.
 
-Only include in your output the phrases that meet this condition.
-Write each phrase on a new line.
-Do not use any additional punctuation.
-Do not insert any blank lines.
-Do not include any explanation or commentary.
+Summary:
+{{summary}}
 
-Phrase list: {{list}}
+Original passage for reference:
+{{p}}
   `,
-  detectRelativePronounEndings: `
-Do not respond in conversational form. Only output the result.
 
-You are given a list of phrases from a passage. (They are all unrelated individual phrases!) 
-Identify all phrases that end with a relative pronoun.
+  // 🆕 STEP 3: 지문에서 key concept에 해당하는 어구 선택 (verbatim)
+  step3_c1_selection: `
+The following is a list of key concepts extracted from the summary of the passage.
 
-Only include in your output the phrases that meet this condition.
-Write each phrase on a new line.
-Do not use any additional punctuation.
-Do not insert any blank lines.
-Do not include any explanation or commentary.
+If any of these key concepts (in the form of noun or verb phrases, 2–7 words) appear in the original passage, select one that is most relevant and copy it exactly as it appears in the original passage.
 
-Phrase list: {{list}}
+Preserve original casing and punctuation.  
+Do not output anything other than the exact phrase.
+
+Key concepts:
+{{concepts}}
+
+Passage:
+{{p}}
   `,
-  chooseC1FromCleanList: `
-Do not respond in conversational form. Only output the result.
 
-You are given a passage and a list of refined, grammatically clean phrases extracted from that passage.
-From this list, choose one phrase that best captures the central meaning or focus of the passage.
-But make sure you choose one that is not a complete sentence or a clause.
-Base your decision only on the context and content of the passage.
-
-Only return the exact phrase, ant nothing more.
-
-Passage: {{p}}
-
-Phrase list:
-{{list}}
-  `,
+  // 기존 유지: paraphrase 생성
   secondPrompt: `
 Do not say in conversational form. Only output the result.
 I’d like to paraphrase ‘{{c1}}’ in the following passage with a new phrase of similar length. Recommend one.
 Do not use punctuation.
 Passage: {{p}}
   `,
+
   thirdPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}' or '{{c2}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
 Do not use punctuation. Write only the part for the blank.
 Sentence: {{b}}
   `,
+
   fourthPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}', '{{c2}}' or '{{w1}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
 Do not use punctuation. Write only the part for the blank.
 Sentence: {{b}}
   `,
+
   fifthPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}, '{{c2}}', '{{w2}}, or '{{w1}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
 Do not use punctuation. Write only the part for the blank.
 Sentence: {{b}}
   `,
+
   sixthPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}, '{{c2}}', '{{w2}}, '{{w3}}', or '{{w1}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
 Do not use punctuation. Write only the part for the blank.
 Sentence: {{b}}
   `,
+
   explanationPrompt: `
 Do not say in conversational form. Only output the result.
 다음 지문의 빈칸에 정답 어구가 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라. 문체는 "~(이)다"체를 사용해야 한다. 지문을 직접 인용해서는 안된다. 100자 이내로 다음 형식을 참고하여 써라: ~라는 글이다. (필요할 경우 추가 근거) 따라서, 빈칸에 들어갈 말로 가장 적절한 것은 ~이다.
@@ -273,6 +192,7 @@ Do not say in conversational form. Only output the result.
 지문: {{p}}
 정답: {{c2}}
   `,
+
   verifyWrongWord: `
 Evaluate whether the following phrase fits naturally in the blank of the given passage.
 
@@ -285,5 +205,6 @@ If the phrase fits naturally and makes the sentence contextually appropriate, ou
 If the phrase does NOT fit naturally, just output "no".
 
 Only output the phrase or "no" with no punctuation or explanation.
-`
+  `
 };
+
