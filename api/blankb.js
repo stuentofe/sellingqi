@@ -34,14 +34,6 @@ function extractAsteriskedText(passage) {
   }
 }
 
-function fixArticleBeforeBlank(passageWithBlank, wordToInsert) {
-  return passageWithBlank.replace(/\b(a|an)\s+(_{5,})/gi, (match, article, blank) => {
-    const startsWithVowel = /^[aeiou]/i.test(wordToInsert.trim());
-    const correctArticle = startsWithVowel ? 'an' : 'a';
-    return `${correctArticle} ${blank}`;
-  });
-}
-
 export async function generateBlankbProblem(originalPassage) {
   const { passage, asterisked } = extractAsteriskedText(originalPassage);
   const c1 = await extractC1(passage);
@@ -65,7 +57,6 @@ export async function generateBlankbProblem(originalPassage) {
 
   const blankSentence = targetSentence.replaceAll(c1, '[ ]');
   let blankedPassage = passage.replace(c1, `${'_'.repeat(15)}`);
-  blankedPassage = fixArticleBeforeBlank(blankedPassage, c1);
 
   const w1Raw = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
   const w2Raw = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1: w1Raw });
@@ -81,9 +72,22 @@ export async function generateBlankbProblem(originalPassage) {
     .filter(Boolean)
     .sort((a, b) => a.length - b.length);
 
-  // ✅ 대소문자 변환 조건 체크
-  const sentenceInitial = /^\[|^"\[/.test(blankSentence.trim());
+  // ✅ a(n) 중립화 처리
+  const hasArticleBeforeBlank = /\b(a|an)\s+(?=(\[ ?\]|\_+))/i.test(blankedPassage);
+  const shouldNeutralizeArticle = (() => {
+    const isVowel = w => /^[aeiou]/i.test(w.trim());
+    const vowelFlags = options.map(isVowel);
+    const allVowel = vowelFlags.every(Boolean);
+    const allConsonant = vowelFlags.every(v => !v);
+    return !(allVowel || allConsonant);
+  })();
 
+  if (hasArticleBeforeBlank && shouldNeutralizeArticle) {
+    blankedPassage = blankedPassage.replace(/\b(a|an)\s+(?=(\[ ?\]|\_+))/i, 'a(n) ');
+  }
+
+  // ✅ 대소문자 처리
+  const sentenceInitial = /^\[|^"\[/.test(blankSentence.trim());
   const adjustedOptions = options.map(opt => {
     if (!opt) return opt;
     return sentenceInitial
@@ -109,9 +113,11 @@ export async function generateBlankbProblem(originalPassage) {
   return {
     problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
     answer,
-    explanation
+    explanation,
+    asterisked
   };
 }
+
 
 async function extractC1(passage) {
   const concepts = await fetchInlinePrompt('step2_concepts', { p: passage });
