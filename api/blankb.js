@@ -14,8 +14,12 @@ export default async function handler(req, res) {
     const result = await generateBlankbProblem(passage);
     return res.status(200).json(result);
   } catch (error) {
-    console.error('Blankb API error:', error);
-    return res.status(500).json({ error: error.message });
+    // 👇 여기서 에러 메시지 본문에 포함해서 프론트에서 바로 볼 수 있도록
+    return res.status(500).json({
+      error: '문제 생성 실패',
+      details: error.message,
+      full: error
+    });
   }
 }
 
