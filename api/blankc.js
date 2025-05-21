@@ -119,7 +119,7 @@ async function validateWrongWord(word, blankedPassage) {
 
 const inlinePrompts = {
   step1_summary: `
-Summarize the following passage in 30 words or fewer. Only output the summary. Do not write in conversational form or include labels.
+Summarize the following passage. Only output the summary. Do not write in conversational form or include labels.
 {{p}}
 `,
   step2_concepts: `
