@@ -137,7 +137,7 @@ Original passage for reference:
   step3_c1_selection: `
 The following is a list of key concepts extracted from the summary of the passage.
 
-If any of these key concepts (in the form of noun or verb phrases, 2–7 words) appear in the original passage, select one that is most relevant and copy it exactly as it appears in the original passage.
+If any of these key concepts (in the form of noun or verb phrases, 2–7 words) appear in the original passage, select one that is most relevant and copy it exactly as it appears in the original passage. If the key concepts correspond to a whole sentence, then only select a part of it, preferrably a noun phrase or a verb phrase in the sentence.
 
 Preserve original casing and punctuation.  
 Do not output anything other than the exact phrase.
