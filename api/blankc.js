@@ -152,7 +152,7 @@ async function validateWrongWord(word, blankedPassage) {
 const inlinePrompts = {
   step2_concepts: `
 According to Information Processing in a sentence like "The dog is a royal but fierce creature," "The dog" is old information and "its being royal but fierce" is new information. 
-Read the following passage, consider its main idea and make a list from the passage of key phrases consisting of two to six words that can be considered 'new information' in terms of information processing.
+Read the following passage, consider its main idea and make a list from the passage of key phrases consisting of more than seven words that can be considered 'new information' in terms of information processing.
 But if the corresponding phrase turns out to be placed between parantheses, choose a different one. Make sure you do not add any of 'old information' to the list. Output the items only with no explanation or labeling.
 Only separate them with line breaks.
 
