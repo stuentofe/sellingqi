@@ -154,35 +154,34 @@ Passage:
   secondPrompt: `
 Do not say in conversational form. Only output the result.
 I’d like to paraphrase ‘{{c1}}’ in the following passage with a new phrase of similar length. Recommend one.
-Do not use punctuation.
 Passage: {{p}}
   `,
 
   thirdPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}' or '{{c2}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
-Do not use punctuation. Write only the part for the blank.
+Write only the part for the blank.
 Sentence: {{b}}
   `,
 
   fourthPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}', '{{c2}}' or '{{w1}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
-Do not use punctuation. Write only the part for the blank.
+Write only the part for the blank.
 Sentence: {{b}}
   `,
 
   fifthPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}, '{{c2}}', '{{w2}}, or '{{w1}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
-Do not use punctuation. Write only the part for the blank.
+Write only the part for the blank.
 Sentence: {{b}}
   `,
 
   sixthPrompt: `
 Do not say in conversational form. Only output the result.
 Suggest a phrase that can be put in the blank of the following sentence, but that when put in it, creates a different meaning from '{{c1}}, '{{c2}}', '{{w2}}, '{{w3}}', or '{{w1}}'. Make sure your suggestion is also similar in its length to {{c2}}, but looks different on a superficial level.
-Do not use punctuation. Write only the part for the blank.
+Write only the part for the blank.
 Sentence: {{b}}
   `,
 
