@@ -149,7 +149,7 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 
 const inlinePrompts = {
   step1_summary: `
-Summarize the following passage in 25 words or fewer. Do not write in conversational tone. Do not include labels or headings. Only output the summary.
+Summarize the following passage. Do not write in conversational tone. Do not include labels or headings. Only output the summary.
 {{p}}
 `,
   step2_keywords: `
