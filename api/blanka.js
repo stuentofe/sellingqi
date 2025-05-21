@@ -252,16 +252,15 @@ Do not say in conversational form. Only output the result.
 정답: {{c2}}
   `,
   verifyWrongWord: `
-Evaluate whether the following word fits in the blank of the given passage.
+I need a wrong answer for the blank in the following passage. Refer to the word to verify and answer.
 
 Passage with blank:
 {{p}}
 
 Word to verify: {{w}}
 
-If it sounds okay to put the word in the blank, think of a different word.
-What I want is a word inappropriate to be put in the blank. Think of one such word and output it. 
-But this new word must not be the same as any of the following: {{others}}.
-If the word to verify does not fit naturally in the first place, just say no. No explanation is required.
+Does it sound okay to put the word to verify in the blank? If so, think of a different word which is inappropriate in the context, and output it.
+But make sure the new word must not be any of the followings: {{others}}.
+If the word to verify, as intended, does not fit naturally in the blank, just say no. No explanation for your answer is required.
 `
 };
