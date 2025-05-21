@@ -19,6 +19,14 @@ export default async function handler(req, res) {
   }
 }
 
+function fixArticleBeforeBlank(passageWithBlank, wordToInsert) {
+  return passageWithBlank.replace(/\b(a|an)\s+(_{5,})/gi, (match, article, blank) => {
+    const startsWithVowel = /^[aeiou]/i.test(wordToInsert.trim());
+    const correctArticle = startsWithVowel ? 'an' : 'a';
+    return `${correctArticle} ${blank}`;
+  });
+}
+
 async function generateBlankbProblem(passage) {
   // ✅ 새 방식으로 c1 추출
   const c1 = await extractC1(passage);
@@ -41,7 +49,10 @@ async function generateBlankbProblem(passage) {
   }
 
   const blankSentence = targetSentence.replaceAll(c1, '[ ]');
-  const blankedPassage = passage.replace(c1, `${'_'.repeat(15)}`);
+  let blankedPassage = passage.replace(c1, `${'_'.repeat(15)}`);
+
+  // ✅ a/an 자동 수정
+  blankedPassage = fixArticleBeforeBlank(blankedPassage, c1);
 
   const w1Raw = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
   const w2Raw = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1: w1Raw });
@@ -73,6 +84,7 @@ async function generateBlankbProblem(passage) {
     explanation
   };
 }
+
 
 async function extractC1(passage) {
   const concepts = await fetchInlinePrompt('step2_concepts', { p: passage });
