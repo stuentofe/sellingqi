@@ -131,13 +131,9 @@ Sentence:
 
   // 🆕 STEP 3: 지문에서 key concept에 해당하는 어구 선택 (verbatim)
   step3_c1_selection: `
-The following is a list of key concepts extracted from the summary of the passage.
-
-If any of these key concepts appear in the original passage in the form of a phrase (not a sentence) consisting of 2–7 words, 
-select one such phrase that you think is important to the main idea of the passage and copy it exactly as it appears in the original passage. If the key concepts correspond to a whole sentence, then only select a part of it, preferrably a noun phrase or a verb phrase in the sentence.
-
-Preserve original casing and punctuation.  
-Do not output anything other than the exact phrase.
+The following list of key concepts correspond to some phrases from the following passage. 
+Choose one from the list randomly, and find a corresponding phrase consisting of 2 to 6 words from the passage.
+Only output the exact phrase in a verbatim way. Do not paraphrase or explain.
 
 Key concepts:
 {{concepts}}
