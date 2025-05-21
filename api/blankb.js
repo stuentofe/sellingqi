@@ -208,3 +208,22 @@ Only output the phrase or "no" with no punctuation or explanation.
   `
 };
 
+
+await saveToDB({
+  passage,
+  answer,
+  explanation,
+  fullProblemText: problemText,
+  ...(saveDebugData && {
+    debug_data: {
+      c1,
+      c2,
+      distractors: [validatedW1, validatedW2, validatedW3, validatedW4],
+      summary,
+      concepts,
+      targetSentence,
+      blankedPassage,
+      prompts: debugLog
+    }
+  })
+});
