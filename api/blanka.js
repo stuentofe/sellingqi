@@ -240,11 +240,11 @@ Evaluate whether the following word fits in the blank of the given passage.
 Passage with blank:
 {{p}}
 
-Word: {{w}}
+Word to verify: {{w}}
 
-If it sounds okay to put the word in the blank, think of a different word of similar length that sounds awkward and unrelated in this context, and output it. But this new word must not be the same as any of the following: {{others}}.
-If the word does NOT fit naturally, just output "no".
-
-Only output one word or "no" with no punctuation or explanation.
+If it sounds okay to put the word in the blank, think of a different word.
+What I want is a word inappropriate to be put in the blank. Think of one such word and output it. 
+But this new word must not be the same as any of the following: {{others}}.
+If the word to verify does not fit naturally in the first place, just say no. No explanation is required.
 `
 };
