@@ -131,9 +131,11 @@ Summary:
 {{summary}}
 `,
   step3_c1_selection: `
-Choose one phrase from the list below that appears verbatim in the original passage and best represents the meaning. Only output the exact phrase. Do not paraphrase or explain.
+The following list of key concepts correspond to some phrases from the following passage. 
+Choose one from the list randomly, and find a corresponding phrase consisting of 7 or more words from the passage.
+Only output the exact phrase in a verbatim way. Do not paraphrase or explain.
 
-Concepts:
+Key Concepts:
 {{concepts}}
 
 Passage:
