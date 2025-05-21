@@ -153,15 +153,12 @@ Summarize the following passage in 25 words or fewer. Do not write in conversati
 {{p}}
 `,
   step2_keywords: `
-Extract 1-word key concepts from the following summary. Each keyword should be a single, meaningful word relevant to the main idea of the original passage. 
-
-Write one keyword per line. Do not include punctuation, numbering, or explanations.
+According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "its being royal but fierce" is new information. 
+Read the following sentence, and make a list of 1-word items that can be considered 'new information' in terms of information processing from the sentence. Output the items.
+Separate them with line breaks.
 
 Summary:
 {{summary}}
-
-Original passage:
-{{p}}
 `,
   step3_word_selection: `
 You are given a list of 1-word key concepts and the original passage.
