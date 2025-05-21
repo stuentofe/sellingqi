@@ -65,7 +65,7 @@ async function generateBlankbProblem(passage) {
   const answer = numberSymbols[answerIndex];
 
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
-  const explanation = `정답: ${answer}\n${explanationText}`;
+  const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
 
   return {
     problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
