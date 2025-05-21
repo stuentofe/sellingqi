@@ -1,77 +1,62 @@
 // Vercel 배포용 API Route: 어구 교체형 문제 생성
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { text: passage } = req.body;
+
   if (!passage || typeof passage !== 'string') {
     return res.status(400).json({ error: 'Invalid or missing passage' });
   }
 
-  let problem, answer, explanation;
-
   try {
-    ({ problem, answer, explanation } = await generateBlankbProblem(passage));
+    const result = await generateBlankbProblem(passage);
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('❌ 문제 생성 실패:', error);
-    return res.status(500).json({
-      error: '문제 생성 실패',
-      message: error.message || 'Unknown error'
-    });
+    console.error('Blankb API error:', error);
+    return res.status(500).json({ error: error.message });
   }
-
-  // ✅ DB 저장은 비동기로 따로 수행 (실패해도 무시)
-  saveToDB({ passage, problem, answer, explanation })
-    .then(() => console.log('✅ DB 저장 성공'))
-    .catch(e => console.error('❌ DB 저장 실패:', e.message));
-
-  // ✅ 문제 생성 성공 → 클라이언트 응답
-  return res.status(200).json({ problem, answer, explanation });
 }
 
 async function generateBlankbProblem(passage) {
+  // ✅ 새 방식으로 c1 추출
   const c1 = await extractC1(passage);
 
-  const sentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
-  const targetSentence = sentences
-    .map((text, id) => ({ id, text }))
-    .filter(({ text }) => text.toLowerCase().includes(c1.toLowerCase()))
-    .reduce((a, b) => (a.id > b.id ? a : b), null)?.text;
+  const rawSentences = passage.match(/[^.!?]+[.!?]/g)?.map(s => s.trim()) || [];
+  const indexedSentences = rawSentences.map((text, id) => ({ id, text }));
+  const targetEntries = indexedSentences.filter(({ text }) =>
+    text.toLowerCase().includes(c1.toLowerCase())
+  );
 
-  if (!targetSentence) throw new Error('c1 포함 문장을 찾을 수 없습니다.');
+  if (targetEntries.length === 0) {
+    throw new Error('원문에서 c1 포함 문장을 찾을 수 없습니다.');
+  }
+
+  const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
-  if (!c2) throw new Error('paraphrase 실패');
+  if (!c2) {
+    throw new Error('paraphrase에 실패했습니다.');
+  }
 
   const blankSentence = targetSentence.replaceAll(c1, '[ ]');
   const blankedPassage = passage.replace(c1, `<${' '.repeat(10)}>`);
 
-  const w1 = await validateWrongWord(
-    await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 }),
-    blankedPassage
-  );
-  const w2 = await validateWrongWord(
-    await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1 }),
-    blankedPassage
-  );
-  const w3 = await validateWrongWord(
-    await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, c2, w1, w2 }),
-    blankedPassage
-  );
-  const w4 = await validateWrongWord(
-    await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, c2, w1, w2, w3 }),
-    blankedPassage
-  );
+  const w1Raw = await fetchInlinePrompt('thirdPrompt', { b: blankSentence, c1, c2 });
+  const w2Raw = await fetchInlinePrompt('fourthPrompt', { b: blankSentence, c1, c2, w1: w1Raw });
+  const w3Raw = await fetchInlinePrompt('fifthPrompt', { b: blankSentence, c1, c2, w1: w1Raw, w2: w2Raw });
+  const w4Raw = await fetchInlinePrompt('sixthPrompt', { b: blankSentence, c1, c2, w1: w1Raw, w2: w2Raw, w3: w3Raw });
 
-  const options = [c2, w1, w2, w3, w4].filter(Boolean).sort((a, b) => a.length - b.length);
+  const validatedW1 = await validateWrongWord(w1Raw, blankedPassage);
+  const validatedW2 = await validateWrongWord(w2Raw, blankedPassage);
+  const validatedW3 = await validateWrongWord(w3Raw, blankedPassage);
+  const validatedW4 = await validateWrongWord(w4Raw, blankedPassage);
+
+  const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
+    .filter(Boolean)
+    .sort((a, b) => a.length - b.length);
+
   const numberSymbols = ['①', '②', '③', '④', '⑤'];
   const numberedOptions = options.map((word, i) => `${numberSymbols[i]} ${word}`).join('\n');
 
@@ -81,22 +66,29 @@ async function generateBlankbProblem(passage) {
 
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
   const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
-  const problem = `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`;
 
-  return { problem, answer, explanation };
+  return {
+    problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
+    answer,
+    explanation
+  };
 }
 
 async function extractC1(passage) {
   const summary = await fetchInlinePrompt('step1_summary', { p: passage });
   const concepts = await fetchInlinePrompt('step2_concepts', { summary, p: passage });
   const c1 = await fetchInlinePrompt('step3_c1_selection', { concepts, p: passage });
-  if (!c1) throw new Error('c1 추출 실패');
+
+  if (!c1) throw new Error('c1 추출에 실패했습니다.');
   return c1;
 }
 
 async function validateWrongWord(word, blankedPassage) {
   if (!word) return null;
-  const result = await fetchInlinePrompt('verifyWrongWord', { p: blankedPassage, w: word });
+  const result = await fetchInlinePrompt('verifyWrongWord', {
+    p: blankedPassage,
+    w: word
+  });
   return result.toLowerCase() === 'no' ? word : result;
 }
 
@@ -105,7 +97,6 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
   for (const k in replacements) {
     prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
   }
-
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -114,15 +105,9 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
     },
     body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.3 })
   });
-
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   return data.choices[0].message.content.trim();
-}
-
-async function saveToDB(data) {
-  const { error } = await supabase.from('generated').insert([data]);
-  if (error) throw new Error(error.message);
 }
 
 const inlinePrompts = {
@@ -222,4 +207,4 @@ If the phrase does NOT fit naturally, just output "no".
 Only output the phrase or "no" with no punctuation or explanation.
   `
 };
-
+~
