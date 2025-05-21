@@ -121,12 +121,10 @@ Only output the summary.
 
   // 🆕 STEP 2: 요약에서 key concepts 추출
   step2_concepts: `
-The following is a summary of a passage. 
-Extract key concepts from this summary that help grasp the meaning of the original passage.
-Each concept should be a noun phrase or a verb phrase (2–7 words). a specific example of the main idea is not considered a key concept.
-Do not add any explanations, labels, or formatting. Write each concept on a new line.
+According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "it being royal but fierce" is new information. 
+Read the following sentence, and identify key phrases consisting of 2 to 6 words that can be considered 'new information' in terms of information processing. Output the key phrases only.
 
-Summary:
+Sentence:
 {{summary}}
 
 Original passage for reference:
