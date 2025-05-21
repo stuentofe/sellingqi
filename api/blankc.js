@@ -23,7 +23,7 @@ function escapeRegExp(str) {
 }
 
 async function generateBlankcProblem(passage) {
-  const concepts = await fetchInlinePrompt('step2_concepts', { summary, p: passage });
+  const concepts = await fetchInlinePrompt('step2_concepts', { p: passage });
   if (!concepts) throw new Error('요약 개념 추출에 실패했습니다.');
 
   let c1 = await fetchInlinePrompt('step3_c1_selection', { concepts, p: passage });
@@ -45,7 +45,7 @@ async function generateBlankcProblem(passage) {
   if (!c2) throw new Error('paraphrase(c2) 생성 실패');
 
   const blankSentence = targetSentence.replace(new RegExp(`\\b${safeC1}\\b`, 'g'), '[ ]');
-  const blankedPassage = passage.replace(new RegExp(`\\b${safeC1}\\b`, 'i'), `<${' '.repeat(10)}>`);
+  const blankedPassage = passage.replace(new RegExp(`\\b${safeC1}\\b`, 'i'), `${'_'.repeat(20)}`);
 
   const uniqueWords = [...new Set(passage.toLowerCase().match(/\b[a-zA-Z]{4,}\b/g))];
   const longestWords = uniqueWords.sort((a, b) => b.length - a.length).slice(0, 8);
@@ -122,7 +122,7 @@ Make sure you do not add any of 'old information' to the list. Output the items 
 Only separate them with line breaks.
 
 Passage:
-{{summary}}
+{{p}}
 `,
   step3_c1_selection: `
 The following list of key concepts correspond to some phrases from the following passage. 
