@@ -73,13 +73,16 @@ async function generateBlankbProblem(passage) {
 
 const problem = `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`;
 
-// ✅ 여기에 저장
-await saveToDB({
-  passage,
-  problem,
-  answer,
-  explanation
-});
+try {
+  await saveToDB({
+    passage,
+    problem,
+    answer,
+    explanation
+  });
+} catch (e) {
+  console.error('❌ DB 저장 실패:', e.message);
+}
 
 return {
   problem,
