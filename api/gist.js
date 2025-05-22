@@ -52,7 +52,7 @@ async function generateMniQuestion(passage) {
 
   const e = (await fetchPrompt('mni8.txt', { p: finalPassage, c })).trim();
   const f = (await fetchPrompt('mni9.txt', { p: finalPassage, c })).trim();
-  const explanationText = `${e} 글의 요지는, 문장 ${f}에서 가장 명시적으로 드러난다. 따라서, 글의 요지는 ${answerNum}${josa} 가장 적절하다.`;
+  const explanationText = `${e} 이러한 글의 요지는, 문장 ${f}(한국어해석)에서 가장 명시적으로 드러난다. 따라서, 글의 요지는 ${answerNum}${josa} 가장 적절하다.`;
 
   const problem =
 `다음 글의 요지로 가장 적절한 것은?
