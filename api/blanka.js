@@ -53,7 +53,7 @@ function extractAsteriskedText(passage) {
   }
 }
 
-function filterBySpecificity(jsonString, threshold = 0.5) {
+function filterBySpecificity(jsonString, threshold = 0.7) {
   try {
     const parsed = JSON.parse(jsonString);
     return Object.entries(parsed)
@@ -63,6 +63,36 @@ function filterBySpecificity(jsonString, threshold = 0.5) {
     throw new Error('GPT로부터 받은 구체성 점수 응답이 JSON 형식이 아님: ' + jsonString);
   }
 }
+
+function extractWordsFromJsonArray(jsonText, max = 10) {
+  try {
+    const arr = JSON.parse(jsonText);
+    return arr
+      .map(obj => obj.word?.trim())
+      .filter(Boolean)
+      .slice(0, max);
+  } catch (e) {
+    throw new Error('단어 배열 JSON 파싱 실패: ' + jsonText);
+  }
+}
+
+function extractAndParseJson(rawText) {
+  // Remove markdown-style code blocks (```json ... ```)
+  const noCodeBlock = rawText.replace(/^```(?:json)?\n([\s\S]*?)\n```$/, '$1').trim();
+
+  // Clean zero-width and smart quote characters
+  const cleaned = noCodeBlock
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')     // invisible chars
+    .replace(/[“”]/g, '"')                     // curly double quotes
+    .replace(/[‘’]/g, "'");                    // curly single quotes
+
+  // Extract the first valid-looking JSON object
+  const match = cleaned.match(/\{[\s\S]*?\}/);
+  if (!match) throw new Error('JSON 응답이 없습니다:\n' + rawText);
+
+  return JSON.parse(match[0]);
+}
+
 
 async function generateBlankaProblem(originalPassage) {
   const { passage, asterisked } = extractAsteriskedText(originalPassage);
@@ -104,6 +134,7 @@ async function generateBlankaProblem(originalPassage) {
 
   const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
+  // Step 5: 정답 대체 단어 생성
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
   if (!c2) throw new Error('유의어(c2) 추출 실패');
 
@@ -112,17 +143,29 @@ async function generateBlankaProblem(originalPassage) {
     `${'_'.repeat(10)}`
   );
 
-  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
-  const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankedPassage, c1, c2, w1 });
-  const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankedPassage, c1, c2, w1, w2 });
-  const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankedPassage, c1, c2, w1, w2, w3 });
+// Step 6: w1, w2 후보 생성
+const specificRaw = await fetchInlinePrompt('specificWordsPrompt', { c2, p: blankedPassage });
+const specificList = extractWordsFromJsonArray(specificRaw, 10);
 
-  const validatedW1 = await validateWrongWord(w1, blankedPassage);
-  const validatedW2 = await validateWrongWord(w2, blankedPassage);
-  const validatedW3 = await validateWrongWord(w3, blankedPassage);
-  const validatedW4 = await validateWrongWord(w4, blankedPassage);
+const wrongWSelectionRaw = await fetchInlinePrompt('chooseWrongFromListPrompt', {
+  p: blankedPassage,
+  list: specificList.join(', ')
+});
+const { w1, w2 } = extractAndParseJson(wrongWSelectionRaw);
 
-  const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
+// Step 7: w3, w4 후보 생성
+const contrastRaw = await fetchInlinePrompt('contrastWordsPrompt', { c2, p: blankedPassage });
+const contrastList = extractWordsFromJsonArray(contrastRaw, 10);
+
+const contrastWSelectionRaw = await fetchInlinePrompt('chooseWrongFromListPrompt', {
+  p: blankedPassage,
+  list: contrastList.join(', ')
+});
+const { w1: w3, w2: w4 } = extractAndParseJson(contrastWSelectionRaw);
+
+
+  // Step 8: 선택지 구성 및 정답 위치
+  const options = [c2, w1, w2, w3, w4]
     .filter(Boolean)
     .sort((a, b) => a.length - b.length);
 
@@ -130,9 +173,7 @@ async function generateBlankaProblem(originalPassage) {
   const shouldNeutralizeArticle = (() => {
     const isVowel = w => /^[aeiou]/i.test(w.trim());
     const vowelFlags = options.map(isVowel);
-    const allVowel = vowelFlags.every(Boolean);
-    const allConsonant = vowelFlags.every(v => !v);
-    return !(allVowel || allConsonant);
+    return !(vowelFlags.every(Boolean) || vowelFlags.every(v => !v));
   })();
 
   if (hasArticleBeforeBlank && shouldNeutralizeArticle) {
@@ -157,17 +198,6 @@ async function generateBlankaProblem(originalPassage) {
   };
 }
 
-
-
-// 오답 검증 함수 (blankedPassage 인자로 받음)
-async function validateWrongWord(word, blankedPassage) {
-  if (!word) return null;
-  const judgment = await fetchInlinePrompt('verifyWrongWord', {
-    p: blankedPassage,
-    w: word
-  });
-  return judgment.toLowerCase() === 'no' ? word : judgment;
-}
 
 // 프롬프트 기반 요청 함수
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
@@ -212,7 +242,7 @@ const inlinePrompts = {
 - 점수 0.0은 매우 구체적이고 특수한 개념입니다. (예: 특정 사물, 사건, 종족)
 - 각 단어는 지문에서 사용된 의미에 따라 판단해주세요.
 - 고유명사는 일반성 검사를 생략하고 1.0으로 답변하세요.
-- 응답은 JSON 형식으로 출력해주세요. 다른 설명은 금지됩니다.
+- 응답은 JSON 형식으로 출력해주세요. 앞뒤에 json이라는 표시도 금지되며, 다른 설명은 일체 금지됩니다.
 
 단어 목록:
 {{keywords}}
@@ -228,14 +258,13 @@ Make sure you do not add any of 'old information' to the list. Output the items.
 Separate them with line breaks.
 
 Passage:
-{{summary}}
+{{p}}
 `,
   step3_word_selection: `
-You are given a list of 1-word key concepts and the original passage.
+You are given a list of 1-word items and a passage.
 
-Choose the single most important word that appears verbatim in the original passage.
-
-Only output the word as it appears in the passage. No explanation or punctuation.
+Choose one word item from the list that you think has significance in the passage.
+Only output the word verbatim as it appears in the passage. No explanation required.
 
 Keywords:
 {{keywords}}
@@ -249,47 +278,69 @@ I’d like to replace ‘{{c1}}’ in the following passage with a word which wa
 Write in lowercase and do not use punctuation.
 Passage: {{p}}
   `,
-  thirdPrompt: `
-Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}' or '{{c2}}' is in it.
-Write in lowercase and do not use punctuation.
-Sentence: {{b}}
-  `,
-  fourthPrompt: `
-Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a different meaning compared to when '{{c1}}', '{{c2}}' or '{{w1}}' is in it.
-Write in lowercase and do not use punctuation.
-Sentence: {{b}}
-  `,
-  fifthPrompt: `
-Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a different meaning compared to when '{{c1}}', '{{c2}}', '{{w1}}', or '{{w2}}' is in it.
-Write in lowercase and do not use punctuation.
-Sentence: {{b}}
-  `,
-  sixthPrompt: `
-Do not say in conversational form. Only output the result.
-Name a single word that can be put in the blank of the following sentence, but that when put in it creates a different meaning compared to when '{{c1}}, '{{c2}}', '{{w1}}', '{{w2}}', or '{{w3}}' is in it.
-Write in lowercase and do not use punctuation.
-Sentence: {{b}}
-  `,
-  explanationPrompt: `
+explanationPrompt: `
 Do not say in conversational form. Only output the result.
 다음 지문의 빈칸에 정답 어구가 들어가야 하는 이유를 한국어로 설명하는 해설을 작성하라. 문체는 "~(이)다"체를 사용해야 한다. 지문을 직접 인용해서는 안된다. 100자 이내로 다음 형식을 참고하여 써라: ~라는 글이다. (필요할 경우 추가 근거) 따라서, 빈칸에 들어갈 말로 가장 적절한 것은 ~이다.
 지문: {{p}}
 정답: {{c2}}
   `,
-  verifyWrongWord: `
-Evaluate whether the following word fits in the blank of the given passage.
+  specificWordsPrompt: `
+다음 문장을 읽고, 주어진 단어가 문맥 속에서 어떤 의미로 사용되었는지를 이해한 뒤,  
+그 단어보다 더 구체적인 의미를 가진 단어 10개를 한 단어씩 제시하세요.
 
-Passage with blank:
+조건:
+- 각 단어는 실제 사용되는 영어 단어여야 하며, 한 단어로만 구성되어야 합니다.
+- 각 단어에 대해 해당 단어의 구체성 점수(specificity score)를 0.0에서 1.0 사이로 부여하세요.
+  - 점수 0.0 = 매우 구체적인 개념 (예: bulldog)
+  - 점수 1.0 = 매우 일반적인 개념 (예: entity)
+  - 각 단어는 기준 단어보다 너무 어려운 단어여서는 안됩니다.
+  - 기준 단어의 일반성 점수는 0.5로 가정합니다.
+- 결과는 JSON 배열로 출력하세요. 앞뒤에 json이라는 표시도 금지되며, 다른 설명은 일체 금지됩니다.
+
+문장:
 {{p}}
 
-Word: {{w}}
+기준 단어:
+{{c2}}
+  `,
 
-If it sounds okay to put the word in the blank, think of a different word of similar length that sounds awkward and unrelated in this context, and output it. 
-If the word does NOT fit naturally, just output "no".
+  contrastWordsPrompt: `
+다음 문장에서 제시된 기준 단어의 문맥 속 의미를 고려하여, 그와 의미상 반대되거나 대조적인 단어들을 한 단어씩 5~10개 추출하세요.
 
-Only output one word or "no" with no punctuation or explanation.
-`
+조건:
+- 가능한 한 기준 단어와 같은 품사여야 합니다.
+- 형태(접미사)가 유사하면 더 좋습니다.
+- 각 단어에 대해 의미상 반대 정도를 0.0 ~ 1.0 점수로 나타내주세요.
+  - 1.0 = 의미가 완전히 반대
+  - 0.0 = 유사하거나 동일한 의미
+- 결과는 JSON 배열로 출력해주세요. 앞뒤에 json이라는 표시도 금지되며, 다른 설명은 일체 금지됩니다.
+
+문장:
+{{p}}
+
+기준 단어:
+{{c2}}
+  `,
+
+  chooseWrongFromListPrompt: `
+다음 문장은 중요한 단어가 빈칸으로 처리되어 있습니다. 주어진 단어 목록을 보고, 그 중에서 문맥상 들어가면 안 되는 단어 중에서 무작위로 2개를 선택하세요.
+
+조건:
+- 단어는 의미상 빈칸에 맞지 않아야 합니다.
+- 빈칸에 들어가기에 적절한 단어는 후보에서 제외하세요.
+- 반드시 2개의 단어를 선택해야 하며, 선택한 순서는 자유입니다.
+
+결과는 다음 JSON 형식으로 출력하세요. 앞뒤에 json이라는 표시도 금지되며, 다른 설명은 일체 금지됩니다.
+
+{
+  "w1": "선택된 첫 번째 단어",
+  "w2": "선택된 두 번째 단어"
+}
+
+문장:
+{{p}}
+
+단어 목록:
+{{list}}
+  `
 };
