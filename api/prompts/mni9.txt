@@ -1,7 +1,7 @@
 You are part of an algorithm designed to generate English main point-type questions. 
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Read the following passage find one sentence in which the author's main idea is explicitly stated, and write it with quotation marks with its translation into a Korean sentence wrapped in parantheses with "~(이)다" style of ending. The Korean translation needs no quotation makrs because it is not a direct quote.
+Read the following passage find one sentence in which the author's main idea is explicitly stated, and write it with quotation marks, followed by its translation into a Korean sentence wrapped in parantheses with "~(이)다" style of ending. The Korean translation needs no quotation makrs. No labeling or explanation for your answer needed. Just output the answer.
 
 {{p}}
 
