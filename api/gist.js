@@ -20,15 +20,36 @@ export default async function handler(req, res) {
   }
 }
 
-async function generateMniQuestion(passage) {
-  const p = passage;
+function extractAsteriskedText(passage) {
+  const match = passage.match(/^(.*?)(\*.+)$/s); // 줄바꿈 포함
+  if (match) {
+    return {
+      passage: match[1].trim(),
+      asterisked: match[2].trim()
+    };
+  } else {
+    return {
+      passage: passage.trim(),
+      asterisked: null
+    };
+  }
+}
 
-  const hasClaim = await fetchPrompt('mni2.txt', { p });
-  let finalPassage = p;
+
+async function generateMniQuestion(passage) {
+  const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
+  let finalPassage = cleanPassage;
+
+  const hasClaim = await fetchPrompt('mni2.txt', { p: cleanPassage });
 
   if (hasClaim.trim().toUpperCase() === 'NO') {
-    const qraw = await fetchPrompt('mni10.txt', { p });
+    const qraw = await fetchPrompt('mni10.txt', { p: cleanPassage });
     finalPassage = qraw.trim();
+  }
+
+  // asterisked가 있으면 줄바꿈 후 오른쪽 정렬로 덧붙이기
+  if (asterisked) {
+    finalPassage += `\n\n${asterisked.padStart(asterisked.length + 20, ' ')}`; // 간단한 오른쪽 정렬
   }
 
   const c = (await fetchPrompt('mni3.txt', { p: finalPassage })).trim();
