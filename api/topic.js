@@ -55,7 +55,7 @@ async function generateTopQuestion(passage) {
 
   const e = (await fetchPrompt('top8.txt', { p: finalPassage, c })).trim();
   const f = (await fetchPrompt('top9.txt', { p: finalPassage, c })).trim();
-  const explanationText = `${e} 따라서, 글의 주제는 ${answerNum}${josa} 가장 적절하다.`;
+  const explanationText = `${e} 따라서, 글의 주제는 ${answerNum}${josa} 가장 적절하다. [정답 해석] ${answerNum} ${translatedc};
 
   const problem =
 `다음 글의 주제로 가장 적절한 것은?
