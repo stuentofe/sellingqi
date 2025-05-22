@@ -53,13 +53,40 @@ function extractAsteriskedText(passage) {
   }
 }
 
+function filterBySpecificity(jsonString, threshold = 0.5) {
+  try {
+    const parsed = JSON.parse(jsonString);
+    return Object.entries(parsed)
+      .filter(([_, score]) => score < threshold)
+      .map(([word]) => word);
+  } catch (e) {
+    throw new Error('GPT로부터 받은 구체성 점수 응답이 JSON 형식이 아님: ' + jsonString);
+  }
+}
+
 async function generateBlankaProblem(originalPassage) {
   const { passage, asterisked } = extractAsteriskedText(originalPassage);
 
-  const keywords = await fetchInlinePrompt('step2_keywords', { p: passage });
-  if (!keywords) throw new Error('요약 키워드 추출에 실패했습니다.');
+  // Step 1: New Information 단어 추출
+  const rawKeywordsText = await fetchInlinePrompt('step2_keywords', { p: passage });
+  if (!rawKeywordsText) throw new Error('요약 키워드 추출에 실패했습니다.');
 
-  const c1 = await fetchInlinePrompt('step3_word_selection', { keywords, p: passage });
+  // Step 2: 의미론적 일반성 점수 요청
+  const specificityScoresJSON = await fetchInlinePrompt('keywordSpecificity', {
+    keywords: rawKeywordsText,
+    p: passage
+  });
+
+  // Step 3: 구체성 점수 기반으로 필터링
+  const cleanedKeywords = filterBySpecificity(specificityScoresJSON);
+  if (cleanedKeywords.length === 0) throw new Error('구체적인 키워드가 충분하지 않습니다.');
+
+  // Step 4: 지문 내에서 실제 등장하는 핵심 단어 선택
+  const c1 = await fetchInlinePrompt('step3_word_selection', {
+    keywords: cleanedKeywords.join('\n'),
+    p: passage
+  });
+
   if (!c1 || c1.trim().toLowerCase() === 'none') {
     throw new Error('중요 단어(c1)를 선택하지 못했습니다.');
   }
@@ -78,7 +105,6 @@ async function generateBlankaProblem(originalPassage) {
   const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
-
   if (!c2) throw new Error('유의어(c2) 추출 실패');
 
   let blankedPassage = passage.replace(
@@ -86,7 +112,7 @@ async function generateBlankaProblem(originalPassage) {
     `${'_'.repeat(10)}`
   );
 
- const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
+  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
   const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankedPassage, c1, c2, w1 });
   const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankedPassage, c1, c2, w1, w2 });
   const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankedPassage, c1, c2, w1, w2, w3 });
@@ -100,14 +126,13 @@ async function generateBlankaProblem(originalPassage) {
     .filter(Boolean)
     .sort((a, b) => a.length - b.length);
 
-  // ✅ a(n) 중립 관사 처리
   const hasArticleBeforeBlank = /\b(a|an)\s+(?=(\[ ?\]|\_+))/i.test(blankedPassage);
   const shouldNeutralizeArticle = (() => {
     const isVowel = w => /^[aeiou]/i.test(w.trim());
     const vowelFlags = options.map(isVowel);
     const allVowel = vowelFlags.every(Boolean);
     const allConsonant = vowelFlags.every(v => !v);
-    return !(allVowel || allConsonant); // 혼합일 때만 true
+    return !(allVowel || allConsonant);
   })();
 
   if (hasArticleBeforeBlank && shouldNeutralizeArticle) {
@@ -124,13 +149,14 @@ async function generateBlankaProblem(originalPassage) {
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
   const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
 
-return {
+  return {
     problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
     answer,
     explanation,
     asterisked
   };
 }
+
 
 
 // 오답 검증 함수 (blankedPassage 인자로 받음)
@@ -178,6 +204,23 @@ async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
 
 
 const inlinePrompts = {
+
+  keywordSpecificity: `
+다음 지문을 기반으로, 제시된 단어들이 문맥 속에서 얼마나 일반적인 의미로 사용되었는지를 0~1 사이의 점수로 평가해 주세요. 
+
+- 점수 1.0은 매우 일반적이고 추상적인 개념입니다. (예: 존재, 활동, 개체)
+- 점수 0.0은 매우 구체적이고 특수한 개념입니다. (예: 특정 사물, 사건, 종족)
+- 각 단어는 지문에서 사용된 의미에 따라 판단해주세요.
+- 고유명사는 일반성 검사를 생략하고 1.0으로 답변하세요.
+- 응답은 JSON 형식으로 출력해주세요. 다른 설명은 금지됩니다.
+
+단어 목록:
+{{keywords}}
+
+지문:
+{{p}}
+`,
+
   step2_keywords: `
 According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "its being royal but fierce" is new information. 
 Read the following passage, consider its main idea and make a list from the passage of 1-word items that can be considered 'new information' in terms of information processing.
