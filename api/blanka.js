@@ -53,12 +53,20 @@ function extractAsteriskedText(passage) {
   }
 }
 
-function filterBySpecificity(jsonString, threshold = 0.7) {
+function filterBySpecificity(jsonString) {
   try {
     const parsed = JSON.parse(jsonString);
-    return Object.entries(parsed)
-      .filter(([_, score]) => score < threshold)
-      .map(([word]) => word);
+    const entries = Object.entries(parsed);
+
+    // 점수 기준으로 오름차순 정렬 (낮은 점수가 먼저)
+    const sorted = entries.sort((a, b) => a[1] - b[1]);
+
+    // 하위 절반만 남기기
+    const halfLength = Math.floor(sorted.length / 2);
+    const lowerHalf = sorted.slice(0, halfLength);
+
+    // 단어만 추출해서 반환
+    return lowerHalf.map(([word]) => word);
   } catch (e) {
     throw new Error('GPT로부터 받은 구체성 점수 응답이 JSON 형식이 아님: ' + jsonString);
   }
@@ -274,7 +282,7 @@ Passage:
 `,
   secondPrompt: `
 Do not say in conversational form. Only output the result.
-I’d like to replace ‘{{c1}}’ in the following passage with a word which was not used in the passage at all, but which completes the sentence both grammatically and semantically. Recommend one.
+I’d like to replace ‘{{c1}}’ in the following passage with one of its synonymous word which was not used in the original passage. The synonym must be able to complete the sentence both grammatically and semantically. Recommend one.
 Write in lowercase and do not use punctuation.
 Passage: {{p}}
   `,
@@ -286,18 +294,16 @@ Do not say in conversational form. Only output the result.
   `,
   specificWordsPrompt: `
 다음 문장을 읽고, 주어진 단어가 문맥 속에서 어떤 의미로 사용되었는지를 이해한 뒤,  
-그 단어보다 더 구체적인 의미를 가진 단어 10개를 한 단어씩 제시하세요.
+그 단어와 접미사 등 외관이 비슷한 10개를 한 단어씩 제시하세요. 
 
 조건:
 - 각 단어는 실제 사용되는 영어 단어여야 하며, 한 단어로만 구성되어야 합니다.
-- 각 단어에 대해 해당 단어의 구체성 점수(specificity score)를 0.0에서 1.0 사이로 부여하세요.
-  - 점수 0.0 = 매우 구체적인 개념 (예: bulldog)
-  - 점수 1.0 = 매우 일반적인 개념 (예: entity)
-  - 각 단어는 기준 단어보다 너무 어려운 단어여서는 안됩니다.
-  - 기준 단어의 일반성 점수는 0.5로 가정합니다.
+- 각 단어는 기준 단어와 품사가 동일해야 합니다. 
+- 각 단어에 대해 기준단어와의 유의성(synonymity)을 0.0 ~ 1.0 점수로 나타내주세요.
+- 기준 단어의 파생어여서는 안되며, 기준 단어와 의미가 달라야 합니다. 
 - 결과는 JSON 배열로 출력하세요. 앞뒤에 json이라는 표시도 금지되며, 다른 설명은 일체 금지됩니다.
 
-문장:
+지문:
 {{p}}
 
 기준 단어:
@@ -326,8 +332,8 @@ Do not say in conversational form. Only output the result.
 다음 문장은 중요한 단어가 빈칸으로 처리되어 있습니다. 주어진 단어 목록을 보고, 그 중에서 문맥상 들어가면 안 되는 단어 중에서 무작위로 2개를 선택하세요.
 
 조건:
-- 단어는 의미상 빈칸에 맞지 않아야 합니다.
-- 빈칸에 들어가기에 적절한 단어는 후보에서 제외하세요.
+- 맥락상 빈칸에 어울리는 단어는 후보에서 제외하세요.
+- 기준 단어와 의미상 거리가 먼 단어를 선택하세요.
 - 반드시 2개의 단어를 선택해야 하며, 선택한 순서는 자유입니다.
 
 결과는 다음 JSON 형식으로 출력하세요. 앞뒤에 json이라는 표시도 금지되며, 다른 설명은 일체 금지됩니다.
