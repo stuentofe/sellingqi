@@ -49,7 +49,7 @@ async function generateMniQuestion(passage) {
 
   // asterisked가 있으면 줄바꿈 후 오른쪽 정렬로 덧붙이기
   if (asterisked) {
-  finalPassage += `\n\n${asterisked}`;
+  finalPassage += `\n${asterisked}`;
 }
 
   const c = (await fetchPrompt('mni3.txt', { p: finalPassage })).trim();
