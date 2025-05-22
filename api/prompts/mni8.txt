@@ -5,7 +5,7 @@ First, read the following passage (no answer required in this step.)
 
 {{p}}
 
-Second, write a Korean sentence that expresses the gist of the passage within 30 syllables. '~이다'를 체로 문장을 작성한다.
+Second, 지문의 요지를 '~라는 내용의 글이다'로 마무리 될 수 있는 30자 이내의 한국어 한 문장로 써라. 그 문장만을 답변으로 출력하고, 이외에 다른 설명은 붙이지 않는다.
 
 
 
