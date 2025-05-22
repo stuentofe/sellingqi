@@ -19,12 +19,10 @@ export default async function handler(req, res) {
   }
 }
 
-// 정규표현식 특수문자 이스케이프
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// 의미 있는 단어 추출 (불용어 제거)
 function extractUniqueContentWords(text) {
   const functionWords = new Set([
     'a', 'an', 'the', 'in', 'on', 'at', 'by', 'for', 'from', 'of', 'to', 'with', 'about',
@@ -72,6 +70,7 @@ function filterBySpecificity(jsonString) {
   }
 }
 
+
 function extractWordsFromJsonArray(jsonText, max = 10) {
   try {
     const arr = JSON.parse(jsonText);
@@ -105,22 +104,20 @@ function extractAndParseJson(rawText) {
 async function generateBlankaProblem(originalPassage) {
   const { passage, asterisked } = extractAsteriskedText(originalPassage);
 
-  // Step 1: New Information 단어 추출
+
   const rawKeywordsText = await fetchInlinePrompt('step2_keywords', { p: passage });
   if (!rawKeywordsText) throw new Error('요약 키워드 추출에 실패했습니다.');
 
-  // Step 2: 의미론적 일반성 점수 요청
+  
   const specificityScoresJSON = await fetchInlinePrompt('keywordSpecificity', {
     keywords: rawKeywordsText,
     p: passage
   });
 
-  // Step 3: 구체성 점수 기반으로 필터링
   const cleanedKeywords = filterBySpecificity(specificityScoresJSON);
   if (cleanedKeywords.length === 0) throw new Error('구체적인 키워드가 충분하지 않습니다.');
 
-  // Step 4: 지문 내에서 실제 등장하는 핵심 단어 선택
-  const c1 = await fetchInlinePrompt('step3_word_selection', {
+   const c1 = await fetchInlinePrompt('step3_word_selection', {
     keywords: cleanedKeywords.join('\n'),
     p: passage
   });
@@ -142,7 +139,6 @@ async function generateBlankaProblem(originalPassage) {
 
   const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
-  // Step 5: 정답 대체 단어 생성
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
   if (!c2) throw new Error('유의어(c2) 추출 실패');
 
@@ -151,9 +147,8 @@ async function generateBlankaProblem(originalPassage) {
     `${'_'.repeat(10)}`
   );
 
-// Step 6: w1, w2 후보 생성
 const specificRaw = await fetchInlinePrompt('specificWordsPrompt', { c2, p: blankedPassage });
-const specificList = extractWordsFromJsonArray(specificRaw, 10);
+const specificList = extractWordsFromJsonArray(specificRaw, 10); 
 
 const wrongWSelectionRaw = await fetchInlinePrompt('chooseWrongFromListPrompt', {
   p: blankedPassage,
@@ -161,7 +156,6 @@ const wrongWSelectionRaw = await fetchInlinePrompt('chooseWrongFromListPrompt', 
 });
 const { w1, w2 } = extractAndParseJson(wrongWSelectionRaw);
 
-// Step 7: w3, w4 후보 생성
 const contrastRaw = await fetchInlinePrompt('contrastWordsPrompt', { c2, p: blankedPassage });
 const contrastList = extractWordsFromJsonArray(contrastRaw, 10);
 
@@ -172,7 +166,6 @@ const contrastWSelectionRaw = await fetchInlinePrompt('chooseWrongFromListPrompt
 const { w1: w3, w2: w4 } = extractAndParseJson(contrastWSelectionRaw);
 
 
-  // Step 8: 선택지 구성 및 정답 위치
   const options = [c2, w1, w2, w3, w4]
     .filter(Boolean)
     .sort((a, b) => a.length - b.length);
@@ -205,6 +198,7 @@ const { w1: w3, w2: w4 } = extractAndParseJson(contrastWSelectionRaw);
     asterisked
   };
 }
+
 
 
 // 프롬프트 기반 요청 함수
@@ -272,6 +266,7 @@ Passage:
 You are given a list of 1-word items and a passage.
 
 Choose one word item from the list that you think has significance in the passage.
+But if it is something or someone's specific name, do not choose it.
 Only output the word verbatim as it appears in the passage. No explanation required.
 
 Keywords:
