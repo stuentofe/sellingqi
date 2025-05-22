@@ -72,6 +72,12 @@
       width: 50%;
       overflow-y: auto;
       padding: 10px;
+      font-family: "Times New Roman", Times, serif;
+    }
+
+    #printBtn {
+      float: right;
+      margin-bottom: 10px;
     }
 
     pre {
@@ -91,13 +97,44 @@
       font-weight: bold;
       display: none;
     }
+
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .left-panel,
+      .center-panel,
+      #progressStatus,
+      #printBtn {
+        display: none !important;
+      }
+
+      .right-panel {
+        all: initial;
+        column-count: 2;
+        column-gap: 40px;
+        padding: 30px;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 14px;
+      }
+
+      .right-panel pre {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="progressStatus"></div>
 
   <div class="left-panel" id="leftPanel">
-    <!-- 지문 입력칸 10개 -->
     <textarea class="inputBox" placeholder="지문 1"></textarea>
     <textarea class="inputBox" placeholder="지문 2"></textarea>
     <textarea class="inputBox" placeholder="지문 3"></textarea>
@@ -115,7 +152,10 @@
     <div class="switches" id="typeSwitches"></div>
   </div>
 
-  <div class="right-panel" id="outputBox"></div>
+  <div class="right-panel" id="outputBoxWrapper">
+    <button id="printBtn">저장/인쇄</button>
+    <div id="outputBox"></div>
+  </div>
 
   <script>
     const TYPES = [
@@ -160,12 +200,19 @@
       const tempToken = '___UNDERLINE_TAG___';
       let tmp = withUnderline.replace(/<u>/g, tempToken + 'OPEN___').replace(/<\/u>/g, tempToken + 'CLOSE___');
       const escaped = escapeHTML(tmp);
-      return escaped.replace(new RegExp(tempToken + 'OPEN___', 'g'), '<u>').replace(new RegExp(tempToken + 'CLOSE___', 'g'), '</u>').replace(/\n/g, '<br>');
+      return escaped
+        .replace(new RegExp(tempToken + 'OPEN___', 'g'), '<u>')
+        .replace(new RegExp(tempToken + 'CLOSE___', 'g'), '</u>')
+        .replace(/\n/g, '<br>');
     }
 
     document.getElementById('generateBtn').addEventListener('click', async () => {
-      const passages = Array.from(document.querySelectorAll('.inputBox')).map(el => el.value.trim()).filter(Boolean);
-      const selectedTypes = Array.from(document.querySelectorAll('.switches input:checked')).map(e => e.value);
+      const passages = Array.from(document.querySelectorAll('.inputBox'))
+        .map(el => el.value.trim())
+        .filter(Boolean);
+      const selectedTypes = Array.from(document.querySelectorAll('.switches input:checked'))
+        .map(e => e.value);
+
       const outputBox = document.getElementById('outputBox');
       const progressStatus = document.getElementById('progressStatus');
 
@@ -181,11 +228,12 @@
 
       const totalTasks = passages.length * selectedTypes.length;
       let completed = 0;
+      let questionNumber = 1;
 
-      for (let p = 0; p < passages.length; p++) {
-        const text = passages[p];
-        for (let t = 0; t < selectedTypes.length; t++) {
-          const type = selectedTypes[t];
+      for (let t = 0; t < selectedTypes.length; t++) {
+        const type = selectedTypes[t];
+        for (let p = 0; p < passages.length; p++) {
+          const text = passages[p];
           try {
             const res = await fetch(`/api/${type}`, {
               method: 'POST',
@@ -198,16 +246,17 @@
             const explanationText = (data.explanation || '') + '';
 
             const pre = document.createElement('pre');
-            pre.innerHTML = `${p + 1}.${underlineAngleBracketsBeforeEscape(problemText)}<br><br>${underlineAngleBracketsBeforeEscape(explanationText)}`;
+            pre.innerHTML = `${questionNumber}. ${underlineAngleBracketsBeforeEscape(problemText)}<br><br>${underlineAngleBracketsBeforeEscape(explanationText)}`;
             outputBox.appendChild(pre);
 
           } catch (err) {
             console.error(err);
             const pre = document.createElement('pre');
-            pre.textContent = `⚠️ 지문 ${p + 1} - ${type} 문제 생성 실패`;
+            pre.textContent = `⚠️ ${questionNumber}. 지문 ${p + 1} - ${type} 문제 생성 실패`;
             outputBox.appendChild(pre);
           }
 
+          questionNumber++;
           completed++;
           const percent = Math.floor((completed / totalTasks) * 100);
           progressStatus.textContent = `...${percent}%...`;
@@ -217,6 +266,10 @@
       setTimeout(() => {
         progressStatus.style.display = 'none';
       }, 500);
+    });
+
+    document.getElementById('printBtn').addEventListener('click', () => {
+      window.print();
     });
   </script>
 </body>
