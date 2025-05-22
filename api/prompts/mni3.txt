@@ -1,7 +1,7 @@
 You are part of an algorithm designed to generate English main point-type questions. 
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Identify the main point of the following passage accurately, and write the best summary of the point as a correct answer choice in Korean, within 20 syllables.
+Identify the main point of the following passage accurately, and write the best summary of the point as a correct answer choice in Korean, within 30 syllables limit.
 답변 방식은 다음 예시의 스타일만을 참고한다. 
 
 예시)
