@@ -4,10 +4,14 @@
   <meta charset="UTF-8" />
   <title>다지문 문제 생성기</title>
 <style>
+  * {
+    font-family: "Times New Roman", Times, serif; /* ✅ 모든 요소에 기본 적용 */
+    box-sizing: border-box;
+  }
+
   body {
     margin: 0;
     padding: 0;
-    font-family: "Times New Roman", Times, serif; /* ✅ 전체 기본 폰트 지정 */
     height: 100vh;
     display: flex;
     flex-direction: row;
@@ -15,7 +19,6 @@
 
   .left-panel, .center-panel, .right-panel {
     padding: 10px;
-    box-sizing: border-box;
   }
 
   .left-panel {
@@ -101,7 +104,7 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: "Times New Roman", Times, serif; /* ✅ 인쇄에서도 확실히 유지 */
+      display: block; /* ✅ 플렉스 제거 */
     }
 
     .left-panel,
@@ -114,21 +117,17 @@
     .right-panel {
       width: 100%;
       padding: 30px;
-      column-count: 2;
-      column-gap: 40px;
-      font-size: 17px;
-      height: auto !important;
-      overflow: visible !important;
+      display: block; /* ✅ 컬럼 제거하고 일반 흐름 */
+      font-size: 18px;
     }
 
     .right-panel pre {
-      break-inside: avoid;
       page-break-inside: avoid;
+      break-inside: avoid;
       background: none !important;
       border: none !important;
       padding: 0 !important;
       margin: 0 0 30px 0 !important;
-      box-shadow: none;
     }
   }
 </style>
