@@ -20,15 +20,36 @@ export default async function handler(req, res) {
   }
 }
 
-async function generateTopQuestion(passage) {
-  const p = passage;
+function extractAsteriskedText(passage) {
+  const match = passage.match(/^(.*?)(\*.+)$/s); // 줄바꿈 포함
+  if (match) {
+    return {
+      passage: match[1].trim(),
+      asterisked: match[2].trim()
+    };
+  } else {
+    return {
+      passage: passage.trim(),
+      asterisked: null
+    };
+  }
+}
 
-  const hasClaim = await fetchPrompt('top2.txt', { p });
-  let finalPassage = p;
+
+async function generateTopQuestion(passage) {
+  const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
+  let finalPassage = cleanPassage;
+
+  const hasClaim = await fetchPrompt('top2.txt', { p: cleanPassage });
 
   if (hasClaim.trim().toUpperCase() === 'NO') {
-    const qraw = await fetchPrompt('top10.txt', { p });
+    const qraw = await fetchPrompt('top10.txt', { p: cleanPassage });
     finalPassage = qraw.trim();
+  }
+
+  // asterisked 문장 있으면 줄바꿈해서 추가
+  if (asterisked) {
+    finalPassage += `\n\n${asterisked}`;
   }
 
   const c = (await fetchPrompt('top3.txt', { p: finalPassage })).trim();
@@ -55,7 +76,8 @@ async function generateTopQuestion(passage) {
 
   const e = (await fetchPrompt('top8.txt', { p: finalPassage, c })).trim();
   const f = (await fetchPrompt('top9.txt', { p: finalPassage, c })).trim();
-  const explanationText = `${e} 따라서, 글의 주제는 ${answerNum}${josa} 가장 적절하다. [정답 해석] ${answerNum} ${translatedc};
+  const g = (await fetchPrompt('top11.txt', { c })).trim();
+  const explanationText = `${e} 따라서, 글의 주제는 ${answerNum}${josa} 가장 적절하다. [정답 해석] ${answerNum} ${g};
 
   const problem =
 `다음 글의 주제로 가장 적절한 것은?
