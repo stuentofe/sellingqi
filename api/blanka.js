@@ -78,6 +78,7 @@ async function generateBlankaProblem(originalPassage) {
   const targetSentence = targetEntries.reduce((a, b) => (a.id > b.id ? a : b)).text;
 
   const c2 = await fetchInlinePrompt('secondPrompt', { c1, p: passage });
+
   if (!c2) throw new Error('유의어(c2) 추출 실패');
 
   let blankedPassage = passage.replace(
@@ -85,15 +86,15 @@ async function generateBlankaProblem(originalPassage) {
     `${'_'.repeat(10)}`
   );
 
-  const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
+ const w1 = await fetchInlinePrompt('thirdPrompt', { b: blankedPassage, c1, c2 });
   const w2 = await fetchInlinePrompt('fourthPrompt', { b: blankedPassage, c1, c2, w1 });
   const w3 = await fetchInlinePrompt('fifthPrompt', { b: blankedPassage, c1, c2, w1, w2 });
   const w4 = await fetchInlinePrompt('sixthPrompt', { b: blankedPassage, c1, c2, w1, w2, w3 });
 
-const validatedW1 = await validateWrongWord(w1, blankedPassage, { others: [w2, w3, w4].join(', ') });
-const validatedW2 = await validateWrongWord(w2, blankedPassage, { others: [validatedW1, w3, w4].join(', ') });
-const validatedW3 = await validateWrongWord(w3, blankedPassage, { others: [validatedW1, validatedW2, w4].join(', ') });
-const validatedW4 = await validateWrongWord(w4, blankedPassage, { others: [validatedW1, validatedW2, validatedW3].join(', ') });
+  const validatedW1 = await validateWrongWord(w1, blankedPassage);
+  const validatedW2 = await validateWrongWord(w2, blankedPassage);
+  const validatedW3 = await validateWrongWord(w3, blankedPassage);
+  const validatedW4 = await validateWrongWord(w4, blankedPassage);
 
   const options = [c2, validatedW1, validatedW2, validatedW3, validatedW4]
     .filter(Boolean)
@@ -123,7 +124,7 @@ const validatedW4 = await validateWrongWord(w4, blankedPassage, { others: [valid
   const explanationText = await fetchInlinePrompt('explanationPrompt', { p: blankedPassage, c2 });
   const explanation = `정답: ${answer}\n${explanationText}[지문 변형] 원문 빈칸 표현: ${c1}`;
 
-  return {
+return {
     problem: `다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\n${blankedPassage}\n\n${numberedOptions}`,
     answer,
     explanation,
@@ -133,33 +134,14 @@ const validatedW4 = await validateWrongWord(w4, blankedPassage, { others: [valid
 
 
 // 오답 검증 함수 (blankedPassage 인자로 받음)
-async function validateWrongWord(word, blankedPassage, options = {}) {
+async function validateWrongWord(word, blankedPassage) {
   if (!word) return null;
-
   const judgment = await fetchInlinePrompt('verifyWrongWord', {
     p: blankedPassage,
-    w: word,
-    others: options.others || ''
+    w: word
   });
-
-  if (
-    judgment === 'no' ||
-    judgment === 'No' ||
-    judgment === 'NO' ||
-    judgment === 'no.' ||
-    judgment === 'No.' ||
-    judgment === '"no"' ||
-    judgment === '"No."' ||
-    judgment === "'no'" ||
-    judgment === "'No.'"
-  ) {
-    return word;
-  }
-
-  return judgment;
+  return judgment.toLowerCase() === 'no' ? word : judgment;
 }
-
-
 
 // 프롬프트 기반 요청 함수
 async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
@@ -199,15 +181,18 @@ const inlinePrompts = {
   step2_keywords: `
 According to Information Processing in a sentence like "The dog is a royal but fierce creatrue," "The dog" is old information and "its being royal but fierce" is new information. 
 Read the following passage, consider its main idea and make a list from the passage of 1-word items that can be considered 'new information' in terms of information processing.
-Make sure you do not add any of 'old information' to the list. Output the items only. No explanation required.
+Make sure you do not add any of 'old information' to the list. Output the items.
 Separate them with line breaks.
 
 Passage:
 {{summary}}
 `,
   step3_word_selection: `
-From the listed vocabulary, select one key word that appears in the latter half of the passage and output it verbatim as written in the passage. Do not choose proper nouns such as personal names.
-Do not add any explanation. Just output the result only.
+You are given a list of 1-word key concepts and the original passage.
+
+Choose the single most important word that appears verbatim in the original passage.
+
+Only output the word as it appears in the passage. No explanation or punctuation.
 
 Keywords:
 {{keywords}}
@@ -217,35 +202,32 @@ Passage:
 `,
   secondPrompt: `
 Do not say in conversational form. Only output the result.
-I’d like to replace ‘{{c1}}’ in the following passage with a word which was not used in the passage at all, but which is also a perfect fit. Recommend one.
-Do not use punctuation.
+I’d like to replace ‘{{c1}}’ in the following passage with a word which was not used in the passage at all, but which completes the sentence both grammatically and semantically. Recommend one.
+Write in lowercase and do not use punctuation.
 Passage: {{p}}
   `,
   thirdPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word which, when put in the blank, creates an incoherent sentence.
-Make sure the new word must not be any of the followings: {{c1}}, {{c2}}
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a totally different meaning compared to when '{{c1}}' or '{{c2}}' is in it.
+Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   fourthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word which, when put in the blank, creates an incoherent sentence.
-Make sure the new word must not be any of the followings: {{w1}}
-Do not use punctuation.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a different meaning compared to when '{{c1}}', '{{c2}}' or '{{w1}}' is in it.
+Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   fifthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word which, when put in the blank, creates an incoherent sentence.
-Make sure the new word must not be any of the followings: {{w1}}, {{w2}}
-Do not use punctuation.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a different meaning compared to when '{{c1}}', '{{c2}}', '{{w1}}', or '{{w2}}' is in it.
+Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   sixthPrompt: `
 Do not say in conversational form. Only output the result.
-Name a single word which, when put in the blank, creates an incoherent sentence.
-Make sure the new word must not be any of the followings: {{w1}}, {{w2}}, {{w3}}
-Do not use punctuation.
+Name a single word that can be put in the blank of the following sentence, but that when put in it creates a different meaning compared to when '{{c1}}, '{{c2}}', '{{w1}}', '{{w2}}', or '{{w3}}' is in it.
+Write in lowercase and do not use punctuation.
 Sentence: {{b}}
   `,
   explanationPrompt: `
@@ -255,15 +237,16 @@ Do not say in conversational form. Only output the result.
 정답: {{c2}}
   `,
   verifyWrongWord: `
-I need a wrong answer for the blank in the following passage. Refer to the word to verify and answer.
+Evaluate whether the following word fits in the blank of the given passage.
 
 Passage with blank:
 {{p}}
 
-Word to verify: {{w}}
+Word: {{w}}
 
-Does it sound okay to put the word to verify in the blank? If so, think of a different word which is inappropriate in the context, and output it.
-But make sure the new word must not be any of the followings: {{others}}.
-If the word to verify, as intended, does not fit naturally in the blank, just say no. No explanation for your answer is required.
+If it sounds okay to put the word in the blank, think of a different word of similar length that sounds awkward and unrelated in this context, and output it. 
+If the word does NOT fit naturally, just output "no".
+
+Only output one word or "no" with no punctuation or explanation.
 `
 };
