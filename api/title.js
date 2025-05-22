@@ -20,15 +20,36 @@ export default async function handler(req, res) {
   }
 }
 
-async function generateTitQuestion(passage) {
-  const p = passage;
+function extractAsteriskedText(passage) {
+  const match = passage.match(/^(.*?)(\*.+)$/s);
+  if (match) {
+    return {
+      passage: match[1].trim(),
+      asterisked: match[2].trim()
+    };
+  } else {
+    return {
+      passage: passage.trim(),
+      asterisked: null
+    };
+  }
+}
 
-  const hasClaim = await fetchPrompt('tit2.txt', { p });
-  let finalPassage = p;
+
+async function generateTitQuestion(passage) {
+  const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
+  let finalPassage = cleanPassage;
+
+  const hasClaim = await fetchPrompt('tit2.txt', { p: cleanPassage });
 
   if (hasClaim.trim().toUpperCase() === 'NO') {
-    const qraw = await fetchPrompt('tit10.txt', { p });
+    const qraw = await fetchPrompt('tit10.txt', { p: cleanPassage });
     finalPassage = qraw.trim();
+  }
+
+  // asterisked 처리 (줄바꿈 한 번만)
+  if (asterisked) {
+    finalPassage += `\n${asterisked}`;
   }
 
   const c = (await fetchPrompt('tit3.txt', { p: finalPassage })).trim();
@@ -54,7 +75,9 @@ async function generateTitQuestion(passage) {
   const josa = ['이','가','이','가','가'][correctIndex];
 
   const e = (await fetchPrompt('tit8.txt', { p: finalPassage, c })).trim();
-  const explanationText = `${e} 따라서, 글의 제목은 ${answerNum}${josa} 가장 적절하다.`;
+  const g = (await fetchPrompt('tit11.txt', { c })).trim(); // g: 정답 해석
+
+  const explanationText = `${e} 따라서, 글의 제목은 ${answerNum}${josa} 가장 적절하다. [정답 해석] ${answerNum} ${g}`;
 
   const problem =
 `다음 글의 제목으로 가장 적절한 것은?
