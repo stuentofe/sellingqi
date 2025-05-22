@@ -49,7 +49,7 @@ async function generateTopQuestion(passage) {
 
   // asterisked 문장 있으면 줄바꿈해서 추가
   if (asterisked) {
-    finalPassage += `\n\n${asterisked}`;
+    finalPassage += `\n${asterisked}`;
   }
 
   const c = (await fetchPrompt('top3.txt', { p: finalPassage })).trim();
