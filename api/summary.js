@@ -39,70 +39,80 @@ async function generateSumQuestion(passage) {
   const { passage: mainPassage, asterisked } = extractAsteriskedText(passage);
   const p = mainPassage;
 
-
-let summary = (await fetchInlinePrompt('sum1a', { p })).trim();
-
-if (/\b(and|or)\b/i.test(summary)) {
-  summary = (await fetchInlinePrompt('sum1a_post', { summary })).trim();
-}
-
-let s1 = (await fetchInlinePrompt('sum1b', { summary })).trim();
-
-let tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
-
-if (tags.length < 2 || !tags.some(t => t[0].startsWith('@')) || !tags.some(t => t[0].startsWith('#'))) {
-  console.warn('sum1b failed to tag properly. Fallback activated. Original:', s1);
-
-  const words = summary.match(/\b\w+\b/g) || [];
-
-  const maxLen = Math.max(...words.map(w => w.length));
-  const longestWords = [...new Set(words.filter(w => w.length === maxLen))];
-
-  const positions = longestWords.map(word => ({
-    word,
-    start: summary.indexOf(word),
-    end: summary.lastIndexOf(word)
-  }));
-
-  const first = positions.reduce((a, b) => (a.start < b.start ? a : b)).word;
-  const last = positions
-    .filter(pos => pos.word !== first)
-    .reduce((a, b) => (a.end > b.end ? a : b), { word: '', end: -1 }).word;
-
-  if (!first || !last) {
-    throw new Error(`Fallback에서 태그할 단어가 부족합니다. summary: ${summary}`);
+  // 요약문 생성
+  let summary = (await fetchInlinePrompt('sum1a', { p })).trim();
+  if (/\b(and|or)\b/i.test(summary)) {
+    summary = (await fetchInlinePrompt('sum1a_post', { summary })).trim();
   }
 
-  s1 = summary
-    .replace(new RegExp(`\\b${first}\\b`), `@${first}`)
-    .replace(new RegExp(`\\b${last}\\b`), `#${last}`);
+  // 요약문 분리
+  const [s1Raw, s2Raw] = summary.split(/(?<=[.!?])\s+/);
 
-  tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
+  // content words 추출
+  const keywordListText = await fetchInlinePrompt('sum1c_keywords', { summary });
+  const keywords = keywordListText.split('\n').map(w => w.trim()).filter(Boolean);
 
-  if (tags.length < 2) {
-    throw new Error('Fallback tagging에도 실패했습니다: ' + s1);
+  // collocation 점수 확인
+  const collocationRaw = await fetchInlinePrompt('sum1d_collocation_strength', {
+    summary,
+    words: keywords.join(', ')
+  });
+  const collocationScores = JSON.parse(collocationRaw);
+  const filteredWords = keywords.filter(w => collocationScores[w] <= 0.8);
+
+  // 핵심 어휘 선택
+  const selected = await fetchInlinePrompt('sum1e_select_keywords', {
+    summary,
+    words: filteredWords.join(', ')
+  });
+  let [c1, c2] = selected.split(',').map(w => w.trim());
+
+  // 두 문장 병합
+  const merged = await fetchInlinePrompt('sum1g_merge_sentences', {
+    s1: s1Raw,
+    s2: s2Raw,
+    c1,
+    c2
+  });
+
+  let s1 = merged;
+
+  // 지문 내 사용 단어 검사 및 유의어 교체
+  function normalizeText(text) {
+    return text.toLowerCase().replace(/[^\w\s]/g, '');
   }
-}
 
-const c1 = tags.find(t => t[0].startsWith('@'))[1].trim();
-const c2 = tags.find(t => t[0].startsWith('#'))[1].trim();
-const c = `${c1}, ${c2}`;
+  const normalizedPassage = normalizeText(p);
+  const c1InPassage = normalizedPassage.includes(normalizeText(c1));
+  const c2InPassage = normalizedPassage.includes(normalizeText(c2));
 
+  let finalC1 = c1;
+  let finalC2 = c2;
 
-  let s2 = s1
-    .replace(/@([^\s.,!]+)/g, '(A)')
-    .replace(/#([^\s.,!]+)/g, '(B)');
+  if (c1InPassage) {
+    finalC1 = (await fetchInlinePrompt('sum2a1', { s1, c1 })).trim().split('\n')[0].trim();
+    s1 = await fetchInlinePrompt('sum1f_synonym_substitute', { s1, target: c1 });
+  }
 
-  s2 = s2
+  if (c2InPassage) {
+    finalC2 = (await fetchInlinePrompt('sum2b1', { s1, c2 })).trim().split('\n')[0].trim();
+    s1 = await fetchInlinePrompt('sum1f_synonym_substitute', { s1, target: c2 });
+  }
+
+  const c = `${finalC1}, ${finalC2}`;
+
+  // (A), (B) 치환
+  s1 = s1.replace(new RegExp(`\\b${finalC1}\\b`), '(A)')
+         .replace(new RegExp(`\\b${finalC2}\\b`), '(B)');
+  s1 = s1
     .replace(/\b(a|an)\s+(?=\(A\))/gi, 'a(n) ')
     .replace(/\b(a|an)\s+(?=\(B\))/gi, 'a(n) ');
 
-
-  // 2단계: 오답 생성
-  const synA = await fetchInlinePrompt('sum2a1', { s2, c1 });
-  const oppA = await fetchInlinePrompt('sum2a2', { s2, c1 });
-  const synB = await fetchInlinePrompt('sum2b1', { s2, c2 });
-  const oppB = await fetchInlinePrompt('sum2b2', { s2, c2 });
+  // distractor 단어 생성
+  const synA = await fetchInlinePrompt('sum2a1', { s1, c1: finalC1 });
+  const oppA = await fetchInlinePrompt('sum2a2', { s1, c1: finalC1 });
+  const synB = await fetchInlinePrompt('sum2b1', { s1, c2: finalC2 });
+  const oppB = await fetchInlinePrompt('sum2b2', { s1, c2: finalC2 });
 
   const [w1, x1] = synA.trim().split('\n').map(w => w.trim()).slice(0, 2);
   const [y1, z1] = oppA.trim().split('\n').map(w => w.trim()).slice(0, 2);
@@ -110,65 +120,71 @@ const c = `${c1}, ${c2}`;
   const [y2, z2] = oppB.trim().split('\n').map(w => w.trim()).slice(0, 2);
 
   const allOptions = [
-    { text: `${c1}, ${c2}`, key: '정답', len: c1.length + c2.length },
-    { text: `${w1}, ${y2}`, key: 'w', len: w1.length + y2.length }, // 유(A) + 반(B)
-    { text: `${x1}, ${z2}`, key: 'x', len: x1.length + z2.length }, // 유(A) + 반(B)
-    { text: `${y1}, ${w2}`, key: 'y', len: y1.length + w2.length }, // 반(A) + 유(B)
-    { text: `${z1}, ${x2}`, key: 'z', len: z1.length + x2.length }  // 반(A) + 유(B)
+    { text: `${finalC1}, ${finalC2}`, key: '정답', len: finalC1.length + finalC2.length },
+    { text: `${w1}, ${y2}`, key: 'w', len: w1.length + y2.length },
+    { text: `${x1}, ${z2}`, key: 'x', len: x1.length + z2.length },
+    { text: `${y1}, ${w2}`, key: 'y', len: y1.length + w2.length },
+    { text: `${z1}, ${x2}`, key: 'z', len: z1.length + x2.length }
   ];
 
   allOptions.sort((a, b) => a.len - b.len);
-
   const labels = ['①', '②', '③', '④', '⑤'];
-  const choices = allOptions.map((opt, idx) => ({
-    no: labels[idx],
-    text: opt.text
-  }));
+  const choices = allOptions.map((opt, idx) => ({ no: labels[idx], text: opt.text }));
+  const correct = choices.find(choice => choice.text === `${finalC1}, ${finalC2}`)?.no || '①';
 
-  const correct = choices.find(choice => choice.text === `${c1}, ${c2}`)?.no || '①';
-
-  // 3단계: 해설 생성
-  const e1 = (await fetchInlinePrompt('sum3', { p, s: s2, c })).trim();
+  const e1 = (await fetchInlinePrompt('sum3', { p, s: s1, c })).trim();
   const e2 = (await fetchInlinePrompt('sum4', { s: s1 })).trim()
-    .replace(/\$(.*?)\$/g, (_, word) => `(A)${word}(${c1})`)
-    .replace(/\%(.*?)\%/g, (_, word) => `(B)${word}(${c2})`);
-  const e3 = (await fetchInlinePrompt('sum5', { w1, w2, x1, x2, y1, y2, z1, z2 })).trim();
+    .replace(/\$(.*?)\$/g, (_, word) => `(A)${word}(${finalC1})`)
+    .replace(/\%(.*?)\%/g, (_, word) => `(B)${word}(${finalC2})`);
 
+  const e3 = (await fetchInlinePrompt('sum5', { w1, w2, x1, x2, y1, y2, z1, z2 })).trim();
   const defs = e3.split(',').map(d => d.trim());
   const [w3, w4, x3, x4, y3, y4, z3, z4] = defs;
 
   const wrongList = [
-  { word: w1, meaning: w3 }, { word: w2, meaning: w4 },
-  { word: x1, meaning: x3 }, { word: x2, meaning: x4 },
-  { word: y1, meaning: y3 }, { word: y2, meaning: y4 },
-  { word: z1, meaning: z3 }, { word: z2, meaning: z4 }
-]
-.sort((a, b) => a.word.length - b.word.length)
-.map(({ word, meaning }) => `${word}(${meaning})`)
-.join(', ');
+    { word: w1, meaning: w3 }, { word: w2, meaning: w4 },
+    { word: x1, meaning: x3 }, { word: x2, meaning: x4 },
+    { word: y1, meaning: y3 }, { word: y2, meaning: y4 },
+    { word: z1, meaning: z3 }, { word: z2, meaning: z4 }
+  ]
+    .sort((a, b) => a.word.length - b.word.length)
+    .map(({ word, meaning }) => `${word}(${meaning})`)
+    .join(', ');
 
+  const explanation = `정답: ${correct}\n${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] ${wrongList}`;
 
-  const explanation =
-  `정답: ${correct}
-${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] ${wrongList}`;
-
-  // 문제 출력 텍스트 조립
   const dot = '\u2026\u2026';
-  const headerLine = `     (A)          (B)`; // 공백 포함
+  const headerLine = `     (A)          (B)`;
   const choiceLines = choices.map(choice => {
     const [a, b] = choice.text.split(',').map(s => s.trim());
     return `${choice.no} ${a}${dot}${b}`;
-  }).join('\n');
+  }).join('
 
-  const problem =
-`다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?\n\n${p.trim()}${asterisked ? '\n' + asterisked : ''}\n\n${s2.replace(/\(A\)/g, '<  (A)  >').replace(/\(B\)/g, '<  (B)  >')}\n\n${headerLine}\n${choiceLines}`;
 
-  return {
-    prompt: '다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?',
-    problem,
-    answer: correct,
-    explanation
-  };
+async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
+  let prompt = inlinePrompts[key];
+
+  for (const k in replacements) {
+    prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 100
+    })
+  });
+
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message || 'GPT 응답 실패');
+  return data.choices[0].message.content.trim();
 }
 
 
@@ -190,14 +206,90 @@ Do not use conversational language or explain anything—just output the final r
 
 {{summary}}`,
 
-  sum1b: `You are part of an algorithm designed to generate English summary-type questions.
+  sum1c_keywords: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
 
-Below is a summary sentence.
-Identify two core-content words—one from each clause—that are not everyday words and also not technical terms or jargon.
-Mark them by prefixing one with @ and the other with #. (For example: People love @happiness, but tend to #avoid it.)
+Extract all content words from the following summary.
+Exclude proper nouns (names of people, places, specific events) and technical jargon (e.g., medical or legal terms).
+List one word per line. Do not include any numbering, punctuation, or explanations.
 
 {{summary}}`,
+
+  sum1d_collocation_strength: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a short passage and a list of content words extracted from it.
+
+For each word, assess how strongly it collocates with surrounding words **in this specific passage context**, on a scale from 0.0 to 1.0.
+
+- A score of 1.0 means the word is highly expected and naturally co-occurs with its surrounding words (strong collocation).
+- A score of 0.0 means the word is weakly associated with its context and rarely co-occurs with its nearby words (weak collocation).
+- Return the result in valid JSON format, like this:  
+  { "word1": 0.8, "word2": 0.3, ... }
+
+[Text]
+{{summary}}
+
+[Words]
+{{words}}
+`,
+
+  sum1e_select_keywords: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a two-sentence summary and a list of eligible content words.
+From the first sentence, select one word that best represents its key message.
+From the second sentence, select one word that best represents its key message.
+
+Only choose from the given word list.
+Return exactly two words in this order: [first sentence word], [second sentence word].
+Separate them with a comma, and output nothing else.
+
+[Summary]
+{{summary}}
+
+[Eligible Words]
+{{words}}
+`,
+
+  sum1g_merge_sentences: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below are two sentences and two selected content words, one from each sentence.
+
+Merge the two sentences into a single sentence that is clear and concise.
+Preserve the full original meaning of both.
+Use natural connectors or restructuring as needed.
+
+Do not add, omit, or change any ideas.
+Do not modify the selected words in any way. Use them exactly as given, with no change in form or position.
+
+[Sentence 1]
+{{s1}}
+
+[Sentence 2]
+{{s2}}
+
+[Selected Words]
+{{c1}}, {{c2}}
+
+`,
+  
+  sum1f_synonym_substitute: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer.
+
+Below is a summary sentence and a target word used in it.
+
+Replace the target word with a synonym that fits the meaning and grammar within the sentence.
+Change only the target word and leave the rest of the sentence exactly the same.
+Output the revised sentence only, with no additional explanation or formatting.
+
+[Sentence]
+{{s1}}
+
+[Target Word]
+{{target}}
+`,
 
   sum2a1: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
@@ -284,29 +376,3 @@ ChatGPT must never respond in conversational form and should only output the req
 
 위 영어 단어들의 한국어 대응 뜻을 나열하라. 줄바꿈이나 별도의 목록 표기 없이, 한 줄로 작성한다.`
 };
-
-async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
-  let prompt = inlinePrompts[key];
-
-  for (const k in replacements) {
-    prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
-  }
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
-      max_tokens: 100
-    })
-  });
-
-  const data = await response.json();
-  if (data.error) throw new Error(data.error.message || 'GPT 응답 실패');
-  return data.choices[0].message.content.trim();
-}
