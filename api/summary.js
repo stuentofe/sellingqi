@@ -40,7 +40,12 @@ async function generateSumQuestion(passage) {
   const p = mainPassage;
 
 
-const summary = (await fetchInlinePrompt('sum1a', { p })).trim();
+let summary = (await fetchInlinePrompt('sum1a', { p })).trim();
+
+if (/\b(and|or)\b/i.test(summary)) {
+  summary = (await fetchInlinePrompt('sum1a_post', { summary })).trim();
+}
+
 let s1 = (await fetchInlinePrompt('sum1b', { summary })).trim();
 
 let tags = [...s1.matchAll(/[@#]([^\s.,!]+)/g)];
@@ -171,10 +176,19 @@ const inlinePrompts = {
   sum1a: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer without labelling or numbering.
 
-Summarize the following passage in a single sentence within 30 words.
-Paraphrase so that the sentence consists of at least two clauses (subject + verb units). Write in the most concise way you can.
+Summarize the following passage in two concise sentences.
+Each sentence should be no longer than 20 words.
 
 {{p}}`,
+
+  sum1a_post: `You are part of an algorithm designed to generate English summary-type questions.
+ChatGPT must never respond in conversational form and should only output the required answer without labelling or numbering.
+
+If there are listings of two or more examples, use a single umbrella term instead, and output the revised version.
+Find all such cases and make revisions for all of them.
+Do not use conversational language or explain anything—just output the final revised version.
+
+{{summary}}`,
 
   sum1b: `You are part of an algorithm designed to generate English summary-type questions.
 ChatGPT must never respond in conversational form and should only output the required answer.
