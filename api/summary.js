@@ -116,9 +116,15 @@ const c = `${c1}, ${c2}`;
   const [w3, w4, x3, x4, y3, y4, z3, z4] = defs;
 
   const wrongList = [
-    `${w1}(${w3})`, `${w2}(${w4})`, `${x1}(${x3})`, `${x2}(${x4})`,
-    `${y1}(${y3})`, `${y2}(${y4})`, `${z1}(${z3})`, `${z2}(${z4})`,
-  ].join(', ');
+  { word: w1, meaning: w3 }, { word: w2, meaning: w4 },
+  { word: x1, meaning: x3 }, { word: x2, meaning: x4 },
+  { word: y1, meaning: y3 }, { word: y2, meaning: y4 },
+  { word: z1, meaning: z3 }, { word: z2, meaning: z4 }
+]
+.sort((a, b) => a.word.length - b.word.length)
+.map(({ word, meaning }) => `${word}(${meaning})`)
+.join(', ');
+
 
   const explanation =
   `정답: ${correct}
