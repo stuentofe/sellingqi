@@ -20,8 +20,25 @@ export default async function handler(req, res) {
   }
 }
 
+function extractAsteriskedText(passage) {
+  const match = passage.match(/^(.*?)(\*.+)$/s); // 줄바꿈 포함
+  if (match) {
+    return {
+      passage: match[1].trim(),
+      asterisked: match[2].trim()
+    };
+  } else {
+    return {
+      passage: passage.trim(),
+      asterisked: null
+    };
+  }
+}
+
 async function generateSumQuestion(passage) {
-  const p = passage;
+  const { passage: mainPassage, asterisked } = extractAsteriskedText(passage);
+  const p = mainPassage;
+
 
 const summary = (await fetchInlinePrompt('sum1a', { p })).trim();
 let s1 = (await fetchInlinePrompt('sum1b', { summary })).trim();
@@ -139,7 +156,7 @@ ${e1} 따라서 요약문이 '${e2}'가 되도록 완성해야 한다. [오답] 
   }).join('\n');
 
   const problem =
-  `다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?\n\n${p.trim()}\n\n${s2.replace(/\(A\)/g, '<  (A)  >').replace(/\(B\)/g, '<  (B)  >')}\n\n${headerLine}\n${choiceLines}`;
+`다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?\n\n${p.trim()}${asterisked ? '\n' + asterisked : ''}\n\n${s2.replace(/\(A\)/g, '<  (A)  >').replace(/\(B\)/g, '<  (B)  >')}\n\n${headerLine}\n${choiceLines}`;
 
   return {
     prompt: '다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 가장 적절한 것은?',
