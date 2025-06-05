@@ -138,7 +138,7 @@
       throw new Error("Blocked: not in iframe");
     }
 
-    const allowedHost = "https://yourblog.tistory.com"; // ← 여기에 정확한 티스토리 주소 입력
+    const allowedHost = "https://easyenough.tistory.com";
 
     if (!document.referrer.startsWith(allowedHost)) {
       document.body.innerHTML = "접근이 허용되지 않은 출처입니다.";
