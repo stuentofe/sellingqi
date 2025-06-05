@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await generateMniQuestion(passage);
+    const result = await generateGistQuestion(passage);
     res.status(200).json(result);
   } catch (error) {
     console.error('mni API error:', error);
