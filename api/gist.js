@@ -65,7 +65,7 @@ async function generateGistProblem(passage) {
       number: numberLabels[idx]
     }));
 
-  const question = `다음 글의 요지로 가장 적절한 것은?\n${fullPassage}\n\n${sorted.map(e => e.numbered).join('\n')}`;
+  const question = `다음 글의 요지로 가장 적절한 것은?\n${fullPassage}\n\n${sorted.map(e => e.numbered).join('')}`;
 
   const e = await fetchPrompt('conste', { p: question });
   const cEntry = sorted.find(entry => entry.key === 'c');
