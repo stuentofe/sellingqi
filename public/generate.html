@@ -163,16 +163,20 @@
       return div.innerHTML;
     }
 
-    function underlineAngleBracketsBeforeEscape(text) {
-      const withUnderline = text.replace(/<([^>]+)>/g, '<u>$1</u>');
-      const token = '___TAG___';
-      let tmp = withUnderline.replace(/<u>/g, token + 'OPEN___').replace(/<\/u>/g, token + 'CLOSE___');
-      const escaped = escapeHTML(tmp);
-      return escaped
-        .replace(new RegExp(token + 'OPEN___', 'g'), '<u>')
-        .replace(new RegExp(token + 'CLOSE___', 'g'), '</u>')
-        .replace(/\n/g, '<br>');
-    }
+function underlineAngleBracketsBeforeEscape(text) {
+  const withUnderline = text.replace(/<([^>]+)>/g, '<u>$1</u>');
+  const token = '___TAG___';
+  let tmp = withUnderline
+    .replace(/<u>/g, token + 'OPEN___')
+    .replace(/<\/u>/g, token + 'CLOSE___');
+
+  const escaped = escapeHTML(tmp);
+
+  return escaped
+    .replace(new RegExp(token + 'OPEN___', 'g'), '<u>')
+    .replace(new RegExp(token + 'CLOSE___', 'g'), '</u>');
+}
+
 
     document.getElementById('generateBtn').addEventListener('click', async () => {
       const text = document.getElementById('inputText').value.trim();
