@@ -12,10 +12,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await generateGistQuestion(passage);
+    const result = await generateGistProblem(passage);
     res.status(200).json(result);
   } catch (error) {
-    console.error('mni API error:', error);
+    console.error('gist API error:', error);
     res.status(500).json({ error: error.message || 'Failed to generate main idea question' });
   }
 }
