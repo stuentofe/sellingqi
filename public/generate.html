@@ -132,6 +132,20 @@
   </div>
 
   <script>
+
+    if (window.top === window.self) {
+      document.body.innerHTML = "이 페이지는 iframe에서만 사용 가능합니다.";
+      throw new Error("Blocked: not in iframe");
+    }
+
+    const allowedHost = "https://yourblog.tistory.com"; // ← 여기에 정확한 티스토리 주소 입력
+
+    if (!document.referrer.startsWith(allowedHost)) {
+      document.body.innerHTML = "접근이 허용되지 않은 출처입니다.";
+      throw new Error("Blocked: invalid referrer");
+    } 
+
+    
     const TYPES = [
       '요지', '요지(영)', '주제', '제목', '요약', '세부정보', '세부정보(영)',
       '어법', '어휘', '삽입', '순서', '흐름', '함축의미', '빈칸(단)', '빈칸(중)'
