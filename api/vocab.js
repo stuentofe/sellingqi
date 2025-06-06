@@ -127,7 +127,7 @@ sentenceList.forEach((s, i) => {
     numberMap.push({ word, number: index }); // 정답 계산용
   }
 
-  const question = `다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?\n${numberedPassage}`;
+  const question = `다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 <않은> 것은?\n${numberedPassage}`;
   const answerEntry = numberMap.find(entry => entry.word === c.trim());
  
 function getNumberSymbol(n) {
