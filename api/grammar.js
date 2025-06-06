@@ -223,9 +223,9 @@ const inlinePrompts = {
 
 ======학교 문법 난이도의 위계=======
 난이도 1: 시제(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등), 조동사
-난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
-난이도 3: 의문사절, 명사절·형용사절·부사절의 구분, to부정사 또는 동명사만을 목적어로 취하는 동사, 관계대명사 what, 명사절 that, 동격 that, 감정형용사 ing/ed 구분
-난이도 4: 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
+난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임
+난이도 3: 의문사절, 수동태(be + p.p.), 목적어로 사용된 to부정사구/동명사구(enjoy v-ing/want to-v), 관계대명사 what, 명사절 that, 동격 that, 감정형용사 -ing/-ed 구분(interesting/interested)
+난이도 4: 긴 주어 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 =============================
 
@@ -253,9 +253,9 @@ const inlinePrompts = {
 
 ======학교 문법 난이도의 위계=======
 난이도 1: 시제(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등), 조동사
-난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
-난이도 3: 의문사절, 명사절·형용사절·부사절의 구분, to부정사 또는 동명사만을 목적어로 취하는 동사, 관계대명사 what, 명사절 that, 동격 that, 감정형용사 ing/ed 구분
-난이도 4: 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
+난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임
+난이도 3: 의문사절, 수동태(be + p.p.), 목적어로 사용된 to부정사구/동명사구(enjoy v-ing/want to-v), 관계대명사 what, 명사절 that, 동격 that, 감정형용사 -ing/-ed 구분(interesting/interested)
+난이도 4: 긴 주어 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 =============================
 
@@ -283,9 +283,9 @@ consto3: `영어 지문을 읽고 어법상 틀린 것을 선택하는 문제를
 
 ======학교 문법 난이도의 위계=======
 난이도 1: 시제(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등), 조동사
-난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
-난이도 3: 의문사절, 명사절·형용사절·부사절의 구분, to부정사 또는 동명사만을 목적어로 취하는 동사, 관계대명사 what, 명사절 that, 동격 that, 감정형용사 ing/ed 구분
-난이도 4: 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
+난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임
+난이도 3: 의문사절, 수동태(be + p.p.), 목적어로 사용된 to부정사구/동명사구(enjoy v-ing/want to-v), 관계대명사 what, 명사절 that, 동격 that, 감정형용사 -ing/-ed 구분(interesting/interested)
+난이도 4: 긴 주어 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 =============================
 
@@ -313,9 +313,9 @@ consto4: `영어 지문을 읽고 어법상 틀린 것을 선택하는 문제를
 
 ======학교 문법 난이도의 위계=======
 난이도 1: 시제(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등), 조동사
-난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
-난이도 3: 의문사절, 명사절·형용사절·부사절의 구분, to부정사 또는 동명사만을 목적어로 취하는 동사, 관계대명사 what, 명사절 that, 동격 that, 감정형용사 ing/ed 구분
-난이도 4: 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
+난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임
+난이도 3: 의문사절, 수동태(be + p.p.), 목적어로 사용된 to부정사구/동명사구(enjoy v-ing/want to-v), 관계대명사 what, 명사절 that, 동격 that, 감정형용사 -ing/-ed 구분(interesting/interested)
+난이도 4: 긴 주어 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 =============================
 
@@ -343,9 +343,9 @@ consto5: `영어 지문을 읽고 어법상 틀린 것을 선택하는 문제를
 
 ======학교 문법 난이도의 위계=======
 난이도 1: 시제(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등), 조동사
-난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
-난이도 3: 의문사절, 명사절·형용사절·부사절의 구분, to부정사 또는 동명사만을 목적어로 취하는 동사, 관계대명사 what, 명사절 that, 동격 that, 감정형용사 ing/ed 구분
-난이도 4: 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
+난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임
+난이도 3: 의문사절, 수동태(be + p.p.), 목적어로 사용된 to부정사구/동명사구(enjoy v-ing/want to-v), 관계대명사 what, 명사절 that, 동격 that, 감정형용사 -ing/-ed 구분(interesting/interested)
+난이도 4: 긴 주어 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 =============================
 
@@ -373,9 +373,9 @@ constc: `영어 지문을 읽고 어법상 틀린 것을 선택하는 문제를 
 
 ======학교 문법 난이도의 위계=======
 난이도 1: 시제(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등), 조동사
-난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
-난이도 3: 의문사절, 명사절·형용사절·부사절의 구분, to부정사 또는 동명사만을 목적어로 취하는 동사, 관계대명사 what, 명사절 that, 동격 that, 감정형용사 ing/ed 구분
-난이도 4: 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
+난이도 2: 현재진행/과거진행, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임
+난이도 3: 의문사절, 수동태(be + p.p.), 목적어로 사용된 to부정사구/동명사구(enjoy v-ing/want to-v), 관계대명사 what, 명사절 that, 동격 that, 감정형용사 -ing/-ed 구분(interesting/interested)
+난이도 4: 긴 주어 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 =============================
 
