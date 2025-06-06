@@ -48,36 +48,41 @@ async function generateVocabProblem(passage) {
 
   const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
 
-  const sentenceList = cleanPassage
-    .split(/[.!?]\s+/)
-    .filter(s => s.trim().length > 0)
-    .sort((a, b) => b.length - a.length)
-    .slice(0, 5)
-    .map((s, i) => ({ id: `s${i + 1}`, text: s }));
+const sentenceList = cleanPassage
+  .split(/[.!?]\s+/)
+  .filter(s => s.trim().length > 0)
+  .sort((a, b) => b.length - a.length)
+  .slice(0, 5)
+  .map((s, i) => ({ id: `s${i + 1}`, text: s }));
+
+console.log('📌 sentenceList (Top 5 longest sentences):');
+sentenceList.forEach((s, i) => {
+  console.log(`${i + 1}: ${s.text}`);
+});
 
   let revisedPassage = cleanPassage;
 
-  const o1 = await fetchPrompt('consto1', { p: cleanPassage, s: sentenceList[0] });
+  const o1 = await fetchPrompt('consto1', { p: cleanPassage, s: sentenceList[0].text });
   const word1 = o1.trim();
   const s1Mod = sentenceList[0].text.replace(new RegExp(`\\b${word1}\\b`), `[선택지후보]${word1}`);
   revisedPassage = revisedPassage.replace(sentenceList[0].text, s1Mod);
 
-  const o2 = await fetchPrompt('consto2', { p: revisedPassage, s: sentenceList[1] });
+  const o2 = await fetchPrompt('consto2', { p: revisedPassage, s: sentenceList[1].text });
   const word2 = o2.trim();
   const s2Mod = sentenceList[1].text.replace(new RegExp(`\\b${word2}\\b`), `[선택지후보]${word2}`);
   revisedPassage = revisedPassage.replace(sentenceList[1].text, s2Mod);
 
-  const o3 = await fetchPrompt('consto3', { p: revisedPassage, s: sentenceList[2] });
+  const o3 = await fetchPrompt('consto3', { p: revisedPassage, s: sentenceList[2].text });
   const word3 = o3.trim();
   const s3Mod = sentenceList[2].text.replace(new RegExp(`\\b${word3}\\b`), `[선택지후보]${word3}`);
   revisedPassage = revisedPassage.replace(sentenceList[2].text, s3Mod);
 
-  const o4 = await fetchPrompt('consto4', { p: revisedPassage, s: sentenceList[3] });
+  const o4 = await fetchPrompt('consto4', { p: revisedPassage, s: sentenceList[3].text });
   const word4 = o4.trim();
   const s4Mod = sentenceList[3].text.replace(new RegExp(`\\b${word4}\\b`), `[선택지후보]${word4}`);
   revisedPassage = revisedPassage.replace(sentenceList[3].text, s4Mod);
 
-  const o5 = await fetchPrompt('consto5', { p: revisedPassage, s: sentenceList[4] });
+  const o5 = await fetchPrompt('consto5', { p: revisedPassage, s: sentenceList[4].text });
   const word5 = o5.trim();
   const s5Mod = sentenceList[4].text.replace(new RegExp(`\\b${word5}\\b`), `[선택지후보]${word5}`);
   revisedPassage = revisedPassage.replace(sentenceList[4].text, s5Mod);
@@ -92,16 +97,16 @@ async function generateVocabProblem(passage) {
   const randomIndex = Math.floor(Math.random() * choices.length);
   const targetChoice = choices[randomIndex];
 
-  const c = await fetchPrompt('chooseOne', {
-    p: revisedPassage,
-    word: targetChoice.word
-  });
-  const replacement = c.trim();
+  const originalWord = [o1, o2, o3, o4, o5][randomIndex].trim();
+  const originalSentence = sentenceList[randomIndex].text;
+
+  const c = await fetchPrompt('constc', { p: cleanPassage, s: originalSentence, word: originalWord });
 
   const finalPassage = revisedPassage.replace(
-    `[선택지후보]${targetChoice.word}`,
-    `[선택지후보]${replacement}`
-  );
+    `[선택지후보]${originalWord}`,
+    `[선택지후보]${c.trim()}`
+);
+
 
   const optionRegex = /\[선택지후보\](\w+)/g;
   let match;
@@ -123,8 +128,14 @@ async function generateVocabProblem(passage) {
   }
 
   const question = `다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?\n${numberedPassage}`;
-  const answerEntry = numberMap.find(entry => entry.word === replacement);
-  const answer = answerEntry ? answerEntry.number : null;
+  const answerEntry = numberMap.find(entry => entry.word === c.trim());
+ 
+function getNumberSymbol(n) {
+  const symbols = ['①', '②', '③', '④', '⑤'];
+  return symbols[n - 1] || n.toString();
+}
+
+const answer = answerEntry ? getNumberSymbol(answerEntry.number) : null;
 
   const e = await fetchPrompt('conste', { p: question });
 
@@ -309,6 +320,29 @@ consto5: `영어 지문을 읽고 글의 문맥상 낱말의 적절한 쓰임을
 {{s}}
 `,
 
+constc: `영어 지문을 읽고 글의 문맥상 낱말의 적절한 쓰임을 파악하도록 하는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
+
+===참조할 지문===
+{{p}}
+==============
+===참조할 문장===
+{{s}}
+==============
+
+지금 당장 필요한 것은, 위 지문(참조할 지문)에 사용된 문장(참조할 문장) 속 단어 하나를 문맥상 부적절한 어휘로 바꾸는 작업이다. 
+그 작업을 위해서 너는 다음 조건에 맞추어 아래 제시된 어휘의 문맥상 부적절한 대체 어휘를 생각해내 출력하면 된다. 
+너의 답변에 대한 추가적인 설명은 금지되며, 별도 마크나 숫자, 구두점도 금지된다. 네가 생각해낸 대체 단어를 문장에 그대로 대체해도 좋은 형태로 출력하라.
+
+======조건======
+1. 지문의 수준에 비해 너무 낮거나 높은 단어는 배제한다.
+2. 문맥상 부자연스럽기 때문에 부적절한 어휘로 판단할 수 있어야 한다.
+3. '정답없음'으로 오류 문제가 될 수 있으니 유의어는 반드시 배제한다.
+===============
+
+===다음 단어에 대한 대체어휘를 출력하라=====
+{{word}}
+`,
+
   conste: `다음 영어지문의 문맥상 적절하지 않은 어휘를 찾는 문제의 해설을 작성해야 한다. 다른 설명은 덧붙이지 말고 아래 예시의 포맷에 맞추어 주어진 문제를 풀고 그에 대한 해설을 작성해 출력하라.
 
 ===포맷===
@@ -316,10 +350,9 @@ consto5: `영어 지문을 읽고 글의 문맥상 낱말의 적절한 쓰임을
 {선택지의 앞 문장이나 뒷 문장을 통한 근거}라고 하였으므로, '{정답이 들어간 어구의 해석}'라는 흐름이 자연스럽다. 따라서, {정답 번호} {정답 어휘}(한국어 해석)을 {적절한 대체어휘}(한국어해석) 등으로 바꿔야 한다. [오답] 오답 어휘와 한국어번역 (순서대로)
 ===예시===
 정답: ⑤
-문장 뒤에서, 그 결과 타인들도 당신을 과소평가할 수 있다고 하였으므로 '너 자신을 과소평가해서는 안된다.'라는 흐름이 자연스럽다. 따라서, ⑤ overestimate(과대평가하다)를 underestimate(과소평가하다) 등으로 바꿔야 한다. 
-[정답 해석] ⑤ 인생에서 약점파악이 왜 중요한가?
-[오답 해석] ① 디지털 정보 접근성: 여전히 소외된 장애인 ② 정보 접근성과 데이터 분석 효율성 ③ 웹 페이지 접근성 및 정보 획득이 가장 중요하다 ④ 건축 설계의 핵심 고려 사항들
+문장 뒤에서, 그 결과 타인들도 당신을 과소평가할 수 있다고 하였으므로 '너 자신을 과소평가해서는 안된다.'라는 흐름이 자연스럽다. 따라서, ⑤ overestimate(과대평가하다)를 underestimate(과소평가하다) 등으로 바꿔야 한다. [오답] ① evaluate(평가하다) ② validate(타당화하다) ③ rationalize(합리화하다) ④ generalize(일반화하다)
 ===네가 해설을 만들어야할 문제===
 {{p}}`
 
 };
+
