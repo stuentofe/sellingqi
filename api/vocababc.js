@@ -79,16 +79,15 @@ async function generateVocababcProblem(passage) {
 );
   const shuffledWrongs = wrongCombos.sort(() => Math.random() - 0.5).slice(0, 4);
   const allOptions = [...shuffledWrongs, correct].sort(() => Math.random() - 0.5);
+  const circledNumbers = ['①', '②', '③', '④', '⑤'];
   const answerIndex = allOptions.findIndex(
-    c => c[0] === correct[0] && c[1] === correct[1] && c[2] === correct[2]
+  c => c[0] === correct[0] && c[1] === correct[1] && c[2] === correct[2]
 );
-  const answer = answerIndex + 1;
   const choices = allOptions.map((c, i) => {
-    return `${i + 1}: (A): ${c[0]} (B): ${c[1]} (C): ${c[2]}`;
+    return `${circledNumbers[i]} (A): ${c[0]} (B): ${c[1]} (C): ${c[2]}`;
 });
-
-  const question = `(A), (B), (C)의 각 괄호 안에서 문맥에 맞는 낱말로 가장 적절한 것은?\n${revisedPassage}\n\n${choices}`;
-
+  const answer = circledNumbers[answerIndex];
+  const question = `(A), (B), (C)의 각 괄호 안에서 문맥에 맞는 낱말로 가장 적절한 것은?\n${revisedPassage}\n\n${choices.join('\n')}`;
   const e = await fetchPrompt('conste', { p: question });
 
   return {
