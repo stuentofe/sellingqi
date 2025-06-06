@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     res.status(200).json(result);
   } catch (error) {
     console.error('vocab API error:', error);
-    res.status(500).json({ error: error.message || 'Failed to generate main idea question' });
+    res.status(500).json({ error: error.message || 'Failed to generate vocab question' });
   }
 }
 
@@ -40,7 +40,7 @@ async function generateVocabProblem(passage) {
   const sentences = passage.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
   if (sentences.length < 5) {
     return {
-      problem: '최소 5문장 이상을 입력하세요.',
+      problem: '최소 5문장 이상을 입력하세요. (어휘5다선지)',
       answer: null,
       explanation: ''
     };
