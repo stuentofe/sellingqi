@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await generateDetailMismatchQuestion(passage);
+    const result = await generateDetailProblem(passage);
     res.status(200).json(result);
   } catch (error) {
     console.error('detail API error:', error);
@@ -20,127 +20,211 @@ export default async function handler(req, res) {
   }
 }
 
-async function generateDetailMismatchQuestion(passage) {
-  // (0) 5문장 이상 확보
-  let extendedPassage = passage;
-  const initialSentences = passage.match(/[^.!?]+[.!?]/g) || [];
-  if (initialSentences.length < 5) {
-    extendedPassage = await fetchInlinePrompt('extend', { p: passage });
+
+function extractAsteriskedText(passage) {
+  const match = passage.match(/^(.*?)(\*.+)$/s); // 줄바꿈 포함
+  if (match) {
+    return {
+      passage: match[1].trim(),
+      asterisked: match[2].trim()
+    };
+  } else {
+    return {
+      passage: passage.trim(),
+      asterisked: null
+    };
   }
+}
 
-  // (1) 문장 분리 및 번호 붙이기
-  const sentences = extendedPassage.match(/[^.!?]+[.!?]/g).map(s => s.trim());
-  const indexedSentences = sentences.map((s, i) => ({ id: `s${i + 1}`, text: s, len: s.length }));
 
-  // (2) 긴 문장 5개 선택
-  const selected = [...indexedSentences]
-    .sort((a, b) => b.len - a.len)
-    .slice(0, 5)
-    .sort((a, b) => parseInt(a.id.slice(1)) - parseInt(b.id.slice(1))); // 원 순서 유지
+async function generateDetailProblem(passage) {
+  const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
+  const fullPassage = asterisked ? `${cleanPassage}\n${asterisked}` : cleanPassage;
 
-  // (3) 각 문장에서 사실 정보 추출
-  const factSummaries = await Promise.all(
-    selected.map(({ text }) => fetchInlinePrompt('extractFact', { s: text }))
-  );
 
-  // (4) 무작위 선택지 하나 왜곡
-  const wrongIndex = Math.floor(Math.random() * 5);
-  const wrongOption = await fetchInlinePrompt('distortFact', {
-    p: extendedPassage,
-    f: factSummaries[wrongIndex],
-  });
+  const o1 = await fetchPrompt('consto1', { p: fullPassage });
+  const o2 = await fetchPrompt('consto2', { o1, p: fullPassage });
+  const o3 = await fetchPrompt('consto3', { o2, o1, p: fullPassage });
+  const o4 = await fetchPrompt('consto4', { o3, o2, o1, p: fullPassage });
+  const o5 = await fetchPrompt('consto5', { o4, o3, o2, o1, p: fullPassage });
+  
+  const options = [o1, o2, o3, o4, o5];
+  const wrongIndex = Math.floor(Math.random() * options.length);
+  const wrongOriginal = options[wrongIndex];
 
-  // (5) 원래 문장 해석
-  const originalSentence = selected[wrongIndex].text;
-  const originalKorean = await fetchInlinePrompt('translateOriginal', { s: originalSentence });
+  const c = await fetchPrompt('constc', { o: wrongOriginal, p: fullPassage });
+  options[wrongIndex] = c;
 
-  const labels = ['①', '②', '③', '④', '⑤'];
+  const choices = options.map((opt, idx) => `\u2460\u2461\u2462\u2463\u2464`[idx] + ' ' + opt);
+  const answer = ['①', '②', '③', '④', '⑤'][wrongIndex];
 
-  // (6) 해설 조립
-  const explanation = `정답: ${labels[wrongIndex]}
-'${originalKorean.replace(/\.$/, '')}(${originalSentence})'라고 했으므로, 글의 내용과 일치하지 않는 것은 ${labels[wrongIndex]}이다.`;
+  const question = `다음 글의 내용과 일치하지 않는 것은?\n${fullPassage}\n\n${choices}`;
+  const e = await fetchPrompt('conste', { p: question });
 
-  // (7) 문제 조립
-  const topic = await fetchInlinePrompt('extractTopic', { p: extendedPassage });
-  const choices = factSummaries.map((f, i) => (i === wrongIndex ? wrongOption : f));
-  const choiceLines = choices.map((c, i) => `${labels[i]} ${c}`).join('\n');
-
-  const problem = `'${topic}'에 관한 다음 글의 내용과 일치하지 않는 것은?\n${extendedPassage}\n\n${choiceLines}`;
 
   return {
-    prompt: `'${topic}'에 관한 다음 글의 내용과 일치하지 않는 것은?`,
-    problem,
-    answer: labels[wrongIndex],
-    explanation,
+    problem: question,
+    answer: answer,
+    explanation: e
   };
 }
 
-const inlinePrompts = {
-  extend: `You are part of an English detail-question generation algorithm.
-Never respond in conversational form. Output only the result.
+async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
+  const promptTemplate = inlinePrompts[key];
+  if (!promptTemplate) {
+    throw new Error(`Unknown prompt key: ${key}`);
+  }
 
-The following passage contains fewer than 5 sentences.
-Add enough logically consistent content so that the paragraph contains at least 5 complete sentences.
-
-{{p}}`,
-
-  extractTopic: `You are part of an English detail-question generation algorithm.
-Never respond in conversational form. Output only the result.
-
-Extract the main topic or concept from the following passage as a noun phrase in English, using 1 to 3 words only.
-
-{{p}}`,
-
-  extractFact: `You are part of an English detail-question generation algorithm.
-Never respond in conversational form. Output only the result.
-
-Translate the factual information from the following sentence into a complete Korean sentence.
-It should be paraphrased and not a literal translation.
-The sentence must end in a declarative form using '~이다' or '~다'.
-Limit it to 20 characters if possible.
-Use original English spelling for proper nouns.
-
-{{s}}`,
-
-  distortFact: `You are part of an English detail-question generation algorithm.
-Never respond in conversational form. Output only the result.
-
-The following Korean sentence is factually correct based on the passage.
-Rewrite it so that it remains grammatically natural but contains factual inaccuracy when compared to the passage.
-
-[Passage]
-{{p}}
-[Fact]
-{{f}}`,
-
-  translateOriginal: `You are part of an English detail-question generation algorithm.
-Never respond in conversational form. Output only the result.
-
-Translate the following English sentence into natural Korean.
-
-{{s}}`
-};
-
-async function fetchInlinePrompt(key, replacements, model = 'gpt-4o') {
-  let prompt = inlinePrompts[key];
+  let prompt = promptTemplate;
   for (const k in replacements) {
     prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
-    }),
-  });
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
-  const data = await response.json();
-  if (data.error) throw new Error(data.error.message || 'GPT 응답 실패');
-  return data.choices[0].message.content.trim();
+  try {
+    const res = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7
+        },
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ]
+      })
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`Gemini API error: ${res.status} ${error?.error?.message}`);
+    }
+
+    const data = await res.json();
+    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!fullText) {
+      throw new Error('Gemini 응답이 비었거나 예상과 다른 형식입니다.');
+    }
+
+    return fullText;
+
+  } catch (err) {
+    console.error('[Gemini API Error]', err);
+    throw err;
+  }
 }
+
+const inlinePrompts = {
+consto1: `영어 지문을 읽고 글의 세부정보를 파악해서 선택지 중 글의 내용과 일치하지 않는 것을 고르는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
+
+======================
+다음 글의 내용과 일치하지 않는 것은?
+{{p}}
+
+①
+②
+③
+④
+⑤
+======================
+
+지금 당장 필요한 것은, 지문을 읽고 선택지 ①에 들어갈 문장을 만드는 것이다. 이것은 지문에서 언급된 정보 중에서 제일 먼저 언급된 사실적 정보를 담도록 한다. 반드시 '~다' 체의 한국어 문장으로 25자 이내여야 한다.
+다른 설명을 추가하는 것은 금지된다. 번호나 다른 마킹도 금지된다. 오직 네가 만든 문장만을 출력하라.`,
+consto2: `영어 지문을 읽고 글의 세부정보를 파악해서 선택지 중 글의 내용과 일치하지 않는 것을 고르는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
+
+======================
+다음 글의 내용과 일치하지 않는 것은?
+{{p}}
+
+① {{o1}}
+②
+③
+④
+⑤
+======================
+
+지금 당장 필요한 것은, 지문을 읽고 선택지 ②에 들어갈 문장을 만드는 것이다. 이것은 지문에서 언급된 정보 중에서 ①번에 담긴 정보 이후에 가장 먼저 언급된 사실적 정보를 담도록 한다. 반드시 '~다' 체의 한국어 문장으로 25자 이내여야 한다.
+다른 설명을 추가하는 것은 금지된다. 번호나 다른 마킹도 금지된다. 오직 네가 만든 문장만을 출력하라.`,
+consto3: `영어 지문을 읽고 글의 세부정보를 파악해서 선택지 중 글의 내용과 일치하지 않는 것을 고르는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
+
+======================
+다음 글의 내용과 일치하지 않는 것은?
+{{p}}
+
+① {{o1}}
+② {{o2}}
+③
+④
+⑤
+======================
+
+지금 당장 필요한 것은, 지문을 읽고 선택지 ③에 들어갈 문장을 만드는 것이다. 이것은 지문에서 언급된 정보 중에서 ①번, ②번에 담긴 정보 이후에 가장 먼저 언급된 사실적 정보를 담도록 한다. 반드시 '~다' 체의 한국어 문장으로 25자 이내여야 한다. 
+다른 설명을 추가하는 것은 금지된다. 번호나 다른 마킹도 금지된다. 오직 네가 만든 문장만을 출력하라.`,
+consto4: `영어 지문을 읽고 글의 세부정보를 파악해서 선택지 중 글의 내용과 일치하지 않는 것을 고르는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
+
+======================
+다음 글의 내용과 일치하지 않는 것은?
+{{p}}
+
+① {{o1}}
+② {{o2}}
+③ {{o3}}
+④
+⑤
+======================
+
+지금 당장 필요한 것은, 지문을 읽고 선택지 ④에 들어갈 문장을 만드는 것이다. 이것은 지문에서 언급된 정보 중에서 ①번, ②번, ③번에 담긴 정보 이후에 가장 먼저 언급된 사실적 정보를 담도록 한다. 반드시 '~다' 체의 한국어 문장으로 25자 이내여야 한다.
+다른 설명을 추가하는 것은 금지된다. 번호나 다른 마킹도 금지된다. 오직 네가 만든 문장만을 출력하라.`,
+consto5: `영어 지문을 읽고 글의 세부정보를 파악해서 선택지 중 글의 내용과 일치하지 않는 것을 고르는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
+
+======================
+다음 글의 내용과 일치하지 않는 것은?
+{{p}}
+
+① {{o1}}
+② {{o2}}
+③ {{o3}}
+④ {{o4}}
+⑤
+======================
+
+지금 당장 필요한 것은, 지문을 읽고 선택지 ⑤에 들어갈 문장을 만드는 것이다. 이것은 지문에서 언급된 정보 중에서 ①번, ②번, ③번, ④번에 담긴 정보 이후에 가장 먼저 언급된 사실적 정보를 담도록 한다. 반드시 '~다' 체의 한국어 문장으로 25자 이내여야 한다.
+다른 설명을 추가하는 것은 금지된다. 번호나 다른 마킹도 금지된다. 오직 네가 만든 문장만을 출력하라.`,
+constc: `영어 지문을 읽고 글의 세부정보를 파악해서 선택지 중 글의 내용과 일치하지 않는 것을 고르는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
+
+======================
+다음 글의 내용과 일치하지 않는 것은?
+{{p}}
+
+① {{o1}}
+② {{o2}}
+③ {{o3}}
+④ {{o4}}
+⑤
+======================
+
+지금 당장 필요한 것은, 지문을 읽고 선택지 ⑤에 들어갈 문장을 만드는 것이다. 이것은 지문에서 언급된 정보 중에서 ①번, ②번, ③번, ④번에 담긴 정보 이후에 가장 먼저 언급된 사실적 정보를 담도록 한다. 반드시 '~다' 체의 한국어 문장으로 25자 이내여야 한다.
+다른 설명을 추가하는 것은 금지된다. 번호나 다른 마킹도 금지된다. 오직 네가 만든 문장만을 출력하라.`,
+conste: `다음 영어지문의 내용과 일치하지 않는 것을 찾는 문제의 해설을 작성해야 한다. 답변에 대한 설명은 하지말고 아래 예시의 포맷에 맞추어 주어진 문제를 풀고 그에 대한 해설을 작성해 출력하라.
+
+===포맷===
+정답: circled number
+"{정답과 관련있는 지문 내 문장 또는 어구}"({앞 어구에 대한 한국어 해석})라고 하였으므로, {정답번호}는 글의 내용과 일치하지 않는다.
+===예시===
+정답: ⑤
+"Do not underestimate yourself so that others can't, either"(다른 사람도 너를 과소평가할 수 없도록 너 자신을 과소평가하지마라)라고 하였으므로 ⑤는 글의 내용과 일치하지 않는다.
+===네가 해설을 만들어야할 문제===
+{{p}}`,
+};
