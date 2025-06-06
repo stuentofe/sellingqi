@@ -151,13 +151,13 @@ async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
 
 const inlinePrompts = {
   consts: `자 다음은 영어 한단락 지문이 갖추는 글의 구조를 유형별로 정리한 것이다.
-가장 밑에 제시된 영어 지문을 읽고, 그 지문의 유형을 파악해, 유형별 요약문 포맷에 맞추어 한 문장의 요약문을 영어로 작성하라.
+가장 밑에 제시된 영어 지문을 읽고, 그 지문의 유형을 파악해, 유형별 요약문 도식화 포맷에 맞추어 한 문장의 요약문을 영어로 작성하라.
 - 설명은 금지한다.
 - 마크를 사용하는 것도 금지한다.
-영어로 된 완성된 요약문만을 출력하라.
-네가 판단한 유형은 절대 언급하지 마라.
+영어로 된 완성된 요약문만을 출력하라. 도식화 포맷의 흐름에 맞춘 완성된 한 문장이어야 한다.
+네가 판단한 유형은 절대 언급하지 마라. 
 
-=========글의 구조 유형 및 요약문 포맷============================
+=========글의 구조 유형 및 요약문의 도식화한 포맷============================
 1. 주제 - 예시                  | (the example explained) + (the theme stated)  	
 2. 문제 - 해결                  | (the problem explained) + (the solution stated)	
 3. 주장 - 근거                  | (the claim stated) + (the reason explained)	
@@ -170,17 +170,17 @@ const inlinePrompts = {
 {{p}}
 `,
 
-  constab: `//// const a, b (첫줄 단어가 a고 두번째줄 단어가 b가 됨)
+  constab: `
 
 You are an assessment-item writer.  
 Your task is to pick exactly two content words in the summary sentence that should be blanked out, so a test-taker must read the full passage to restore them.
 
 =====Passage============
-{P}     
+{{p}}     
 ======================
 
 =====Summary sentence=====  
-{S}
+{{s}}
 ======================
 
 =====Selection rules========  
@@ -214,7 +214,7 @@ List the two words, one per line without any labelling or numbering.`,
 ChatGPT must never respond in conversational form and should only output the required answer.
 
 Below are a sentence and one of the words used in it.
-Name two semantic opponents or contextually inappropriate words that:
+Name two words that are semantic opponents or contextually inappropriate words that:
 - are nonetheless grammatically acceptable in the blank
 - appear plausible at a surface structural level
 - but strongly distort or contradict the original meaning
