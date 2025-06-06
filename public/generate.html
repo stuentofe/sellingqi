@@ -227,7 +227,7 @@ function underlineAngleBracketsBeforeEscape(text) {
           const data = await res.json();
 
           const pre = document.createElement('pre');
-             pre.textContent = `${i + 1}. ${data.problem || ''}\n\n${data.explanation || ''}`;
+             pre.innerHTML = `${i + 1}. ${underlineAngleBracketsBeforeEscape(data.problem || '')}<br><br>${underlineAngleBracketsBeforeEscape(data.explanation || '')}`;
              outputBox.appendChild(pre);
 
         } catch (err) {
