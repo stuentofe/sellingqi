@@ -58,7 +58,7 @@ async function generateDetailProblem(passage) {
   const choices = options.map((opt, idx) => `\u2460\u2461\u2462\u2463\u2464`[idx] + ' ' + opt);
   const answer = ['①', '②', '③', '④', '⑤'][wrongIndex];
 
-  const question = `다음 글의 내용과 일치하지 않는 것은?\n${fullPassage}\n\n${choices}`;
+  const question = `다음 글의 내용과 일치하지 않는 것은?\n${fullPassage}\n\n${choices.join('')}`;
   const e = await fetchPrompt('conste', { p: question });
 
 
