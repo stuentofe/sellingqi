@@ -64,27 +64,27 @@ sentenceList.forEach((s, i) => {
 
   const o1 = await fetchPrompt('consto1', { p: cleanPassage, s: sentenceList[0].text });
   const word1 = o1.trim();
-  const s1Mod = sentenceList[0].text.replace(new RegExp(`\\b${word1}\\b`), `[선택지후보]${word1}`);
+  const s1Mod = sentenceList[0].text.replace(new RegExp(`\\b${word1}\\b`), `[선택지후보]<${word1}>`);
   revisedPassage = revisedPassage.replace(sentenceList[0].text, s1Mod);
 
   const o2 = await fetchPrompt('consto2', { p: revisedPassage, s: sentenceList[1].text });
   const word2 = o2.trim();
-  const s2Mod = sentenceList[1].text.replace(new RegExp(`\\b${word2}\\b`), `[선택지후보]${word2}`);
+  const s2Mod = sentenceList[1].text.replace(new RegExp(`\\b${word2}\\b`), `[선택지후보]<${word2}>`);
   revisedPassage = revisedPassage.replace(sentenceList[1].text, s2Mod);
 
   const o3 = await fetchPrompt('consto3', { p: revisedPassage, s: sentenceList[2].text });
   const word3 = o3.trim();
-  const s3Mod = sentenceList[2].text.replace(new RegExp(`\\b${word3}\\b`), `[선택지후보]${word3}`);
+  const s3Mod = sentenceList[2].text.replace(new RegExp(`\\b${word3}\\b`), `[선택지후보]<${word3}>`);
   revisedPassage = revisedPassage.replace(sentenceList[2].text, s3Mod);
 
   const o4 = await fetchPrompt('consto4', { p: revisedPassage, s: sentenceList[3].text });
   const word4 = o4.trim();
-  const s4Mod = sentenceList[3].text.replace(new RegExp(`\\b${word4}\\b`), `[선택지후보]${word4}`);
+  const s4Mod = sentenceList[3].text.replace(new RegExp(`\\b${word4}\\b`), `[선택지후보]<${word4}>`);
   revisedPassage = revisedPassage.replace(sentenceList[3].text, s4Mod);
 
   const o5 = await fetchPrompt('consto5', { p: revisedPassage, s: sentenceList[4].text });
   const word5 = o5.trim();
-  const s5Mod = sentenceList[4].text.replace(new RegExp(`\\b${word5}\\b`), `[선택지후보]${word5}`);
+  const s5Mod = sentenceList[4].text.replace(new RegExp(`\\b${word5}\\b`), `[선택지후보]<${word5}>`);
   revisedPassage = revisedPassage.replace(sentenceList[4].text, s5Mod);
 
   const choices = [
@@ -103,8 +103,8 @@ sentenceList.forEach((s, i) => {
   const c = await fetchPrompt('constc', { p: cleanPassage, s: originalSentence, word: originalWord });
 
   const finalPassage = revisedPassage.replace(
-    `[선택지후보]${originalWord}`,
-    `[선택지후보]${c.trim()}`
+    `[선택지후보]<${originalWord}>`,
+    `[선택지후보]<${c.trim()}>`
 );
 
 
@@ -122,7 +122,7 @@ sentenceList.forEach((s, i) => {
   while ((match = optionRegex.exec(finalPassage)) !== null) {
     index++;
     const word = match[1];
-    const numbered = `${getNumberSymbol(index)} <${word}>`;
+    const numbered = `${getNumberSymbol(index)} ${word}`;
     numberedPassage = numberedPassage.replace(`[선택지후보]${word}`, numbered);
     numberMap.push({ word, number: index }); // 정답 계산용
   }
