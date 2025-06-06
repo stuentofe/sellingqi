@@ -103,7 +103,7 @@ async function generateGrammarProblem(passage) {
     const symbol = getNumberSymbol(matches.length - i);
     numberedPassage =
       numberedPassage.slice(0, m.index) +
-      `${symbol} ${m.word}` +
+      `${symbol} <${m.word}>` +
       numberedPassage.slice(m.index + m.length);
 
     numberMap.push({ word: m.word, number: matches.length - i });
