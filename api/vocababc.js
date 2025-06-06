@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await generateVocababcproblem(passage);
+    const result = await generateVocababcProblem(passage);
     res.status(200).json(result);
   } catch (error) {
     console.error('vocababc API error:', error);
