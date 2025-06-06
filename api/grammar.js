@@ -37,8 +37,11 @@ function extractAsteriskedText(passage) {
 
 
 async function generateGrammarProblem(passage) {
-  const sentences = passage.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
-  if (sentences.length < 5) {
+  const sentencesRaw = passage
+    .split(/[.!?]\s+/)
+    .filter(s => s.trim().length > 0);
+
+  if (sentencesRaw.length < 5) {
     return {
       problem: '최소 5문장 이상을 입력하세요. (어법5다선지)',
       answer: null,
@@ -46,51 +49,54 @@ async function generateGrammarProblem(passage) {
     };
   }
 
-  const { passage: cleanPassage } = extractAsteriskedText(passage);
+  // 지문 순서 정보 포함
+  const fullSentenceList = sentencesRaw.map((text, index) => ({
+    text,
+    order: index
+  }));
 
-  const sentenceList = cleanPassage
-    .split(/[.!?]\s+/)
-    .filter(s => s.trim().length > 0)
-    .sort((a, b) => b.length - a.length)
-    .slice(0, 5)
-    .map((s, i) => ({ id: `s${i + 1}`, text: s }));
+  // 가장 긴 문장 5개 선택
+  const sentenceList = [...fullSentenceList]
+    .sort((a, b) => b.text.length - a.text.length)
+    .slice(0, 5);
 
-  let revisedPassage = cleanPassage;
-
+  let revisedPassage = passage;
   const prompts = ['consto1', 'consto2', 'consto3', 'consto4', 'consto5'];
   const words = [];
 
   for (let i = 0; i < 5; i++) {
-    const word = (await fetchPrompt(prompts[i], { p: revisedPassage, s: sentenceList[i].text })).trim();
+    const word = (await fetchPrompt(prompts[i], {
+      p: revisedPassage,
+      s: sentenceList[i].text
+    })).trim();
+
     words.push(word);
-    const modSentence = sentenceList[i].text.replace(new RegExp(`\\b${word}\\b`), `[선택지후보]<${word}>`);
+    const modSentence = sentenceList[i].text.replace(
+      new RegExp(`\\b${word}\\b`),
+      `[선택지후보]<${word}>`
+    );
     revisedPassage = revisedPassage.replace(sentenceList[i].text, modSentence);
   }
 
-  // 랜덤 선택된 단어를 오답으로 바꿈
   const randomIndex = Math.floor(Math.random() * words.length);
   const originalWord = words[randomIndex];
+
   const modifiedWord = (await fetchPrompt('constc', {
-    p: cleanPassage,
+    p: passage,
     s: sentenceList[randomIndex].text,
     word: originalWord
   })).trim();
 
-  const finalPassage = revisedPassage.replace(`[선택지후보]<${originalWord}>`, `[선택지후보]<${modifiedWord}>`);
+  const finalPassage = revisedPassage.replace(
+    `[선택지후보]<${originalWord}>`,
+    `[선택지후보]<${modifiedWord}>`
+  );
 
-  // [선택지후보]<...> → ① word, ② word ...
   const regex = /\[선택지후보\]<([^>]+)>/g;
   let match;
-  let index = 0;
   let numberedPassage = finalPassage;
-  const numberMap = [];
-
-  function getNumberSymbol(n) {
-    const symbols = ['①', '②', '③', '④', '⑤'];
-    return symbols[n - 1] || n.toString();
-  }
-
   const matches = [];
+
   while ((match = regex.exec(finalPassage)) !== null) {
     matches.push({
       index: match.index,
@@ -99,26 +105,30 @@ async function generateGrammarProblem(passage) {
     });
   }
 
+  const numberMap = [];
   matches.reverse().forEach((m, i) => {
     const symbol = getNumberSymbol(matches.length - i);
     numberedPassage =
       numberedPassage.slice(0, m.index) +
       `${symbol} <${m.word}>` +
       numberedPassage.slice(m.index + m.length);
-
-    numberMap.push({ word: m.word, number: matches.length - i });
+    numberMap.unshift({ word: m.word });
   });
 
+  // ★ 정답 번호 계산용: 지문 순서 기준 sentenceList 만들기
+  const sentenceOrder = [...sentenceList].sort((a, b) => a.order - b.order);
+  const correctSentence = sentenceList[randomIndex];
+  const correctIndex = sentenceOrder.findIndex(s => s.text === correctSentence.text);
+  const answer = getNumberSymbol(correctIndex + 1);
+
   const question = `다음 글의 밑줄 친 부분 중, 어법상 <틀린> 것은?\n${numberedPassage}`;
-  const answerEntry = numberMap.find(entry => entry.word === modifiedWord);
-  const answer = answerEntry ? getNumberSymbol(answerEntry.number) : null;
 
   const explanation = await fetchPrompt('conste', {
-  p: question,
-  answer,
-  modifiedWord,
-  originalWord
-});
+    p: question,
+    answer,
+    modifiedWord,
+    originalWord
+  });
 
   return {
     problem: question,
@@ -126,6 +136,12 @@ async function generateGrammarProblem(passage) {
     explanation
   };
 }
+
+function getNumberSymbol(n) {
+  const symbols = ['①', '②', '③', '④', '⑤'];
+  return symbols[n - 1] || n.toString();
+}
+
 
 
 async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
@@ -200,14 +216,14 @@ const inlinePrompts = {
 너의 답에 대한 설명은 금지되며, 별도 마크나 숫자, 구두점도 금지된다. 네가 선택한 단어만을 문장 속에 쓰여져 있는 모습 그대로 출력하라.
 
 ======조건======
-1. function word 중에서 선택한다. [중요!] 단, 단일 전치사는 배제한다.
+1. function word 중에서 선택한다. [중요!] 단, 단일 전치사와 조동사는 배제한다.
 2. 아래 학교 문법 난이도의 위계를 고려하여, 난이도 3, 4에서 선택하는 것이 좋다.
 3. 단, 난이도 1은 우선적으로 배제한다.
 ===============
 
 ======학교 문법 난이도의 위계=======
-난이도 1: 시제의 기본(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등).
-난이도 2: 조동사(can, must, should 등), 현재진행/과거진행 시제, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
+난이도 1: 시제의 기본(현재, 과거, 미래), 관사(a, the), be동사와 일반동사의 구분, 인칭대명사와 동사의 수 일치, 명사와 대명사의 수 일치, 형용사와 부사의 기본 차이, 기초 전치사(in, on, at, by 등), 조동사
+난이도 2: 현재진행/과거진행 시제, 비교급과 최상급, to부정사와 동명사의 기본적 구분과 쓰임, 수동태(be + p.p.), 기초적 관계대명사(who, which, that).
 난이도 3: 의문사절, 명사절·형용사절·부사절의 구분, to부정사 또는 동명사만을 목적어로 취하는 동사, 관계대명사 what, 명사절 that, 동격 that, 감정형용사 ing/ed 구분
 난이도 4: 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
@@ -382,6 +398,6 @@ constc: `영어 지문을 읽고 어법상 틀린 것을 선택하는 문제를 
 ===정답(어법상 틀린 것)===
 {{answer}} {{modifiedWord}} 
 ===옳은 표현===
-{{originalWord}} `,
+{{originalWord}}`,
   
 };
