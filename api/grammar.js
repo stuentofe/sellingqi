@@ -113,7 +113,12 @@ async function generateGrammarProblem(passage) {
   const answerEntry = numberMap.find(entry => entry.word === modifiedWord);
   const answer = answerEntry ? getNumberSymbol(answerEntry.number) : null;
 
-  const explanation = await fetchPrompt('conste', { p: question });
+  const explanation = await fetchPrompt('conste', {
+  p: question,
+  answer,
+  modifiedWord,
+  originalWord
+});
 
   return {
     problem: question,
@@ -362,7 +367,7 @@ constc: `영어 지문을 읽고 어법상 틀린 것을 선택하는 문제를 
 {{word}}
 `,
 
-  conste: `다음 영어지문의 어법상 틀린 것을 찾는 문제의 해설을 작성해야 한다. 다른 설명은 덧붙이지 말고 아래 예시의 포맷에 맞추어 주어진 문제를 풀고 그에 대한 해설을 작성해 출력하라.
+    conste: `다음 영어지문의 어법상 틀린 것을 찾는 문제의 해설을 작성해야 한다. 다른 설명은 덧붙이지 말고 아래 예시의 포맷에 맞추어 주어진 문제를 풀고 그에 대한 해설을 작성해 출력하라.
 
 ===포맷===
 정답: circled number
@@ -373,6 +378,10 @@ constc: `영어 지문을 읽고 어법상 틀린 것을 선택하는 문제를 
 ==========
 
 ===네가 해설을 만들어야할 문제===
-{{p}}`
-
+{{p}}
+===정답(어법상 틀린 것)===
+{{answer}} {{modifiedWord}} 
+===옳은 표현===
+{{originalWord}} `,
+  
 };
