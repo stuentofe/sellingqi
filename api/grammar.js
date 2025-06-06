@@ -109,7 +109,7 @@ async function generateGrammarProblem(passage) {
     numberMap.push({ word: m.word, number: matches.length - i });
   });
 
-  const question = `다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 <않은> 것은?\n${numberedPassage}`;
+  const question = `다음 글의 밑줄 친 부분 중, 어법상 <틀린> 것은?\n${numberedPassage}`;
   const answerEntry = numberMap.find(entry => entry.word === modifiedWord);
   const answer = answerEntry ? getNumberSymbol(answerEntry.number) : null;
 
