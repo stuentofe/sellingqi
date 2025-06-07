@@ -39,7 +39,7 @@ function extractAsteriskedText(passage) {
 async function generateImplicationProblem(passage) {
   const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
   
-  const i = await fetchPrompt('consti', { p: cleanPassage });
+  const i = (await fetchPrompt('consti', { p: cleanPassage })).trim();
 
     if (i === '0') {
     return {
@@ -76,7 +76,7 @@ async function generateImplicationProblem(passage) {
       number: numberLabels[idx]
     }));
 
-  const question = `밑줄 친 <${i}>가 다음 글에서 의미하는 바로 가장 적절한 것은?\n${bracketedPassage}\n\n${sorted.map(e => e.numbered).join('\n')}`;
+  const question = `밑줄 친 <${i}>가 다음 글에서 의미하는 바로 가장 적절한 것은?\n${bracketedPassage}\n\n${sorted.map(e => e.numbered).join('')}`;
 
   const e = await fetchPrompt('conste', { p: question });
   const cEntry = sorted.find(entry => entry.key === 'c');
