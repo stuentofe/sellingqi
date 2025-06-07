@@ -41,14 +41,22 @@ async function generateImplicationProblem(passage) {
   
   const i = await fetchPrompt('consti', { p: cleanPassage });
 
+    if (i === '0') {
+    return {
+      problem: '함축 의미가 포함된 어구를 찾을 수 없음',
+      answer: null,
+      explanation: null
+    };
+  }
+
   const bracketedPassage = cleanPassage.replace(i, `<${i}>`);
   const blankedPassage = cleanPassage.replace(i, `<               >`);
 
   const c = await fetchPrompt('constc', { i, p: bracketedPassage });
-  const w = await fetchPrompt('constw', { c, p: bracketedPassage });
-  const x = await fetchPrompt('constc', { c, w, p: bracketedPassage });
-  const y = await fetchPrompt('constc', { c, w, x, p: bracketedPassage });
-  const z = await fetchPrompt('constc', { c, w, x, y, p: bracketedPassage });
+  const w = await fetchPrompt('constw', { i, c, p: bracketedPassage });
+  const x = await fetchPrompt('constx', { i, c, w, p: bracketedPassage });
+  const y = await fetchPrompt('consty', { i, c, w, x, p: bracketedPassage });
+  const z = await fetchPrompt('constz', { i, c, w, x, y, p: bracketedPassage });
   
   const numberLabels = ['①', '②', '③', '④', '⑤'];
   const entries = [
@@ -68,7 +76,7 @@ async function generateImplicationProblem(passage) {
       number: numberLabels[idx]
     }));
 
-  const question = `밑줄 친 <${i}>가 다음 글에서 의미하는 바로 가장 적절한 것은?\n${bracketedPassage}\n\n${sorted.map(e => e.numbered).join('')}`;
+  const question = `밑줄 친 <${i}>가 다음 글에서 의미하는 바로 가장 적절한 것은?\n${bracketedPassage}\n\n${sorted.map(e => e.numbered).join('\n')}`;
 
   const e = await fetchPrompt('conste', { p: question });
   const cEntry = sorted.find(entry => entry.key === 'c');
@@ -80,6 +88,7 @@ async function generateImplicationProblem(passage) {
     explanation: e
   };
 }
+
 
 async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
   const promptTemplate = inlinePrompts[key];
@@ -161,7 +170,7 @@ const inlinePrompts = {
 {{p}}
 ====================================
 
-다른 설명이나, 표시, 마크, 구두점 등은 모두 금지된다. 네가 선택한 어구만을 출력하라. 
+다른 설명이나, 표시, 마크, 구두점 등은 모두 금지된다. 네가 선택한 어구만을 출력하라. [중요!] 만약, 문맥의존도5 이상에 해당하는 어구로 선택할 만한 것을 찾지 못했다면, 오직 숫자 0을 출력하라.
   
   `,
 
