@@ -201,7 +201,7 @@
     }
       const wordCount = text.split(/\s+/).length;
   if (wordCount > 300) {
-    outputBox.innerHTML = '<p class="error">지문이 너무 깁니다. 300단어 이하로 입력해주세요.</p>';
+    outputBox.innerHTML = '<p class="error">300단어 미만으로 입력해 주세요.</p>';
     return;
   }
     const selected = Array.from(document.querySelectorAll('.switches input:checked')).map(e => e.value);
