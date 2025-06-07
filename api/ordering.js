@@ -201,7 +201,7 @@ async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
           }
         ],
         generationConfig: {
-          temperature: 0.7
+          temperature: 0.2
         },
         safetySettings: [
           { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
