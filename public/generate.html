@@ -121,7 +121,7 @@
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.6);
-  display: none; /* 초기 숨김 */
+  display: none; /* JS에서 표시 */
   align-items: center;
   justify-content: center;
   z-index: 9999;
@@ -129,29 +129,30 @@
 
 .popup-content {
   background: white;
-  padding: 20px 30px;
-  border-radius: 10px;
+  padding: 15px 20px;              /* 축소된 패딩 */
+  border-radius: 8px;
   text-align: left;
-  width: 90%;
-  max-width: 600px;         /* 최대 가로폭 제한 */
-  max-height: 80vh;         /* 최대 높이 제한 */
-  overflow-y: auto;         /* 내용 넘치면 스크롤 */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+  width: 80%;
+  max-width: 420px;               /* 원래보다 작게 */
+  max-height: 70vh;               /* 높이도 줄임 */
+  overflow-y: auto;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  font-size: 13px;                /* 글자 크기 축소 */
+  line-height: 1.4;
 }
 
 .popup-content p,
 .popup-content li {
-  margin-bottom: 12px;
-  font-size: 15px;
-  line-height: 1.5;
+  margin-bottom: 10px;
 }
 
 .popup-content button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 14px;
+  margin-top: 15px;
+  padding: 8px 16px;
+  font-size: 13px;
   cursor: pointer;
 }
+
 
 </style>
 
@@ -182,7 +183,7 @@
 
       <li>
         <strong>생성 문항 저작권 관련 동의</strong><br>
-        생성된 문항은 생성기의 알고리즘에 의해 자동 생성된 콘텐츠로, 사용자는 해당 문항에 대해 저작권이나 2차 저작권을 주장할 수 없습니다.
+        생성된 문항은 생성기의 알고리즘과 AI호출 답변에 의해 자동 생성된 콘텐츠로, 사용자는 해당 문항에 대해 저작권이나 2차 저작권을 주장할 수 없습니다.
         <ul>
           <li><strong>허용된 용도:</strong> 개인 수업 또는 학습용으로 자유롭게 활용하실 수 있습니다.</li>
           <li><strong>금지된 용도:</strong> 생성된 문항을 복제, 편집하여 상업적 용도로 판매하거나 배포하는 것은 금지됩니다.</li>
