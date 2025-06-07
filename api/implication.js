@@ -154,13 +154,15 @@ const inlinePrompts = {
   단, 어구를 고를 때는 아래 함축의미의 문맥의존도 표를 참고하여, 문맥의존도가 높은 것에서 선택해야 한다.
   
 =========문맥의존도 분류표===========
-문맥의존도 5 | 단독 문장으로도 해석 가능하지만, 말하는 의도는 불분명함  | Example: "walking a fine line" from "She’s walking a fine line."
-문맥의존도 6 | 이미지 중심의 표현으로 문맥 없이 해석하면 표면적 의미만 전달됨 | Example: "The ground shifted beneath his feet." from "The ground shifted beneath his feet."
-문맥의존도 7 | 표현 자체는 단순하지만 의미가 문맥에 크게 의존함  | Example: "a paper house" from "It was a paper house from the start."
-문맥의존도 8 | 글의 정서, 배경, 인물의 태도를 모르면 의미가 열려 있음 | Example: "chose silence as his final argument" from "He chose silence as his final argument."
-문맥의존도 9 | 글 전체의 흐름 없이 본뜻을 짐작하기 어려움 | Example: "it wasn't joy that moved her lips" from "She smiled, but it wasn’t joy that moved her lips."
-문맥의존도 10 | 문장 단독으로는 의미나 방향조차 해석 불가 | Example: "the window remained closed." from "And yet, the window remained closed."
+문맥의존도 5 | 단독 문장으로도 해석 가능하지만, 말하는 의도는 불분명함  | 예시 "walking a fine line" from "She’s walking a fine line."
+문맥의존도 6 | 이미지 중심의 표현으로 문맥 없이 해석하면 표면적 의미만 전달됨 | 예시 "The ground shifted beneath his feet." from "The ground shifted beneath his feet."
+문맥의존도 7 | 표현 자체는 단순하지만 의미가 문맥에 크게 의존함  | 예시 "a paper house" from "It was a paper house from the start."
+문맥의존도 8 | 글의 정서, 배경, 인물의 태도를 모르면 의미가 열려 있음 | 예시 "chose silence as his final argument" from "He chose silence as his final argument."
+문맥의존도 9 | 글 전체의 흐름 없이 본뜻을 짐작하기 어려움 | 예시 "it wasn't joy that moved her lips" from "She smiled, but it wasn’t joy that moved her lips."
+문맥의존도 10 | 문장 단독으로는 의미나 방향조차 해석 불가 | 예시 "the window remained closed." from "And yet, the window remained closed."
+(분류표 안에 언급된 예시는 참조대상일 뿐 예시에서 선택할 경우 시스템이 망가질 수 있으니 주의하라
 =====================================
+
 
 ======함축 어구를 찾아야 할 지문======
 {{p}}
