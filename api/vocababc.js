@@ -3,7 +3,7 @@ import path from 'path';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });More actions
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { text: passage } = req.body;
