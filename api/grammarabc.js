@@ -35,21 +35,26 @@ function extractAsteriskedText(passage) {
   }
 }
 
+function splitByWordCount(passage) {
+  const words = passage.split(/\s+/);
+  const chunkSize = Math.floor(words.length / 3);
+
+  const part1 = words.slice(0, chunkSize).join(' ');
+  const part2 = words.slice(chunkSize, chunkSize * 2).join(' ');
+  const part3 = words.slice(chunkSize * 2).join(' ');
+
+  return [part1, part2, part3].map((text, i) => ({
+    id: `chunk_${i}`,
+    text,
+    index: passage.indexOf(text)
+  }));
+}
 
 async function generateGrammarabcProblem(passage) {
 
   const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
 
-  const sentenceList = cleanPassage
-    .split(/[.!?]\s+/)
-    .filter(s => s.trim().length > 0)
-    .map((text, idx) => ({ id: `original_${idx}`, text, index: passage.indexOf(text) }));
-
-  const topThree = [...sentenceList]
-    .sort((a, b) => b.text.length - a.text.length)
-    .slice(0, 3);
-
-  topThree.sort((a, b) => a.index - b.index);
+  const topThree = splitByWordCount(cleanPassage);
 
   let revisedPassage = cleanPassage;
 
@@ -189,8 +194,8 @@ const inlinePrompts = {
 난이도 4: 긴 주어(10단어 이상) 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 
-=====지문에 사용된 문장 중 하나인 다음 문장에서 단어를 선택하고, 그 단어의 틀린 어휘 짝을 생각해 내어 그 둘을 출력하라=====
-{{s}}
+=====지문의 앞부분에 해당하는 다음 부분에서 단어를 선택하고, 그 단어의 틀린 어휘 짝을 생각해 내어 그 둘을 출력하라=====
+{{s}} (...)
 `,
 
   constB: `영어 지문을 읽고 글의 문맥상 낱말의 적절한 단어를 선택하도록 하는 객관식 문제를 만들려고 한다. 지금 현재 준비된 것은 다음과 같다.
@@ -225,8 +230,8 @@ const inlinePrompts = {
 난이도 4: 긴 주어(10단어 이상) 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 
-=====지문에 사용된 문장 중 하나인 다음 문장에서 단어를 선택하고, 그 단어의 틀린 어휘 짝을 생각해 내어 그 둘을 출력하라=====
-{{s}}
+=====지문의 중간 부분에 해당하는 다음에서 단어를 선택하고, 그 단어의 틀린 어휘 짝을 생각해 내어 그 둘을 출력하라=====
+(...) {{s}} (...)
 `,
 
 
@@ -262,8 +267,8 @@ const inlinePrompts = {
 난이도 4: 긴 주어(10단어 이상) 다음에 오는 3인칭 단수 동사, 분사구문, 전치사 + 관계대명사 구문, It ~ that 강조구문, 접속사와 전치사 구별, 가주어/가목적어 구문(It is important to V, I found it difficult to V 등), 복합관계사, 부정어 도치(Never have I seen such a thing.), 대동사
 난이도 5: 혼합 가정법(If I had studied, I would be...), what 강조구문 등
 
-=====지문에 사용된 문장 중 하나인 다음 문장에서 단어를 선택하고, 그 단어의 틀린 어휘 짝을 생각해 내어 그 둘을 출력하라=====
-{{s}}
+=====지문의 마지막 부분에 해당하는 다음 부분에서 단어를 선택하고, 그 단어의 틀린 어휘 짝을 생각해 내어 그 둘을 출력하라=====
+(...) {{s}}
 `,
 
   conste: `다음 문맥상 적절한 어휘 고르기 문제의 해설을 작성해야 한다. 다른 설명은 덧붙이지 말고 아래 예시의 포맷에 맞추어 주어진 문제를 풀고 그에 대한 해설을 작성해 출력하라.
