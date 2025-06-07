@@ -35,9 +35,29 @@ function extractAsteriskedText(passage) {
   }
 }
 
+function splitByWordCount(passage) {
+  const words = passage.split(/\s+/);
+  const chunkSize = Math.floor(words.length / 5);
+  const chunks = [];
+
+  for (let i = 0; i < 5; i++) {
+    const start = chunkSize * i;
+    const end = i === 4 ? words.length : chunkSize * (i + 1);
+    const text = words.slice(start, end).join(' ');
+    chunks.push({
+      id: `chunk_${i}`,
+      text,
+      index: passage.indexOf(text)
+    });
+  }
+
+  return chunks;
+}
 
 async function generateVocabProblem(passage) {
-  const sentences = passage.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
+  const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
+
+  const sentences = cleanPassage.split(/[.!?]\s+/).filter(s => s.trim());
   if (sentences.length < 5) {
     return {
       problem: '최소 5문장 이상을 입력하세요. (어휘5다선지)',
@@ -46,67 +66,41 @@ async function generateVocabProblem(passage) {
     };
   }
 
-  const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
-
-const sentenceList = cleanPassage
-  .split(/[.!?]\s+/)
-  .filter(s => s.trim().length > 0)
-  .sort((a, b) => b.length - a.length)
-  .slice(0, 5)
-  .map((s, i) => ({ id: `s${i + 1}`, text: s }));
-
-console.log('📌 sentenceList (Top 5 longest sentences):');
-sentenceList.forEach((s, i) => {
-  console.log(`${i + 1}: ${s.text}`);
-});
+  const topFive = splitByWordCount(cleanPassage);
 
   let revisedPassage = cleanPassage;
 
-  const o1 = await fetchPrompt('consto1', { p: cleanPassage, s: sentenceList[0].text });
-  const word1 = o1.trim();
-  const s1Mod = sentenceList[0].text.replace(new RegExp(`\\b${word1}\\b`), `[선택지후보]${word1}`);
-  revisedPassage = revisedPassage.replace(sentenceList[0].text, s1Mod);
+  const prompts = ['consto1', 'consto2', 'consto3', 'consto4', 'consto5'];
+  const words = [];
 
-  const o2 = await fetchPrompt('consto2', { p: revisedPassage, s: sentenceList[1].text });
-  const word2 = o2.trim();
-  const s2Mod = sentenceList[1].text.replace(new RegExp(`\\b${word2}\\b`), `[선택지후보]${word2}`);
-  revisedPassage = revisedPassage.replace(sentenceList[1].text, s2Mod);
+  for (let i = 0; i < 5; i++) {
+    const word = (await fetchPrompt(prompts[i], {
+      p: revisedPassage,
+      s: topFive[i].text
+    })).trim();
+    words.push(word);
 
-  const o3 = await fetchPrompt('consto3', { p: revisedPassage, s: sentenceList[2].text });
-  const word3 = o3.trim();
-  const s3Mod = sentenceList[2].text.replace(new RegExp(`\\b${word3}\\b`), `[선택지후보]${word3}`);
-  revisedPassage = revisedPassage.replace(sentenceList[2].text, s3Mod);
+    const modified = topFive[i].text.replace(
+      new RegExp(`\\b${word}\\b`),
+      `[선택지후보]${word}`
+    );
+    revisedPassage = revisedPassage.replace(topFive[i].text, modified);
+  }
 
-  const o4 = await fetchPrompt('consto4', { p: revisedPassage, s: sentenceList[3].text });
-  const word4 = o4.trim();
-  const s4Mod = sentenceList[3].text.replace(new RegExp(`\\b${word4}\\b`), `[선택지후보]${word4}`);
-  revisedPassage = revisedPassage.replace(sentenceList[3].text, s4Mod);
+  const randomIndex = Math.floor(Math.random() * 5);
+  const originalWord = words[randomIndex];
+  const originalSentence = topFive[randomIndex].text;
 
-  const o5 = await fetchPrompt('consto5', { p: revisedPassage, s: sentenceList[4].text });
-  const word5 = o5.trim();
-  const s5Mod = sentenceList[4].text.replace(new RegExp(`\\b${word5}\\b`), `[선택지후보]${word5}`);
-  revisedPassage = revisedPassage.replace(sentenceList[4].text, s5Mod);
-
-  const choices = [
-    { word: word1, sentence: sentenceList[0].text },
-    { word: word2, sentence: sentenceList[1].text },
-    { word: word3, sentence: sentenceList[2].text },
-    { word: word4, sentence: sentenceList[3].text },
-    { word: word5, sentence: sentenceList[4].text }
-  ];
-  const randomIndex = Math.floor(Math.random() * choices.length);
-  const targetChoice = choices[randomIndex];
-
-  const originalWord = [o1, o2, o3, o4, o5][randomIndex].trim();
-  const originalSentence = sentenceList[randomIndex].text;
-
-  const c = await fetchPrompt('constc', { p: cleanPassage, s: originalSentence, word: originalWord });
+  const modifiedWord = (await fetchPrompt('constc', {
+    p: cleanPassage,
+    s: originalSentence,
+    word: originalWord
+  })).trim();
 
   const finalPassage = revisedPassage.replace(
     `[선택지후보]${originalWord}`,
-    `[선택지후보]${c.trim()}`
-);
-
+    `[선택지후보]${modifiedWord}`
+  );
 
   const optionRegex = /\[선택지후보\](\w+)/g;
   let match;
@@ -124,27 +118,22 @@ sentenceList.forEach((s, i) => {
     const word = match[1];
     const numbered = `${getNumberSymbol(index)} <${word}>`;
     numberedPassage = numberedPassage.replace(`[선택지후보]${word}`, numbered);
-    numberMap.push({ word, number: index }); // 정답 계산용
+    numberMap.push({ word, number: index });
   }
 
   const question = `다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 <않은> 것은?\n${numberedPassage}`;
-  const answerEntry = numberMap.find(entry => entry.word === c.trim());
- 
-function getNumberSymbol(n) {
-  const symbols = ['①', '②', '③', '④', '⑤'];
-  return symbols[n - 1] || n.toString();
-}
+  const answerEntry = numberMap.find(entry => entry.word === modifiedWord);
+  const answer = answerEntry ? getNumberSymbol(answerEntry.number) : null;
 
-const answer = answerEntry ? getNumberSymbol(answerEntry.number) : null;
-
-  const e = await fetchPrompt('conste', { p: question });
+  const explanation = await fetchPrompt('conste', { p: question });
 
   return {
     problem: question,
-    answer: answer,
-    explanation: e
+    answer,
+    explanation
   };
 }
+
 
 async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
   const promptTemplate = inlinePrompts[key];
