@@ -150,14 +150,10 @@ async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
 const inlinePrompts = {
  
   consti: `영어 지문에서 함축의미가 담긴 어구 하나를 가리켜 그것이 의미하는 속뜻을 물어보는 객관식 문제를 만들려고 한다. 지금 현재는 영어 지문만이 준비되어 있는 상태다.
-  다음 지문을 보고, 글의 흐름상 중요한 함축 의미를 담고 있는 어구가 있는지 살펴본 후에 하나를 골라 지문에 사용된 모습 그대로 출력하라.
-  단, 어구를 고를 때는 아래 함축의미의 문맥의존도 표를 참고하여, 문맥의존도가 높은 것(문맥의존도 5이상)에서 선택해야 한다.
+  다음 지문을 보고, 글의 흐름상 중요한 비유, 상징적 함축 의미를 담고 있는 어구가 있는지 살펴본 후에 하나를 골라 지문에 사용된 모습 그대로 출력하라.
+  단, 어구를 고를 때는 아래 함축의미의 문맥의존도 표를 참고하여, 문맥의존도가 높은 것에서 선택해야 한다.
   
 =========문맥의존도 분류표===========
-문맥의존도 1 | 의미가 명확하며, 문장 하나로도 충분히 해석 가능함 | Example: "money" from "Time is money."
-문맥의존도 2 | 비유는 있지만 널리 쓰이며 별다른 문맥 없이도 해석 가능 | Example: "a heart of stone" from "She has a heart of stone."
-문맥의존도 3 | 익숙한 표현이지만 상황에 따라 약간 해석이 달라질 수 있음 | Example: "the light" from "He finally saw the light."
-문맥의존도 4 | 비유와 사실 사이에 모호성이 있어 문맥이 있으면 더 정확함  | Example: "pulled the plug" from "They pulled the plug on the project."
 문맥의존도 5 | 단독 문장으로도 해석 가능하지만, 말하는 의도는 불분명함  | Example: "walking a fine line" from "She’s walking a fine line."
 문맥의존도 6 | 이미지 중심의 표현으로 문맥 없이 해석하면 표면적 의미만 전달됨 | Example: "The ground shifted beneath his feet." from "The ground shifted beneath his feet."
 문맥의존도 7 | 표현 자체는 단순하지만 의미가 문맥에 크게 의존함  | Example: "a paper house" from "It was a paper house from the start."
@@ -170,7 +166,8 @@ const inlinePrompts = {
 {{p}}
 ====================================
 
-다른 설명이나, 표시, 마크, 구두점 등은 모두 금지된다. 네가 선택한 어구만을 출력하라. [중요!] 만약, 문맥의존도5 이상에 해당하는 어구로 선택할 만한 것을 찾지 못했다면, 오직 숫자 0을 출력하라.
+다른 설명이나, 표시, 마크, 구두점 등은 모두 금지된다. 네가 선택한 어구만을 출력하라. 
+[매우 중요] 비유, 상징적 함축 의미가 없는 어구를 출력할 경우, 시스템이 망가질 수 있다. 따라서, 그럴 경우 시스템이 멈출 수 있도록 숫자 0을 출력하라.
   
   `,
 
