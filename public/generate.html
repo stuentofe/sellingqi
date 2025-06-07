@@ -130,115 +130,120 @@
     <div class="output" id="outputBox"></div>
   </div>
 
-  <script>
+<script>
+  if (window.top === window.self) {
+    document.body.innerHTML = "이 페이지는 iframe에서만 사용 가능합니다.";
+    throw new Error("Blocked: not in iframe");
+  }
 
-    if (window.top === window.self) {
-      document.body.innerHTML = "이 페이지는 iframe에서만 사용 가능합니다.";
-      throw new Error("Blocked: not in iframe");
-    }
+  const allowedHost = "https://easyenough.tistory.com";
+  if (!document.referrer.startsWith(allowedHost)) {
+    document.body.innerHTML = "접근이 허용되지 않은 출처입니다.";
+    throw new Error("Blocked: invalid referrer");
+  }
 
-    const allowedHost = "https://easyenough.tistory.com";
+  const TYPES = [
+    '요지', '요지(영)', '주제', '제목', '요약', '삽입', '순서', '흐름', '함축의미',
+    '어법', '어법ABC', '어휘', '어휘ABC', '불일치', '불일치(영)', '빈칸(단어)', '빈칸(어구)'
+  ];
+  const TYPE_KEYS = [
+    'gist', 'giste', 'topic', 'title', 'summary', 'inserting', 'ordering', 'flow', 'implication',
+    'grammar', 'grammarabc', 'vocab', 'vocababc', 'detail', 'detaile', 'blanka', 'blankb'
+  ];
 
-    if (!document.referrer.startsWith(allowedHost)) {
-      document.body.innerHTML = "접근이 허용되지 않은 출처입니다.";
-      throw new Error("Blocked: invalid referrer");
-    } 
+  window.onload = () => {
+    const container = document.getElementById('typeSwitches');
+    TYPES.forEach((label, i) => {
+      const id = 'type_' + TYPE_KEYS[i];
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.id = id;
+      input.value = TYPE_KEYS[i];
 
-    
-    const TYPES = [
-      '요지', '요지(영)', '주제', '제목', '요약', '삽입', '순서', '흐름', '함축의미',
-      '어법', '어법ABC', '어휘', '어휘ABC', '불일치', '불일치(영)', '빈칸(단어)', '빈칸(어구)'
-    ];
+      const labelEl = document.createElement('label');
+      labelEl.htmlFor = id;
+      labelEl.textContent = label;
 
-    const TYPE_KEYS = [
-      'gist', 'giste', 'topic', 'title', 'summary', 'inserting', 'ordering', 'flow', 'implication', 
-      'grammar', 'grammarabc', 'vocab', 'vocababc', 'detail', 'detaile', 'blanka', 'blankb'
-    ];
-
-    window.onload = () => {
-      const container = document.getElementById('typeSwitches');
-      TYPES.forEach((label, i) => {
-        const id = 'type_' + TYPE_KEYS[i];
-
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.id = id;
-        input.value = TYPE_KEYS[i];
-
-        const labelEl = document.createElement('label');
-        labelEl.htmlFor = id;
-        labelEl.textContent = label;
-
-        container.appendChild(input);
-        container.appendChild(labelEl);
-      });
-    };
-
-    function escapeHTML(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-function underlineAngleBracketsBeforeEscape(text) {
-  const withUnderline = text.replace(/<([^>]+)>/g, '<u>$1</u>');
-  const token = '___TAG___';
-  let tmp = withUnderline
-    .replace(/<u>/g, token + 'OPEN___')
-    .replace(/<\/u>/g, token + 'CLOSE___');
-
-  const escaped = escapeHTML(tmp);
-
-  return escaped
-    .replace(new RegExp(token + 'OPEN___', 'g'), '<u>')
-    .replace(new RegExp(token + 'CLOSE___', 'g'), '</u>');
-}
-
-
-    document.getElementById('generateBtn').addEventListener('click', async () => {
-      const text = document.getElementById('inputText').value.trim();
-      const outputBox = document.getElementById('outputBox');
-      const progressStatus = document.getElementById('progressStatus');
-      outputBox.innerHTML = '';
-      progressStatus.textContent = '';
-
-      if (!text) {
-        outputBox.innerHTML = '<p class="error">지문을 입력하세요.</p>';
-        return;
-      }
-
-      const selected = Array.from(document.querySelectorAll('.switches input:checked')).map(e => e.value);
-      if (selected.length === 0) {
-        outputBox.innerHTML = '<p class="error">유형을 하나 이상 선택하세요.</p>';
-        return;
-      }
-
-      progressStatus.textContent = '0%';
-
-      for (let i = 0; i < selected.length; i++) {
-        const type = selected[i];
-        try {
-          const res = await fetch(`/api/${type}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
-          });
-          const data = await res.json();
-
-          const pre = document.createElement('pre');
-             pre.innerHTML = `${i + 1}. ${underlineAngleBracketsBeforeEscape(data.problem || '')}<br><br>${underlineAngleBracketsBeforeEscape(data.explanation || '')}`;
-             outputBox.appendChild(pre);
-
-        } catch (err) {
-          const pre = document.createElement('pre');
-          pre.textContent = `${i + 1}번 문제 생성 실패`;
-          outputBox.appendChild(pre);
-        }
-
-        const percent = Math.floor(((i + 1) / selected.length) * 100);
-        progressStatus.textContent = `${percent}%`;
-      }
+      container.appendChild(input);
+      container.appendChild(labelEl);
     });
-  </script>
+  };
+
+  function escapeHTML(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function underlineAngleBracketsBeforeEscape(text) {
+    const withUnderline = text.replace(/<([^>]+)>/g, '<u>$1</u>');
+    const token = '___TAG___';
+    let tmp = withUnderline
+      .replace(/<u>/g, token + 'OPEN___')
+      .replace(/<\/u>/g, token + 'CLOSE___');
+
+    const escaped = escapeHTML(tmp);
+    return escaped
+      .replace(new RegExp(token + 'OPEN___', 'g'), '<u>')
+      .replace(new RegExp(token + 'CLOSE___', 'g'), '</u>');
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', async () => {
+    const text = document.getElementById('inputText').value.trim();
+    const outputBox = document.getElementById('outputBox');
+    const progressStatus = document.getElementById('progressStatus');
+    outputBox.innerHTML = '';
+    progressStatus.textContent = '';
+
+    if (!text) {
+      outputBox.innerHTML = '<p class="error">지문을 입력하세요.</p>';
+      return;
+    }
+
+    const selected = Array.from(document.querySelectorAll('.switches input:checked')).map(e => e.value);
+    if (selected.length === 0) {
+      outputBox.innerHTML = '<p class="error">유형을 하나 이상 선택하세요.</p>';
+      return;
+    }
+
+    progressStatus.textContent = '0%';
+
+    for (let i = 0; i < selected.length; i++) {
+      const type = selected[i];
+      try {
+        const res = await fetch(`/api/${type}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        const data = await res.json();
+
+        const pre = document.createElement('pre');
+        pre.innerHTML = `${i + 1}. ${underlineAngleBracketsBeforeEscape(data.problem || '')}<br><br>${underlineAngleBracketsBeforeEscape(data.explanation || '')}`;
+        outputBox.appendChild(pre);
+
+        await fetch('https://script.google.com/macros/s/AKfycbxP4Hx0lrDwMb4L8zTZ-iO8oGUWe4aDTOWSwmyV78_AxooaszN0gbn5xRjC9uX01qiOHg/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            problem: data.problem,
+            answer: data.answer,
+            explanation: data.explanation
+          })
+        });
+
+      } catch (err) {
+        const pre = document.createElement('pre');
+        pre.textContent = `${i + 1}번 문제 생성 실패`;
+        outputBox.appendChild(pre);
+      }
+
+      const percent = Math.floor(((i + 1) / selected.length) * 100);
+      progressStatus.textContent = `${percent}%`;
+    }
+  });
+</script>
+
 </body>
 </html>
