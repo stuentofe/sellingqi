@@ -114,6 +114,39 @@
     color: red;
     font-weight: bold;
   }
+  #consentPopup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: none; /* 초기 숨김, JS에서 표시 */
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.popup-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 90%;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+}
+
+.popup-content p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.popup-content button {
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 </style>
 
 </head>
@@ -129,8 +162,19 @@
 
     <div class="output" id="outputBox"></div>
   </div>
+  <div id="consentPopup" style="display: flex;">
+  <div class="popup-content">
+    <p>이 자리에 문구가 들어갑니다</p>
+    <button id="agreeBtn">동의합니다</button>
+  </div>
+</div>
 
 <script>
+  document.getElementById('consentPopup').style.display = 'flex';
+document.getElementById('agreeBtn').addEventListener('click', () => {
+  document.getElementById('consentPopup').style.display = 'none';
+});
+  
   if (window.top === window.self) {
     document.body.innerHTML = "이 페이지는 iframe에서만 사용 가능합니다.";
     throw new Error("Blocked: not in iframe");
