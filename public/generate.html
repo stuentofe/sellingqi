@@ -224,15 +224,16 @@
 
         // 시트 전송은 문제 생성 후 따로 처리
         try {
-          await fetch('https://script.google.com/macros/s/AKfycbz_dNuOcXbQ2cSNik8OnrKS5VYWKHCY9pvrjUEUL3IG-nPHWpDCax6kCHDmWyRQHo1j2g/exec', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              problem: data.problem,
-              answer: data.answer,
-              explanation: data.explanation
-            })
-          });
+await fetch('/api/save', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    problem: data.problem,
+    answer: data.answer,
+    explanation: data.explanation
+  })
+});
+
         } catch (sheetErr) {
           const sheetMsg = document.createElement('div');
           sheetMsg.textContent = `${i + 1}번 문제는 시트 저장에 실패했습니다.`;
