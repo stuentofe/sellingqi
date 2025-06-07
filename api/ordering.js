@@ -37,13 +37,15 @@ async function generateOrderingProblem(passage) {
     }
   }
 
-  
-  function splitParagraphIntoSentences(text) {
-    return text
+function splitParagraphIntoSentences(text) {
+  return (
+    text
       .replace(/\r?\n/g, " ")
-      .match(/[^.!?]+[.!?]+/g)
-      ?.map(s => s.trim()) || [];
-  }
+      .match(/.*?[.!?](?=\s+["“A-Z])/g)  
+      ?.map(s => s.trim()) || []
+  );
+}
+
 
  
   function getValid4ChunkCombinations(n) {
@@ -171,6 +173,7 @@ async function generateOrderingProblem(passage) {
     explanation: "순서가 고정되지 않는 글입니다."
   };
 }
+
 
 async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
   const promptTemplate = inlinePrompts[key];
