@@ -68,7 +68,7 @@ async function generateImplicationProblem(passage) {
       number: numberLabels[idx]
     }));
 
-  const question = `밑줄 친 <${i}>가 다음 글에서 의미하는 바로 가장 적절한 것은?\n${cleanPassage}\n\n${sorted.map(e => e.numbered).join('')}`;
+  const question = `밑줄 친 <${i}>가 다음 글에서 의미하는 바로 가장 적절한 것은?\n${bracketedPassage}\n\n${sorted.map(e => e.numbered).join('')}`;
 
   const e = await fetchPrompt('conste', { p: question });
   const cEntry = sorted.find(entry => entry.key === 'c');
