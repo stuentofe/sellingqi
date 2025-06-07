@@ -36,7 +36,7 @@ function extractAsteriskedText(passage) {
 }
 
 
-async function generateGistProblem(passage) {
+async function generateImplicationProblem(passage) {
   const { passage: cleanPassage, asterisked } = extractAsteriskedText(passage);
   
   const i = await fetchPrompt('consti', { p: cleanPassage });
