@@ -35,9 +35,30 @@ function extractAsteriskedText(passage) {
   }
 }
 
+function splitByWordCount(passage) {
+  const words = passage.split(/\s+/);
+  const chunkSize = Math.floor(words.length / 5);
+  const chunks = [];
+
+  for (let i = 0; i < 5; i++) {
+    const start = chunkSize * i;
+    const end = i === 4 ? words.length : chunkSize * (i + 1);
+    const text = words.slice(start, end).join(' ');
+    chunks.push({
+      id: `chunk_${i}`,
+      text,
+      index: passage.indexOf(text)
+    });
+  }
+
+  return chunks;
+}
+
 
 async function generateGrammarProblem(passage) {
-  const sentencesRaw = passage
+  const { passage: cleanPassage } = extractAsteriskedText(passage);
+
+  const sentencesRaw = cleanPassage
     .split(/[.!?]\s+/)
     .filter(s => s.trim().length > 0);
 
@@ -49,33 +70,24 @@ async function generateGrammarProblem(passage) {
     };
   }
 
-  // 지문 순서 정보 포함
-  const fullSentenceList = sentencesRaw.map((text, index) => ({
-    text,
-    order: index
-  }));
+  const topFive = splitByWordCount(cleanPassage);
 
-  // 가장 긴 문장 5개 선택
-  const sentenceList = [...fullSentenceList]
-    .sort((a, b) => b.text.length - a.text.length)
-    .slice(0, 5);
-
-  let revisedPassage = passage;
+  let revisedPassage = cleanPassage;
   const prompts = ['consto1', 'consto2', 'consto2', 'consto2', 'consto2'];
   const words = [];
 
   for (let i = 0; i < 5; i++) {
     const word = (await fetchPrompt(prompts[i], {
       p: revisedPassage,
-      s: sentenceList[i].text
+      s: topFive[i].text
     })).trim();
 
     words.push(word);
-    const modSentence = sentenceList[i].text.replace(
+    const modSentence = topFive[i].text.replace(
       new RegExp(`\\b${word}\\b`),
       `[선택지후보]<${word}>`
     );
-    revisedPassage = revisedPassage.replace(sentenceList[i].text, modSentence);
+    revisedPassage = revisedPassage.replace(topFive[i].text, modSentence);
   }
 
   const randomIndex = Math.floor(Math.random() * words.length);
@@ -83,7 +95,7 @@ async function generateGrammarProblem(passage) {
 
   const modifiedWord = (await fetchPrompt('constc', {
     p: passage,
-    s: sentenceList[randomIndex].text,
+    s: topFive[randomIndex].text,
     word: originalWord
   })).trim();
 
@@ -115,11 +127,7 @@ async function generateGrammarProblem(passage) {
     numberMap.unshift({ word: m.word });
   });
 
-  // ★ 정답 번호 계산용: 지문 순서 기준 sentenceList 만들기
-  const sentenceOrder = [...sentenceList].sort((a, b) => a.order - b.order);
-  const correctSentence = sentenceList[randomIndex];
-  const correctIndex = sentenceOrder.findIndex(s => s.text === correctSentence.text);
-  const answer = getNumberSymbol(correctIndex + 1);
+  const answer = getNumberSymbol(randomIndex + 1);
 
   const question = `다음 글의 밑줄 친 부분 중, 어법상 <틀린> 것은?\n${numberedPassage}`;
 
@@ -141,8 +149,6 @@ function getNumberSymbol(n) {
   const symbols = ['①', '②', '③', '④', '⑤'];
   return symbols[n - 1] || n.toString();
 }
-
-
 
 async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
   const promptTemplate = inlinePrompts[key];
