@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   const { problem, answer, explanation } = req.body;
 
   try {
-    const response = await fetch('https://script.google.com/macros/s/AKfycbwDi2xBrYI30tvuR06RF_wAOTCNzyotsJpPUV6FhS8Y0h3wLGeuQlULr9lcpAClPaYVrA/exec', {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbwBQT1jfm91-IGb3znz16vI06MMcJmcfkqKTDvfp3C1TQvwVrppz93vaagTJK25Hsnt2g/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
