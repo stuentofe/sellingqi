@@ -183,7 +183,7 @@ async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
 
   let prompt = promptTemplate;
   for (const k in replacements) {
-    prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k]);
+    prompt = prompt.replace(new RegExp(`{{${k}}}`, 'g'), replacements[k] ?? '');
   }
 
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -201,7 +201,7 @@ async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
           }
         ],
         generationConfig: {
-          temperature: 0.2
+          temperature: 0.2 // 안정적 정답 판별을 위해 낮춤
         },
         safetySettings: [
           { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -218,19 +218,24 @@ async function fetchPrompt(key, replacements = {}, model = 'gemini-2.0-flash') {
     }
 
     const data = await res.json();
-    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!fullText) {
+    if (!rawText) {
       throw new Error('Gemini 응답이 비었거나 예상과 다른 형식입니다.');
     }
 
-    return fullText;
+    // 응답 후처리 추가
+    return rawText
+      .trim()
+      .replace(/^["']+(.*?)["']+$/, '$1') // 따옴표 제거
+      .replace(/\*/g, ''); // 별표 제거
 
   } catch (err) {
     console.error('[Gemini API Error]', err);
     throw err;
   }
 }
+
 
 const inlinePrompts = { 
 ordering_verification: `
